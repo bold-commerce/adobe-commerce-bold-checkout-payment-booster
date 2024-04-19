@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Bold\Checkout\Model\ClearModuleConfiguration">
+        <arguments>
+            <argument name="paths" xsi:type="array">
+                <item name="bold_checkout_payment_booster" xsi:type="string">checkout/bold_checkout_payment_booster/%</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

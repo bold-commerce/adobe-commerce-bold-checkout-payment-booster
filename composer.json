@@ -1,0 +1,21 @@
+{
+  "name": "bold-commerce/module-checkout-payment-booster",
+  "description": "N/A",
+  "type": "magento2-module",
+  "license": [
+    "MIT"
+  ],
+  "version": "1.0.0",
+  "require": {
+    "magento/framework": ">=102.0.2 <103.0.8",
+    "bold-commerce/module-checkout": "1.1.*"
+  },
+  "autoload": {
+    "files": [
+      "registration.php"
+    ],
+    "psr-4": {
+      "Bold\\CheckoutPaymentBooster\\": ""
+    }
+  }
+}

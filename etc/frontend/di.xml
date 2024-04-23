@@ -13,6 +13,13 @@
             </argument>
         </arguments>
     </type>
+    <type name="Bold\Checkout\Model\RedirectToBoldCheckout\IsOrderInitializationAllowedPool">
+        <arguments>
+            <argument name="elementList" xsi:type="array">
+                <item name="isAllowedForRequest" xsi:type="object">Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout\IsOrderInitializationAllowedForRequest</item>
+            </argument>
+        </arguments>
+    </type>
     <type name="Bold\Checkout\Model\RedirectToBoldCheckout\IsRedirectToBoldCheckoutAllowedPool">
         <arguments>
             <argument name="elementList" xsi:type="array">

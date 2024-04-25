@@ -4,11 +4,13 @@
     <system>
         <section id="checkout">
             <group id="bold_checkout_payment_booster" translate="label" sortOrder="120" showInDefault="1" showInWebsite="1">
-                <label>Bold Checkout Payment Booster</label>
+                <label>Bold Checkout Payment Booster Extension</label>
                 <field id="is_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1">
                     <label>Is Payment Booster Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Enable Bold Checkout Payment Booster.]]></comment>
+                    <comment><![CDATA[
+                        Use the native checkout with Bold Checkout's payment options.
+                    ]]></comment>
                 </field>
             </group>
         </section>

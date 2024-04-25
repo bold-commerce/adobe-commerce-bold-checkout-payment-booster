@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Setup\Patch\Data;
 
-use Bold\Checkout\Model\ConfigInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
 
@@ -13,7 +12,7 @@ use Magento\Framework\Setup\Patch\DataPatchInterface;
  */
 class MigrateCheckoutTypeConfigurationPatch implements DataPatchInterface
 {
-    private const SOURCE_TYPE = ConfigInterface::VALUE_TYPE_SELF;
+    private const SOURCE_TYPE = 2;
     private const PATH_SOURCE = 'checkout/bold_checkout_base/type';
     private const PATH_TARGET = 'checkout/bold_checkout_payment_booster/is_enabled';
 

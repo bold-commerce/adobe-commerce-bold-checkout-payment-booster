@@ -3,7 +3,12 @@ define([
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/address',
     'Bold_CheckoutPaymentBooster/js/model/customer'
-], function ($, _, boldAddress, boldCustomer) {
+], function (
+    $,
+    _,
+    boldAddress,
+    boldCustomer
+) {
     'use strict';
 
     let requestInProgress = false;
@@ -137,5 +142,6 @@ define([
     };
 
     client.initialize();
+
     return client;
 });

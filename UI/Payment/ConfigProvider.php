@@ -119,8 +119,9 @@ class ConfigProvider implements ConfigProviderInterface
         }
         $websiteId = (int)$this->storeManager->getWebsite()->getId();
         $shopId = $this->config->getShopId($websiteId);
-        $orderId = $boldCheckoutData['data']['public_order_id'] ?? null;
+        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
+
         return [
             'bold' => [
                 'payment' => [
@@ -129,7 +130,7 @@ class ConfigProvider implements ConfigProviderInterface
                 ],
                 'shopId' => $shopId,
                 'customerIsGuest' => $this->checkoutSession->getQuote()->getCustomerIsGuest(),
-                'publicOrderId' => $orderId,
+                'publicOrderId' => $publicOrderId,
                 'jwtToken' => $jwtToken,
                 'countries' => $this->getAllowedCountries(),
                 'url' => $this->client->getUrl($websiteId, ''),
@@ -158,11 +159,12 @@ class ConfigProvider implements ConfigProviderInterface
         } catch (\Exception $e) {
             return null;
         }
-        $orderId = $boldCheckoutData['data']['public_order_id'] ?? null;
+        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-        if (!$orderId || !$jwtToken) {
+        if (!$publicOrderId || !$jwtToken) {
             return null;
         }
+
         return $this->client->getUrl($websiteId, 'payments/iframe?token=' . $jwtToken);
     }
 
@@ -180,6 +182,7 @@ class ConfigProvider implements ConfigProviderInterface
         if (!$read->isFile('iframe-styles.json')) {
             return [];
         }
+
         return $this->json->unserialize($read->readFile('iframe-styles.json'));
     }
 
@@ -199,6 +202,7 @@ class ConfigProvider implements ConfigProviderInterface
             ['in' => $allowedCountries]
         );
         $this->countries = $countriesCollection->toOptionArray(false);
+
         return $this->countries;
     }
 }

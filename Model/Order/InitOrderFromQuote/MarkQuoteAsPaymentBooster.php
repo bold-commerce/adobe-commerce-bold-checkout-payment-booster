@@ -4,12 +4,9 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote;
 
 use Bold\Checkout\Model\Order\InitOrderFromQuote\OrderDataProcessorInterface;
-use Bold\Checkout\Model\Quote\QuoteExtensionDataFactory;
-use Bold\Checkout\Model\ResourceModel\Quote\QuoteExtensionData;
+use Bold\Checkout\Model\Quote\SetQuoteExtensionData;
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Exception;
 use Magento\Quote\Api\Data\CartInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Mark quote as a payment booster.
@@ -22,36 +19,20 @@ class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
     private $paymentBoosterConfig;
 
     /**
-     * @var QuoteExtensionDataFactory
+     * @var SetQuoteExtensionData
      */
-    private $quoteExtensionDataFactory;
-
-    /**
-     * @var QuoteExtensionData
-     */
-    private $quoteExtensionDataResource;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
+    private $setQuoteExtensionData;
 
     /**
      * @param Config $paymentBoosterConfig
-     * @param QuoteExtensionDataFactory $quoteExtensionDataFactory
-     * @param QuoteExtensionData $quoteExtensionDataResource
-     * @param LoggerInterface $logger
+     * @param SetQuoteExtensionData $setQuoteExtensionData
      */
     public function __construct(
         Config $paymentBoosterConfig,
-        QuoteExtensionDataFactory $quoteExtensionDataFactory,
-        QuoteExtensionData $quoteExtensionDataResource,
-        LoggerInterface $logger
+        SetQuoteExtensionData $setQuoteExtensionData
     ) {
         $this->paymentBoosterConfig = $paymentBoosterConfig;
-        $this->quoteExtensionDataFactory = $quoteExtensionDataFactory;
-        $this->quoteExtensionDataResource = $quoteExtensionDataResource;
-        $this->logger = $logger;
+        $this->setQuoteExtensionData = $setQuoteExtensionData;
     }
 
     /**
@@ -60,25 +41,8 @@ class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
     public function process(array $data, CartInterface $quote): array
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if (!$this->paymentBoosterConfig->isPaymentBoosterEnabled($websiteId)) {
-            return $data;
-        }
-        try {
-            $quoteExtensionData = $this->quoteExtensionDataFactory->create();
-            $this->quoteExtensionDataResource->load(
-                $quoteExtensionData,
-                $quote->getId(),
-                QuoteExtensionData::QUOTE_ID
-            );
-            if (!$quoteExtensionData->getId()) {
-                $quoteExtensionData->setQuoteId((int)$quote->getId());
-            }
-            $quoteExtensionData->setOrderCreated(true);
-            $this->quoteExtensionDataResource->save($quoteExtensionData);
-
-            return $data;
-        } catch (Exception $e) {
-            $this->logger->error($e->getMessage());
+        if ($this->paymentBoosterConfig->isPaymentBoosterEnabled($websiteId)) {
+            $this->setQuoteExtensionData->execute((int)$quote->getId(), true);
         }
 
         return $data;

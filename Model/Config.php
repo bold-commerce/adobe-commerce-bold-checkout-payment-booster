@@ -19,9 +19,8 @@ class Config
     /**
      * @param ConfigManagementInterface $configManagement
      */
-    public function __construct(
-        ConfigManagementInterface $configManagement
-    ) {
+    public function __construct(ConfigManagementInterface $configManagement)
+    {
         $this->configManagement = $configManagement;
     }
 

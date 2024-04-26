@@ -27,4 +27,11 @@
             </argument>
         </arguments>
     </type>
+    <type name="Bold\Checkout\Model\Order\InitOrderFromQuote">
+        <arguments>
+            <argument name="orderDataProcessors" xsi:type="array">
+                <item name="payment_booster" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsPaymentBooster</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

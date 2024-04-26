@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout;
@@ -35,7 +34,7 @@ class IsPaymentBoosterDisabled implements IsRedirectToBoldCheckoutAllowedInterfa
      * @param RequestInterface $request
      * @return bool
      */
-    public function isAllowed(CartInterface $quote,  RequestInterface $request): bool
+    public function isAllowed(CartInterface $quote, RequestInterface $request): bool
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 

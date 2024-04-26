@@ -1,9 +1,10 @@
 define([
-    'jquery',
-    'underscore',
     'mage/url',
     'mage/storage',
-], function ($, _, urlBuilder, storage) {
+], function (
+    urlBuilder,
+    storage
+) {
     'use strict';
 
     /**
@@ -47,5 +48,6 @@ define([
     };
 
     client.initialize();
+
     return client;
 });

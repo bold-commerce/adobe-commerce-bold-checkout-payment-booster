@@ -59,8 +59,8 @@ class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
      */
     public function process(array $data, CartInterface $quote): array
     {
-        $websiteId = $quote->getStore()->getWebsiteId();
-        if (!$this->paymentBoosterConfig->isPaymentBoosterEnabled((int)$websiteId)) {
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        if (!$this->paymentBoosterConfig->isPaymentBoosterEnabled($websiteId)) {
             return $data;
         }
         try {
@@ -75,10 +75,12 @@ class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
             }
             $quoteExtensionData->setOrderCreated(true);
             $this->quoteExtensionDataResource->save($quoteExtensionData);
+
             return $data;
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
+
         return $data;
     }
 }

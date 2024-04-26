@@ -1,12 +1,13 @@
 define([
-    'underscore',
     'Magento_Checkout/js/model/quote',
     'checkoutData'
-], function (_, quote, checkoutData) {
+], function (
+    quote,
+    checkoutData
+) {
     'use strict';
 
     return {
-
         /**
          * Get customer api data.
          *
@@ -27,6 +28,7 @@ define([
             if (!payload.email_address || !payload.first_name || !payload.last_name) {
                 return null;
             }
+
             return payload;
         }
     };

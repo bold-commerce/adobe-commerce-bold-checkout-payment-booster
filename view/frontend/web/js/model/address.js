@@ -2,7 +2,11 @@ define([
     'underscore',
     'Magento_Checkout/js/model/quote',
     'uiRegistry',
-], function (_, quote, registry) {
+], function (
+    _,
+    quote,
+    registry
+) {
     'use strict';
 
     /**

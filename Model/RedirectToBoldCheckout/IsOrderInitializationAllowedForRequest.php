@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout;
 
@@ -44,7 +45,9 @@ class IsOrderInitializationAllowedForRequest implements IsOrderInitializationAll
      */
     public function isAllowed(CartInterface $quote, RequestInterface $request): bool
     {
-        return $this->config->isPaymentBoosterEnabled((int)$quote->getStore()->getWebsiteId())
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+
+        return $this->config->isPaymentBoosterEnabled($websiteId)
             || $this->allowedForRequest->isAllowed($quote, $request);
     }
 }

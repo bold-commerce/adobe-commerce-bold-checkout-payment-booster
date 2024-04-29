@@ -12,7 +12,7 @@ class Config
 {
     private const PATH_IS_PAYMENT_BOOSTER_ENABLED = 'checkout/bold_checkout_payment_booster/is_payment_booster_enabled';
     private const PATH_IS_FASTLANE_ENABLED = 'checkout/bold_checkout_payment_booster/is_fastlane_enabled';
-    public const PAYMENT_FASTLANE_TITLE_CONFIG_PATH = 'checkout/bold_checkout_payment_booster/fastlane_payment_title';
+    public const FASTLANE_PAYMENT_TITLE_CONFIG_PATH = 'checkout/bold_checkout_payment_booster/fastlane_payment_title';
 
     /**
      * @var ConfigManagementInterface

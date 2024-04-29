@@ -7,12 +7,14 @@ define([
 ) {
     'use strict';
 
-    rendererList.push(
-        {
-            type: 'bold',
-            component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-method'
-        }
-    );
+    if (window.checkoutConfig.bold !== undefined) {
+        rendererList.push(
+            {
+                type: 'bold',
+                component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-method'
+            }
+        );
+    }
 
     return Component.extend({});
 });

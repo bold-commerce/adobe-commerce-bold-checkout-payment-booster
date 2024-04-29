@@ -29,11 +29,11 @@ define([
          * @inheritDoc
          */
         initialize: function () {
+            this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (window.checkoutConfig.bold === undefined) {
                 this.isVisible(false);
                 return;
             }
-            this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             this.subscribeToPIGI();
             this.customerIsGuest = !!Number(window.checkoutConfig.bold.customerIsGuest);
             this.awaitingRefreshBeforePlacingOrder = false;

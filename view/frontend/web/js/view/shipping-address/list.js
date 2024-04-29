@@ -33,11 +33,11 @@ define(
 
             /** @inheritdoc */
             initialize: function () {
+                this._super();
                 if (!fastlane.isEnabled()) {
                     this.visible(false);
                     return;
                 }
-                this._super();
                 customerAddressList.subscribe(function (changes) {
                         let self = this;
                         changes.forEach(function (change) {

@@ -8,7 +8,6 @@ use Bold\Checkout\Model\ConfigInterface;
 use Bold\CheckoutPaymentBooster\Model\Config as moduleConfig;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Config provider for Bold Fastlane.
@@ -19,11 +18,6 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      * @var Session
      */
     private $checkoutSession;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
 
     /**
      * @var moduleConfig
@@ -42,20 +36,17 @@ class FastlaneConfigProvider implements ConfigProviderInterface
 
     /**
      * @param Session $checkoutSession
-     * @param StoreManagerInterface $storeManager
      * @param moduleConfig $moduleConfig
      * @param ConfigInterface $config
      * @param ClientInterface $client
      */
     public function __construct(
         Session $checkoutSession,
-        StoreManagerInterface $storeManager,
         moduleConfig $moduleConfig,
         ConfigInterface $config,
         ClientInterface $client
     ) {
         $this->checkoutSession = $checkoutSession;
-        $this->storeManager = $storeManager;
         $this->moduleConfig = $moduleConfig;
         $this->config = $config;
         $this->client = $client;
@@ -67,12 +58,13 @@ class FastlaneConfigProvider implements ConfigProviderInterface
     public function getConfig(): array
     {
         $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
+        $quote = $this->checkoutSession->getQuote();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        if (!$boldCheckoutData) {
+        if (!$boldCheckoutData || !$this->moduleConfig->isFastlaneEnabled($websiteId)) {
             return [];
         }
 
-        $websiteId = (int)$this->storeManager->getWebsite()->getId();
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;

@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
     <policies>
         <policy id="connect-src">
             <values>
@@ -21,6 +22,11 @@
         <policy id="img-src">
             <values>
                 <value id="bold_commerce_static" type="host">https://static.boldcommerce.com</value>
+            </values>
+        </policy>
+        <policy id="font-src">
+            <values>
+                <value id="bold_fastlane_paypal_objects" type="host">https://www.paypalobjects.com</value>
             </values>
         </policy>
     </policies>

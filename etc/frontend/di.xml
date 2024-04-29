@@ -1,7 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Bold\CheckoutPaymentBooster\UI\Payment\ConfigProvider">
+    <type name="Bold\CheckoutPaymentBooster\UI\Payment\PaymentBoosterConfigProvider">
+        <arguments>
+            <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldStorefrontClient</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider">
         <arguments>
             <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldStorefrontClient</argument>
         </arguments>
@@ -9,7 +14,8 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="bold_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\ConfigProvider</item>
+                <item name="bold_payment_booster_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\PaymentBoosterConfigProvider</item>
+                <item name="bold_fastlane_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider</item>
             </argument>
         </arguments>
     </type>
@@ -24,6 +30,7 @@
         <arguments>
             <argument name="elementList" xsi:type="array">
                 <item name="isPaymentBoosterDisabled" xsi:type="object">Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout\IsPaymentBoosterDisabled</item>
+                <item name="isFastlaneDisabled" xsi:type="object">Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout\IsFastlaneDisabled</item>
             </argument>
         </arguments>
     </type>
@@ -31,6 +38,7 @@
         <arguments>
             <argument name="orderDataProcessors" xsi:type="array">
                 <item name="payment_booster" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsPaymentBooster</item>
+                <item name="fastlane" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsFastlane</item>
             </argument>
         </arguments>
     </type>

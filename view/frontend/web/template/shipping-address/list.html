@@ -1,0 +1,14 @@
+<!-- ko if: (visible())-->
+<div class="field addresses">
+    <div class="control">
+        <div class="shipping-address-items">
+            <!-- ko foreach: { data: elems, as: 'element' } -->
+            <!-- ko template: element.getTemplate() --><!-- /ko -->
+            <!-- /ko -->
+            <div id="fastlane-address-list-watermark-container">
+                <img src="https://www.paypalobjects.com/connect-boba/assets/FastLaneLogoSmall.svg" alt=""/>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /ko -->

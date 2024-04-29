@@ -1,6 +1,6 @@
 define([
     'Magento_Checkout/js/view/payment/default',
-    'Bold_CheckoutPaymentBooster/js/model/bold_frontend_client',
+    'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'uiRegistry',
@@ -18,7 +18,7 @@ define([
     'use strict';
     return Component.extend({
         defaults: {
-            template: 'Bold_CheckoutPaymentBooster/payment/bold.html',
+            template: 'Bold_CheckoutPaymentBooster/payment/bold',
             paymentType: null,
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),

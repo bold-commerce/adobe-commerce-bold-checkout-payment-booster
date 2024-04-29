@@ -23,7 +23,7 @@ use Magento\Store\Model\StoreManagerInterface;
 /**
  * Config provider for Bold Checkout.
  */
-class ConfigProvider implements ConfigProviderInterface
+class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
     /**
      * @var Session

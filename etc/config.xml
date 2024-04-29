@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <bold_fastlane>
+                <active>1</active>
+                <model>Bold\CheckoutPaymentBooster\Payment\Fastlane\Model\Method\Adapter</model>
+                <order_status>pending</order_status>
+                <title>PayPal Fastlane</title>
+                <allowspecific>0</allowspecific>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <group>bold_payments_fastlane</group>
+            </bold_fastlane>
+        </payment>
+        <checkout>
+            <bold_checkout_payment_booster>
+                <is_payment_booster_enabled>0</is_payment_booster_enabled>
+                <is_fastlane_enabled>0</is_fastlane_enabled>
+                <fastlane_payment_title>PayPal Fastlane</fastlane_payment_title>
+            </bold_checkout_payment_booster>
+        </checkout>
+    </default>
+</config>

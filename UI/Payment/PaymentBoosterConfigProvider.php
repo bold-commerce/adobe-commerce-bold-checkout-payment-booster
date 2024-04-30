@@ -6,24 +6,23 @@ namespace Bold\CheckoutPaymentBooster\UI\Payment;
 use Bold\Checkout\Api\Http\ClientInterface;
 use Bold\Checkout\Model\ConfigInterface;
 use Bold\Checkout\Model\Payment\Gateway\Service;
+use Bold\CheckoutPaymentBooster\Model\Config as ModuleConfig;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
 use Magento\Framework\Module\Dir;
 use Magento\Framework\Module\Dir\Reader;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Store\Model\StoreManagerInterface;
 
 /**
  * Config provider for Bold Checkout.
  */
-class ConfigProvider implements ConfigProviderInterface
+class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
     /**
      * @var Session
@@ -34,11 +33,6 @@ class ConfigProvider implements ConfigProviderInterface
      * @var ClientInterface
      */
     private $client;
-
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
 
     /**
      * @var ConfigInterface
@@ -76,36 +70,41 @@ class ConfigProvider implements ConfigProviderInterface
     private $countries;
 
     /**
+     * @var ModuleConfig
+     */
+    private ModuleConfig $moduleConfig;
+
+    /**
      * @param Session $checkoutSession
      * @param ConfigInterface $config
      * @param ClientInterface $client
-     * @param StoreManagerInterface $storeManager
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
      * @param Json $json
      * @param Reader $moduleReader
      * @param ReadFactory $readFactory
+     * @param ModuleConfig $moduleConfig
      */
     public function __construct(
         Session $checkoutSession,
         ConfigInterface $config,
         ClientInterface $client,
-        StoreManagerInterface $storeManager,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
         Json $json,
         Reader $moduleReader,
-        ReadFactory $readFactory
+        ReadFactory $readFactory,
+        ModuleConfig $moduleConfig
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->client = $client;
-        $this->storeManager = $storeManager;
         $this->config = $config;
         $this->json = $json;
         $this->moduleReader = $moduleReader;
         $this->readFactory = $readFactory;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
+        $this->moduleConfig = $moduleConfig;
     }
 
     /**
@@ -114,10 +113,13 @@ class ConfigProvider implements ConfigProviderInterface
     public function getConfig(): array
     {
         $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        if (!$boldCheckoutData) {
+        $quote = $this->checkoutSession->getQuote();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+
+        if (!$boldCheckoutData || !$this->moduleConfig->isPaymentBoosterEnabled($websiteId)) {
             return [];
         }
-        $websiteId = (int)$this->storeManager->getWebsite()->getId();
+
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
@@ -125,11 +127,11 @@ class ConfigProvider implements ConfigProviderInterface
         return [
             'bold' => [
                 'payment' => [
-                    'iframeSrc' => $this->getIframeSrc(),
+                    'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
                     'method' => Service::CODE,
                 ],
                 'shopId' => $shopId,
-                'customerIsGuest' => $this->checkoutSession->getQuote()->getCustomerIsGuest(),
+                'customerIsGuest' => $quote->getCustomerIsGuest(),
                 'publicOrderId' => $publicOrderId,
                 'jwtToken' => $jwtToken,
                 'countries' => $this->getAllowedCountries(),
@@ -141,27 +143,26 @@ class ConfigProvider implements ConfigProviderInterface
     /**
      * Get iframe src.
      *
+     * @param string|null $publicOrderId
+     * @param string|null $jwtToken
+     * @param int $websiteId
      * @return string|null
-     * @throws LocalizedException
      */
-    private function getIframeSrc(): ?string
-    {
-        $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        if (!$boldCheckoutData) {
+    private function getIframeSrc(
+        ?string $publicOrderId,
+        ?string $jwtToken,
+        int $websiteId
+    ): ?string {
+        if (!$publicOrderId || !$jwtToken) {
             return null;
         }
-        $websiteId = (int)$this->storeManager->getWebsite()->getId();
+
         try {
             $styles = $this->getStyles();
             if ($styles) {
                 $this->client->post($websiteId, 'payments/styles', $styles);
             }
         } catch (\Exception $e) {
-            return null;
-        }
-        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
-        $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-        if (!$publicOrderId || !$jwtToken) {
             return null;
         }
 

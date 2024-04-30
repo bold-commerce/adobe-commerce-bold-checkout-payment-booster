@@ -7,11 +7,11 @@ define([
 ) {
     'use strict';
 
-    if (window.checkoutConfig.bold !== undefined) {
+    if (window.checkoutConfig.bold_fastlane !== undefined) {
         rendererList.push(
             {
-                type: 'bold',
-                component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-method'
+                type: 'bold_fastlane',
+                component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-fastlane-method'
             }
         );
     }

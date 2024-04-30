@@ -5,7 +5,7 @@ namespace Bold\CheckoutPaymentBooster\Model\RedirectToBoldCheckout;
 
 use Bold\Checkout\Model\IsBoldCheckoutAllowedForRequest;
 use Bold\Checkout\Model\RedirectToBoldCheckout\IsOrderInitializationAllowedInterface;
-use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Config as ModuleConfig;
 use Magento\Framework\App\RequestInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
@@ -20,20 +20,20 @@ class IsOrderInitializationAllowedForRequest implements IsOrderInitializationAll
     private $allowedForRequest;
 
     /**
-     * @var Config
+     * @var ModuleConfig
      */
-    private $config;
+    private $moduleConfig;
 
     /**
      * @param IsBoldCheckoutAllowedForRequest $allowedForRequest
-     * @param Config $config
+     * @param ModuleConfig $moduleConfig
      */
     public function __construct(
         IsBoldCheckoutAllowedForRequest $allowedForRequest,
-        Config $config
+        ModuleConfig $moduleConfig
     ) {
         $this->allowedForRequest = $allowedForRequest;
-        $this->config = $config;
+        $this->moduleConfig = $moduleConfig;
     }
 
     /**
@@ -47,7 +47,7 @@ class IsOrderInitializationAllowedForRequest implements IsOrderInitializationAll
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        return $this->config->isPaymentBoosterEnabled($websiteId)
+        return $this->moduleConfig->isPaymentBoosterEnabled($websiteId)
             || $this->allowedForRequest->isAllowed($quote, $request);
     }
 }

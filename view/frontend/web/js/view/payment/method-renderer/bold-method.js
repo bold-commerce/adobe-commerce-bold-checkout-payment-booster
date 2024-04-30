@@ -1,6 +1,6 @@
 define([
     'Magento_Checkout/js/view/payment/default',
-    'Bold_CheckoutPaymentBooster/js/model/bold_frontend_client',
+    'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'uiRegistry',
@@ -18,7 +18,7 @@ define([
     'use strict';
     return Component.extend({
         defaults: {
-            template: 'Bold_CheckoutPaymentBooster/payment/bold.html',
+            template: 'Bold_CheckoutPaymentBooster/payment/bold',
             paymentType: null,
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
@@ -29,11 +29,11 @@ define([
          * @inheritDoc
          */
         initialize: function () {
+            this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (window.checkoutConfig.bold === undefined) {
                 this.isVisible(false);
                 return;
             }
-            this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             this.subscribeToPIGI();
             this.customerIsGuest = !!Number(window.checkoutConfig.bold.customerIsGuest);
             this.awaitingRefreshBeforePlacingOrder = false;

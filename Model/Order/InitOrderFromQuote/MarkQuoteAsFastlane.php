@@ -9,9 +9,9 @@ use Bold\CheckoutPaymentBooster\Model\Config as ModuleConfig;
 use Magento\Quote\Api\Data\CartInterface;
 
 /**
- * Mark quote as Payment Booster.
+ * Mark quote as Fastlane.
  */
-class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
+class MarkQuoteAsFastlane implements OrderDataProcessorInterface
 {
     /**
      * @var ModuleConfig
@@ -41,7 +41,7 @@ class MarkQuoteAsPaymentBooster implements OrderDataProcessorInterface
     public function process(array $data, CartInterface $quote): array
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if ($this->moduleConfig->isPaymentBoosterEnabled($websiteId)) {
+        if ($this->moduleConfig->isFastlaneEnabled($websiteId)) {
             $this->setQuoteExtensionData->execute((int)$quote->getId(), true);
         }
 

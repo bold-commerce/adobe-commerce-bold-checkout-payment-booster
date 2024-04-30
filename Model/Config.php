@@ -10,7 +10,9 @@ use Bold\Checkout\Api\ConfigManagementInterface;
  */
 class Config
 {
-    private const PATH_IS_PAYMENT_BOOSTER_ENABLED = 'checkout/bold_checkout_payment_booster/is_enabled';
+    private const PATH_IS_PAYMENT_BOOSTER_ENABLED = 'checkout/bold_checkout_payment_booster/is_payment_booster_enabled';
+    private const PATH_IS_FASTLANE_ENABLED = 'checkout/bold_checkout_payment_booster/is_fastlane_enabled';
+    public const PATH_FASTLANE_PAYMENT_TITLE = 'checkout/bold_checkout_payment_booster/fastlane_payment_title';
 
     /**
      * @var ConfigManagementInterface
@@ -27,12 +29,23 @@ class Config
     }
 
     /**
-     * Get if the Payment Booster is enabled.
+     * Check if the Payment Booster is enabled.
      */
     public function isPaymentBoosterEnabled(int $websiteId): bool
     {
         return (bool)$this->configManagement->getValue(
             self::PATH_IS_PAYMENT_BOOSTER_ENABLED,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if the Fastlane is enabled.
+     */
+    public function isFastlaneEnabled(int $websiteId): bool
+    {
+        return (bool)$this->configManagement->getValue(
+            self::PATH_IS_FASTLANE_ENABLED,
             $websiteId
         );
     }

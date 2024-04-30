@@ -9,9 +9,9 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
 /**
- * Checks if Payment Booster is not enabled for website.
+ * Checks if Fastlane is not enabled for website.
  */
-class IsPaymentBoosterDisabled implements IsRedirectToBoldCheckoutAllowedInterface
+class IsFastlaneDisabled implements IsRedirectToBoldCheckoutAllowedInterface
 {
     /**
      * @var ModuleConfig
@@ -28,12 +28,12 @@ class IsPaymentBoosterDisabled implements IsRedirectToBoldCheckoutAllowedInterfa
     }
 
     /**
-     * @inheirtDoc
+     * @inheritDoc
      */
     public function isAllowed(CartInterface $quote, RequestInterface $request): bool
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        return !$this->moduleConfig->isPaymentBoosterEnabled($websiteId);
+        return !$this->moduleConfig->isFastlaneEnabled($websiteId);
     }
 }

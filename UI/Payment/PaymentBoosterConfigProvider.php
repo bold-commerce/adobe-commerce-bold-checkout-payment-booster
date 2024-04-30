@@ -127,7 +127,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         return [
             'bold' => [
                 'payment' => [
-                    'iframeSrc' => $this->getIframeSrc($websiteId),
+                    'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
                     'method' => Service::CODE,
                 ],
                 'shopId' => $shopId,
@@ -143,22 +143,26 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     /**
      * Get iframe src.
      *
+     * @param string|null $publicOrderId
+     * @param string|null $jwtToken
      * @param int $websiteId
      * @return string|null
      */
-    private function getIframeSrc(int $websiteId): ?string
-    {
+    private function getIframeSrc(
+        ?string $publicOrderId,
+        ?string $jwtToken,
+        int $websiteId
+    ): ?string {
+        if (!$publicOrderId || !$jwtToken) {
+            return null;
+        }
+
         try {
             $styles = $this->getStyles();
             if ($styles) {
                 $this->client->post($websiteId, 'payments/styles', $styles);
             }
         } catch (\Exception $e) {
-            return null;
-        }
-        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
-        $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-        if (!$publicOrderId || !$jwtToken) {
             return null;
         }
 

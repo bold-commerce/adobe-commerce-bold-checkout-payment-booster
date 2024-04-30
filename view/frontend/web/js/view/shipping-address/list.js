@@ -55,6 +55,10 @@ define(
             /** @inheritdoc */
             createRendererComponent: function (address, index) {
                 this._super(address, index);
+                if (!fastlane.isEnabled()) {
+                    this.visible(false);
+                    return;
+                }
                 this.visible(true);
                 fastlane.getFastlaneInstance().then((fastlaneInstance) => {
                     fastlaneInstance.FastlaneWatermarkComponent({

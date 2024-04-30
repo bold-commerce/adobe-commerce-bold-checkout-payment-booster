@@ -58,7 +58,7 @@ define(
              */
             getFastlaneInstance: async function () {
                 if (!this.isEnabled()) {
-                    throw new Error('Fastlane is not enabled');
+                    return null;
                 }
                 if (this.fastlaneInstance !== null) {
                     return this.fastlaneInstance;

@@ -205,9 +205,6 @@ define(
                     'venmo',
                     'other'
                 ];
-                if (!this.paymentMethod) {
-                    this.paymentMethod = quote.paymentMethod() && quote.paymentMethod().method;
-                }
                 if (allowedPaymentMethods.indexOf(this.paymentMethod) === -1) {
                     this.paymentMethod = 'other';
                 }

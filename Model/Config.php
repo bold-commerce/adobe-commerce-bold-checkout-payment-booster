@@ -61,7 +61,7 @@ class Config
     }
 
     /**
-     * Get is PayPal insights is enabled.
+     * Get is PayPal insights enabled.
      *
      * @param int $websiteId
      * @return bool

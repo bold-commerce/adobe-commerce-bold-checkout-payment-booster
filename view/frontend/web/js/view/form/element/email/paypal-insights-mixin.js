@@ -7,7 +7,7 @@ define(
         'use strict';
 
         /**
-         * Email mixin for Fastlane.
+         * Email mixin for the PayPal insights.
          *
          * @param {Object} emailComponent - Magento_Checkout/js/view/form/element/email.
          */

@@ -4,6 +4,11 @@ define(
         'use strict';
         let countryCode = null;
 
+        /**
+         * Get customer country code.
+         *
+         * @return {Promise<string|null>}
+         */
         return async function () {
             if (countryCode) {
                 return countryCode;

@@ -11,7 +11,7 @@ define(
         'use strict';
 
         /**
-         * Fastlane init model.
+         * PayPal Insights SDK.
          *
          * @type {object}
          */

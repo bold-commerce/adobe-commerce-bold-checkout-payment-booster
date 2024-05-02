@@ -12,7 +12,7 @@ use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 
 /**
- * Config provider for Bold Fastlane.
+ * Config provider for Bold Payments.
  */
 class BoldConfigProvider implements ConfigProviderInterface
 {
@@ -97,7 +97,7 @@ class BoldConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Get allowed countries.
+     * Get allowed countries for Billing address mapping.
      *
      * @return Country[]
      */

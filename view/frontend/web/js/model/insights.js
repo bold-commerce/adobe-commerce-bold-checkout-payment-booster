@@ -215,7 +215,7 @@ define(
              *
              * @return {void}
              */
-            subscribeToPIGI: function () {
+            subscribeToPIGI: async function () {
                 window.addEventListener('message', ({data}) => {
                     const responseType = data.responseType;
                     if (responseType === 'PIGI_ADD_PAYMENT') {
@@ -227,6 +227,7 @@ define(
                                 this.paymentMethod = data.payload.paymentType.toLowerCase();
                         }
                         this.selectPaymentMethod();
+                        return;
                     }
                     if (responseType === 'FASTLANE_ADD_PAYMENT') {
                         this.paymentMethod = 'paypal';

@@ -61,6 +61,9 @@ define(
                 }
                 this.visible(true);
                 fastlane.getFastlaneInstance().then((fastlaneInstance) => {
+                    if (!fastlaneInstance) {
+                        return;
+                    }
                     fastlaneInstance.FastlaneWatermarkComponent({
                         includeAdditionalInfo: true
                     }).then((WatermarkComponent) => {

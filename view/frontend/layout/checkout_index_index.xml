@@ -14,6 +14,13 @@
                                             <item name="children" xsi:type="array">
                                                 <item name="shippingAddress" xsi:type="array">
                                                     <item name="children" xsi:type="array">
+                                                        <item name="before-form" xsi:type="array">
+                                                            <item name="children" xsi:type="array">
+                                                                <item name="paypal-insights" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/paypal/insights</item>
+                                                                </item>
+                                                            </item>
+                                                        </item>
                                                         <item name="address-list-additional-addresses" xsi:type="array">
                                                             <item name="children" xsi:type="array">
                                                                 <item name="bold_fastlane_address_list" xsi:type="array">

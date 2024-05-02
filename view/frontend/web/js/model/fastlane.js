@@ -12,19 +12,14 @@ define(
          * @type {object}
          */
         return {
-            fastlaneInstance: null,
-            fastlaneType: null,
-            gatewayPublicId: null,
-            createInProgress: false,
-
             /**
              * Check if Fastlane flow is enabled and active.
              *
              * @return {*|boolean}
              */
             isEnabled: function () {
-                return window.checkoutConfig.bold_fastlane
-                    && window.checkoutConfig.bold_fastlane.enabled
+                return window.checkoutConfig.bold
+                    && window.checkoutConfig.bold.fastlane
                     && !window.isCustomerLoggedIn
             },
             /**
@@ -33,10 +28,10 @@ define(
              * @return {string}
              */
             getType: function () {
-                if (this.fastlaneType === null) {
+                if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return this.fastlaneType;
+                return window.checkoutConfig.bold.gatewayData.data.type;
             },
 
             /**
@@ -45,10 +40,10 @@ define(
              * @returns {string}
              */
             getGatewayPublicId: function () {
-                if (this.gatewayPublicId === null) {
+                if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return this.gatewayPublicId;
+                return window.checkoutConfig.bold.gatewayData.data.gateway_public_id;
             },
 
             /**
@@ -60,20 +55,20 @@ define(
                 if (!this.isEnabled()) {
                     return null;
                 }
-                if (this.fastlaneInstance !== null) {
-                    return this.fastlaneInstance;
+                if (window.boldFastlaneInstance) {
+                    return window.boldFastlaneInstance;
                 }
-                if (this.createInProgress) {
+                if (window.boldFastlaneInstanceCreateInProgress) {
                     return new Promise((resolve) => {
                         const interval = setInterval(() => {
-                            if (!this.createInProgress) {
+                            if (window.boldFastlaneInstance) {
                                 clearInterval(interval);
-                                resolve(this.fastlaneInstance);
+                                resolve(window.boldFastlaneInstance);
                             }
                         }, 100);
                     });
                 }
-                this.createInProgress = true;
+                window.boldFastlaneInstanceCreateInProgress = true;
                 try {
                     const {data} = await getBoldFastlaneGatewayDataAction();
 
@@ -81,11 +76,7 @@ define(
                         window.localStorage.setItem('axoEnv', 'sandbox');
                         window.localStorage.setItem('fastlaneEnv', 'sandbox');
                     }
-
-                    this.fastlaneType = data.type;
-                    this.gatewayPublicId = data.gateway_public_id;
-
-                    switch (this.fastlaneType) {
+                    switch (data.type) {
                         case 'braintree':
                             if (!window.braintree) {
                                 window.braintree = {};
@@ -99,7 +90,6 @@ define(
                             const clientInstance = await this.getBraintreeClientInstance(data.client_token);
                             const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
                             const deviceData = dataCollectorInstance.deviceData;
-                            // TODO: add ability to set custom styles
                             const styles = {}
                             await new Promise((resolve, reject) => {
                                 require(['bold_braintree_fastlane'], (bold_braintree_fastlane) => {
@@ -107,7 +97,7 @@ define(
                                     resolve();
                                 }, reject);
                             });
-                            this.fastlaneInstance = await window.braintree.fastlane.create({
+                            window.boldFastlaneInstance = await window.braintree.fastlane.create({
                                 authorization: data.client_token,
                                 client: clientInstance,
                                 deviceData: deviceData,
@@ -167,18 +157,17 @@ define(
                             await new Promise((resolve, reject) => {
                                 require(['bold_paypal_fastlane'], resolve, reject);
                             });
-                            this.fastlaneInstance = await window.paypal.Fastlane();
+                            window.boldFastlaneInstance = await window.paypal.Fastlane();
                             break;
                     }
-                    this.createInProgress = false;
                     this.setLocale();
-                    return this.fastlaneInstance;
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    return window.boldFastlaneInstance;
                 } catch (e) {
+                    window.boldFastlaneInstanceCreateInProgress = false;
                     const message = e.responseJSON && e.responseJSON.errors[0] ? e.responseJSON.errors[0].message : e.message;
-                    this.createInProgress = false;
                     throw new Error(message);
                 }
-
             },
 
             /**
@@ -197,7 +186,7 @@ define(
                             window.braintree.dataCollector.create(
                                 {
                                     client: client,
-                                    riskCorrelationId: window.checkoutConfig.bold_fastlane.publicOrderId
+                                    riskCorrelationId: window.checkoutConfig.bold.publicOrderId
                                 }
                             ).then((dataCollectorInstance) => {
                                 resolve(dataCollectorInstance);
@@ -252,7 +241,7 @@ define(
                 if (!availableLocales.includes(locale)) {
                     locale = 'en_us';
                 }
-                this.fastlaneInstance.setLocale(locale);
+                window.boldFastlaneInstance.setLocale(locale);
             }
         };
     });

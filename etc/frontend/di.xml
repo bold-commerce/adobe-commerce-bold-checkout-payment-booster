@@ -6,7 +6,7 @@
             <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldStorefrontClient</argument>
         </arguments>
     </type>
-    <type name="Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider">
+    <type name="Bold\CheckoutPaymentBooster\UI\Payment\BoldConfigProvider">
         <arguments>
             <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldStorefrontClient</argument>
         </arguments>
@@ -14,8 +14,10 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
+                <item name="bold_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\BoldConfigProvider</item>
                 <item name="bold_payment_booster_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\PaymentBoosterConfigProvider</item>
                 <item name="bold_fastlane_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider</item>
+                <item name="bold_paypal_insights_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\PaypalInsightsConfigProvider</item>
             </argument>
         </arguments>
     </type>

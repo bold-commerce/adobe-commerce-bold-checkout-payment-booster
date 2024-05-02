@@ -6,7 +6,7 @@ namespace Bold\CheckoutPaymentBooster\UI\Payment;
 use Bold\Checkout\Api\Http\ClientInterface;
 use Bold\Checkout\Model\ConfigInterface;
 use Bold\Checkout\Model\Payment\Gateway\Service;
-use Bold\CheckoutPaymentBooster\Model\Config as ModuleConfig;
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Directory\Model\AllowedCountries;
@@ -33,11 +33,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      * @var ClientInterface
      */
     private $client;
-
-    /**
-     * @var ConfigInterface
-     */
-    private $config;
 
     /**
      * @var Json
@@ -70,9 +65,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $countries;
 
     /**
-     * @var ModuleConfig
+     * @var Config
      */
-    private ModuleConfig $moduleConfig;
+    private $config;
 
     /**
      * @param Session $checkoutSession
@@ -83,28 +78,26 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      * @param Json $json
      * @param Reader $moduleReader
      * @param ReadFactory $readFactory
-     * @param ModuleConfig $moduleConfig
+     * @param Config $config
      */
     public function __construct(
         Session $checkoutSession,
-        ConfigInterface $config,
         ClientInterface $client,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
         Json $json,
         Reader $moduleReader,
         ReadFactory $readFactory,
-        ModuleConfig $moduleConfig
+        Config $config
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->client = $client;
-        $this->config = $config;
         $this->json = $json;
         $this->moduleReader = $moduleReader;
         $this->readFactory = $readFactory;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
-        $this->moduleConfig = $moduleConfig;
+        $this->config = $config;
     }
 
     /**
@@ -116,26 +109,20 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $quote = $this->checkoutSession->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        if (!$boldCheckoutData || !$this->moduleConfig->isPaymentBoosterEnabled($websiteId)) {
+        if (!$this->config->isPaymentBoosterEnabled($websiteId)) {
             return [];
         }
 
-        $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-
         return [
             'bold' => [
-                'payment' => [
-                    'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
-                    'method' => Service::CODE,
+                'payment_booster' => [
+                    'payment' => [
+                        'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
+                        'method' => Service::CODE,
+                    ],
                 ],
-                'shopId' => $shopId,
-                'customerIsGuest' => $quote->getCustomerIsGuest(),
-                'publicOrderId' => $publicOrderId,
-                'jwtToken' => $jwtToken,
-                'countries' => $this->getAllowedCountries(),
-                'url' => $this->client->getUrl($websiteId, ''),
             ],
         ];
     }

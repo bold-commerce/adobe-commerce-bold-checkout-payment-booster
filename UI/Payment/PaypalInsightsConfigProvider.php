@@ -10,7 +10,7 @@ use Magento\Checkout\Model\Session;
 /**
  * Config provider for Bold Fastlane.
  */
-class FastlaneConfigProvider implements ConfigProviderInterface
+class PaypalInsightsConfigProvider implements ConfigProviderInterface
 {
     /**
      * @var Session
@@ -39,17 +39,12 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
-        $quote = $this->checkoutSession->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if (!$this->config->isFastlaneEnabled($websiteId)) {
-            return [];
-        }
         return [
             'bold' => [
-                'fastlane' => [
-                    'payment' => [
-                        'method' => 'bold_fastlane',
-                    ],
+                'paypal_insights' => [
+                    'enabled' => $this->config->isPayPalInsightsEnabled(
+                        (int)$this->checkoutSession->getQuote()->getStore()->getWebsiteId()
+                    ),
                 ],
             ],
         ];

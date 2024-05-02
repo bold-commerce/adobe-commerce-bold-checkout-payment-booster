@@ -8,16 +8,17 @@ define(
 
         return function () {
             /**
-             * Retrieve Bold Fastlane gateway data.
+             * Retrieve Bold payments gateway data.
              *
              * @returns {Promise<unknown>}
              */
             return new Promise((resolve, reject) => {
-                boldFrontendClient.initialize(
-                    window.checkoutConfig.bold_fastlane.jwtToken,
-                    window.checkoutConfig.bold_fastlane.url
-                );
+                if (window.checkoutConfig.bold.gatewayData) {
+                    resolve(window.checkoutConfig.bold.gatewayData);
+                    return;
+                }
                 boldFrontendClient.get('paypal_fastlane/client_token').then((data) => {
+                    window.checkoutConfig.bold.gatewayData = data;
                     resolve(data);
                 }).catch(reject);
             });

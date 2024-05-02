@@ -109,7 +109,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $quote = $this->checkoutSession->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        if (!$this->config->isPaymentBoosterEnabled($websiteId)) {
+        if (!$boldCheckoutData || !$this->config->isPaymentBoosterEnabled($websiteId)) {
             return [];
         }
 

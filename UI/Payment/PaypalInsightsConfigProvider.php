@@ -39,12 +39,12 @@ class PaypalInsightsConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
+        $websiteId = (int)$this->checkoutSession->getQuote()->getStore()->getWebsiteId();
+        $enabled = $this->checkoutSession->getBoldCheckoutData() && $this->config->isPayPalInsightsEnabled($websiteId);
         return [
             'bold' => [
                 'paypal_insights' => [
-                    'enabled' => $this->config->isPayPalInsightsEnabled(
-                        (int)$this->checkoutSession->getQuote()->getStore()->getWebsiteId()
-                    ),
+                    'enabled' => $enabled,
                 ],
             ],
         ];

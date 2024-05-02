@@ -208,7 +208,7 @@ define(
                 if (!this.paymentMethod) {
                     this.paymentMethod = quote.paymentMethod() && quote.paymentMethod().method;
                 }
-                if (!this.paymentMethod || allowedPaymentMethods.indexOf(this.paymentMethod) === -1) {
+                if (allowedPaymentMethods.indexOf(this.paymentMethod) === -1) {
                     this.paymentMethod = 'other';
                 }
                 return this.paymentMethod;

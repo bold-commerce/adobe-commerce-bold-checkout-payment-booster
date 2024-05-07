@@ -4,7 +4,7 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
-        'Bold_CheckoutPaymentBooster/js/action/convert-address',
+        'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
         'Magento_Checkout/js/model/quote',
         'checkoutData',
         'Magento_Checkout/js/model/full-screen-loader',
@@ -16,7 +16,7 @@ define(
         errorProcessor,
         boldFrontendClient,
         fastlane,
-        convertAddressAction,
+        convertFastlaneAddressAction,
         quote,
         checkoutData,
         loader,
@@ -197,7 +197,7 @@ define(
                 if (!billingAddress.phoneNumber) {
                     billingAddress.phoneNumber = quote.shippingAddress().telephone;
                 }
-                const billingAddressData = convertAddressAction(billingAddress, 'braintree');
+                const billingAddressData = convertFastlaneAddressAction(billingAddress, 'braintree');
                 quote.billingAddress(billingAddressData);
             }
         });

@@ -8,7 +8,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 
 /**
- * Config provider for Bold Fastlane.
+ * Config provider for PayPal Insights.
  */
 class PaypalInsightsConfigProvider implements ConfigProviderInterface
 {
@@ -41,6 +41,7 @@ class PaypalInsightsConfigProvider implements ConfigProviderInterface
     {
         $websiteId = (int)$this->checkoutSession->getQuote()->getStore()->getWebsiteId();
         $enabled = $this->checkoutSession->getBoldCheckoutData() && $this->config->isPayPalInsightsEnabled($websiteId);
+
         return [
             'bold' => [
                 'paypal_insights' => [

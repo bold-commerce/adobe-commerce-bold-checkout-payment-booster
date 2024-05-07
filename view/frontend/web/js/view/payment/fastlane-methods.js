@@ -7,7 +7,7 @@ define([
 ) {
     'use strict';
 
-    if (window.checkoutConfig.bold_fastlane !== undefined) {
+    if (window.checkoutConfig.bold.fastlane !== undefined) {
         rendererList.push(
             {
                 type: 'bold_fastlane',

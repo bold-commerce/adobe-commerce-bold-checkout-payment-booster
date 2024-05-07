@@ -1,8 +1,10 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-fastlane-gateway-data'
+        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
+        'Magento_Checkout/js/model/quote',
     ], function (
-        getBoldFastlaneGatewayDataAction
+        getBoldGatewayData,
+        quote
     ) {
         'use strict';
 
@@ -12,20 +14,16 @@ define(
          * @type {object}
          */
         return {
-            fastlaneInstance: null,
-            fastlaneType: null,
-            gatewayPublicId: null,
-            createInProgress: false,
-
             /**
              * Check if Fastlane flow is enabled and active.
              *
              * @return {*|boolean}
              */
             isEnabled: function () {
-                return window.checkoutConfig.bold_fastlane
-                    && window.checkoutConfig.bold_fastlane.enabled
+                return window.checkoutConfig.bold
+                    && window.checkoutConfig.bold.fastlane
                     && !window.isCustomerLoggedIn
+                    && !quote.isVirtual()
             },
             /**
              * Retrieve Fastlane type (PPCP / Braintree).
@@ -33,10 +31,10 @@ define(
              * @return {string}
              */
             getType: function () {
-                if (this.fastlaneType === null) {
+                if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return this.fastlaneType;
+                return window.checkoutConfig.bold.gatewayData.type;
             },
 
             /**
@@ -45,10 +43,10 @@ define(
              * @returns {string}
              */
             getGatewayPublicId: function () {
-                if (this.gatewayPublicId === null) {
+                if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return this.gatewayPublicId;
+                return window.checkoutConfig.bold.gatewayData.gateway_public_id;
             },
 
             /**
@@ -60,32 +58,28 @@ define(
                 if (!this.isEnabled()) {
                     return null;
                 }
-                if (this.fastlaneInstance !== null) {
-                    return this.fastlaneInstance;
+                if (window.boldFastlaneInstance) {
+                    return window.boldFastlaneInstance;
                 }
-                if (this.createInProgress) {
+                if (window.boldFastlaneInstanceCreateInProgress) {
                     return new Promise((resolve) => {
                         const interval = setInterval(() => {
-                            if (!this.createInProgress) {
+                            if (window.boldFastlaneInstance) {
                                 clearInterval(interval);
-                                resolve(this.fastlaneInstance);
+                                resolve(window.boldFastlaneInstance);
                             }
                         }, 100);
                     });
                 }
-                this.createInProgress = true;
+                window.boldFastlaneInstanceCreateInProgress = true;
                 try {
-                    const {data} = await getBoldFastlaneGatewayDataAction();
+                    const gatewayData = await getBoldGatewayData();
 
-                    if (data.is_test_mode) {
+                    if (gatewayData.is_test_mode) {
                         window.localStorage.setItem('axoEnv', 'sandbox');
                         window.localStorage.setItem('fastlaneEnv', 'sandbox');
                     }
-
-                    this.fastlaneType = data.type;
-                    this.gatewayPublicId = data.gateway_public_id;
-
-                    switch (this.fastlaneType) {
+                    switch (gatewayData.type) {
                         case 'braintree':
                             if (!window.braintree) {
                                 window.braintree = {};
@@ -96,10 +90,9 @@ define(
                                     resolve();
                                 }, reject);
                             });
-                            const clientInstance = await this.getBraintreeClientInstance(data.client_token);
+                            const clientInstance = await this.getBraintreeClientInstance(gatewayData.client_token);
                             const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
                             const deviceData = dataCollectorInstance.deviceData;
-                            // TODO: add ability to set custom styles
                             const styles = {}
                             await new Promise((resolve, reject) => {
                                 require(['bold_braintree_fastlane'], (bold_braintree_fastlane) => {
@@ -107,8 +100,8 @@ define(
                                     resolve();
                                 }, reject);
                             });
-                            this.fastlaneInstance = await window.braintree.fastlane.create({
-                                authorization: data.client_token,
+                            window.boldFastlaneInstance = await window.braintree.fastlane.create({
+                                authorization: gatewayData.client_token,
                                 client: clientInstance,
                                 deviceData: deviceData,
                                 styles: styles
@@ -116,13 +109,13 @@ define(
                             break;
                         case 'ppcp':
                             let debugMode = '';
-                            if (data.is_test_mode) {
+                            if (gatewayData.is_test_mode) {
                                 debugMode = '&debug=true';
                             }
 
                             require.config({
                                 paths: {
-                                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + data.client_id + '&components=fastlane' + debugMode
+                                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
                                 },
                                 shim: {
                                     'bold_paypal_fastlane': {
@@ -131,7 +124,7 @@ define(
                                 },
                                 attributes: {
                                     "bold_paypal_fastlane": {
-                                        'data-user-id-token': data.client_token,
+                                        'data-user-id-token': gatewayData.client_token,
                                         'data-client-metadata-id': 'Magento2'
                                     }
                                 },
@@ -167,18 +160,18 @@ define(
                             await new Promise((resolve, reject) => {
                                 require(['bold_paypal_fastlane'], resolve, reject);
                             });
-                            this.fastlaneInstance = await window.paypal.Fastlane();
+                            window.boldFastlaneInstance = await window.paypal.Fastlane();
                             break;
                     }
-                    this.createInProgress = false;
                     this.setLocale();
-                    return this.fastlaneInstance;
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    return window.boldFastlaneInstance;
                 } catch (e) {
-                    const message = e.responseJSON && e.responseJSON.errors[0] ? e.responseJSON.errors[0].message : e.message;
-                    this.createInProgress = false;
-                    throw new Error(message);
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    throw new Error(
+                        e.responseJSON && e.responseJSON.errors[0] ? e.responseJSON.errors[0].message : e.message
+                    );
                 }
-
             },
 
             /**
@@ -197,7 +190,7 @@ define(
                             window.braintree.dataCollector.create(
                                 {
                                     client: client,
-                                    riskCorrelationId: window.checkoutConfig.bold_fastlane.publicOrderId
+                                    riskCorrelationId: window.checkoutConfig.bold.publicOrderId
                                 }
                             ).then((dataCollectorInstance) => {
                                 resolve(dataCollectorInstance);
@@ -252,7 +245,7 @@ define(
                 if (!availableLocales.includes(locale)) {
                     locale = 'en_us';
                 }
-                this.fastlaneInstance.setLocale(locale);
+                window.boldFastlaneInstance.setLocale(locale);
             }
         };
     });

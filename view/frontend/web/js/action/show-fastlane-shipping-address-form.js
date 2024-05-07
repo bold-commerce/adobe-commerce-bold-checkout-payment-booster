@@ -22,6 +22,9 @@ define(
              */
             const showFastlaneAddressModal = async function () {
                 const fastlaneInstance = await fastlane.getFastlaneInstance();
+                if (!fastlaneInstance) {
+                    return {selectionChanged: false, selectedAddress: {}};
+                }
                 return fastlaneInstance.profile.showShippingAddressSelector();
             }
             showFastlaneAddressModal().then(editAddressResult => {

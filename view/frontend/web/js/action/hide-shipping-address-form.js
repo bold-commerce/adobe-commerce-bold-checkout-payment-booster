@@ -18,7 +18,7 @@ define(
                 return;
             }
             if (newShippingAddressFieldset.elems().length > 0) {
-                window.checkoutConfig.shippingAddressFields = newShippingAddressFieldset.elems();
+                window.checkoutConfig.bold.shippingAddressFields = newShippingAddressFieldset.elems();
             }
             newShippingAddressFieldset.elems([]);
         };

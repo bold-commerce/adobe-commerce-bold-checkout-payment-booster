@@ -1,5 +1,4 @@
 define([
-    'jquery',
     'Magento_Checkout/js/view/payment/default',
     'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
     'Magento_Checkout/js/model/quote',
@@ -16,7 +15,6 @@ define([
     'underscore',
     'ko'
 ], function (
-    $,
     Component,
     boldClient,
     quote,

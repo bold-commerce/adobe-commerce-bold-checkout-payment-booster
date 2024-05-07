@@ -13,7 +13,7 @@ define(
          */
         return function (MagentoEmailComponent) {
             /**
-             * Adapt the email component to work with Fastlane.
+             * Adapt the email component to work with PayPal insights.
              */
             return MagentoEmailComponent.extend(
                 {

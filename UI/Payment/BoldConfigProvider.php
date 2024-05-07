@@ -50,15 +50,15 @@ class BoldConfigProvider implements ConfigProviderInterface
 
     /**
      * @param Session $checkoutSession
-     * @param ConfigInterface $config
      * @param ClientInterface $client
+     * @param ConfigInterface $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
      */
     public function __construct(
         Session $checkoutSession,
-        ConfigInterface $config,
         ClientInterface $client,
+        ConfigInterface $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory
     ) {
@@ -75,11 +75,12 @@ class BoldConfigProvider implements ConfigProviderInterface
     public function getConfig(): array
     {
         $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        $quote = $this->checkoutSession->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
         if (!$boldCheckoutData) {
             return [];
         }
+
+        $quote = $this->checkoutSession->getQuote();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
@@ -101,7 +102,7 @@ class BoldConfigProvider implements ConfigProviderInterface
      *
      * @return Country[]
      */
-    public function getAllowedCountries(): array
+    private function getAllowedCountries(): array
     {
         if ($this->countries) {
             return $this->countries;

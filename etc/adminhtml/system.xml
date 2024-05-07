@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="checkout">
             <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1" showInWebsite="1">
@@ -8,20 +7,24 @@
                 <field id="is_payment_booster_enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1">
                     <label>Is Payment Booster Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[
-                        Use the native checkout with Bold Checkout's payment options.
-                    ]]></comment>
+                    <comment><![CDATA[Use the native checkout with Bold Checkout's payment options.]]></comment>
                 </field>
                 <field id="is_fastlane_enabled" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1">
                     <label>Is Fastlane Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Use PayPal Fastlane Checkout.]]></comment>
                 </field>
                 <field id="fastlane_payment_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>Fastlane Payment Title</label>
-                    <comment>Payment title that will be displayed on the checkout page.</comment>
+                    <comment><![CDATA[Payment title that will be displayed on the checkout page.]]></comment>
                     <depends>
                         <field id="is_fastlane_enabled">1</field>
                     </depends>
+                </field>
+                <field id="is_paypal_insights_enabled" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1">
+                    <label>Is PayPal Insights Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Enable PayPal Insights.]]></comment>
                 </field>
             </group>
         </section>

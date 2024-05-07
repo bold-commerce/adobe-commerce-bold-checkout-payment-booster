@@ -11,7 +11,7 @@ define([
         /**
          * Get customer api data.
          *
-         * @return object
+         * @return object|null
          */
         getCustomer: function () {
             const billingAddress = quote.billingAddress();

@@ -45,6 +45,9 @@ define(
                         }
                         this.template = 'Bold_CheckoutPaymentBooster/form/element/email';
                         fastlane.getFastlaneInstance().then((fastlaneInstance) => {
+                            if (!fastlaneInstance) {
+                                return;
+                            }
                             fastlaneInstance.FastlaneWatermarkComponent({
                                 includeAdditionalInfo: true
                             }).then((WatermarkComponent) => {
@@ -82,6 +85,9 @@ define(
                     lookupEmail: async function () {
                         fullScreenLoader.startLoader();
                         const fastlaneInstance = await fastlane.getFastlaneInstance();
+                        if (!fastlaneInstance) {
+                            return;
+                        }
                         const identity = fastlaneInstance.identity;
                         try {
                             const {customerContextId} = await identity.lookupCustomerByEmail(this.email());
@@ -92,7 +98,7 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    window.checkoutConfig.bold_fastlane.memberAuthenticated = true;
+                                    window.checkoutConfig.bold.fastlane.memberAuthenticated = true;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
                                 }

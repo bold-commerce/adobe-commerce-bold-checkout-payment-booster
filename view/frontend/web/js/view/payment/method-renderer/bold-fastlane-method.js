@@ -57,7 +57,7 @@ define(
                     if (quote.shippingAddress().firstname && document.querySelector(this.paymentContainer)) {
                         observer.disconnect();
                         this.renderCardComponent();
-                        if (window.checkoutConfig.bold_fastlane.memberAuthenticated === true) {
+                        if (window.checkoutConfig.bold.fastlane.memberAuthenticated === true) {
                             this.selectPaymentMethod();
                         }
                     }
@@ -94,6 +94,10 @@ define(
                 };
                 try {
                     const fastlaneInstance = await fastlane.getFastlaneInstance();
+                    if (!fastlaneInstance) {
+                        this.isVisible(false);
+                        return;
+                    }
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
                             options,
@@ -117,6 +121,13 @@ define(
              */
             placeOrder: function (data, event) {
                 loader.startLoader();
+                window.postMessage(
+                    {
+                        responseType: 'FASTLANE_ADD_PAYMENT',
+                        paymentType: fastlane.getType()
+                    },
+                    '*'
+                );
                 const placeMagentoOrder = this._super.bind(this);
                 this.fastlanePaymentComponent.getPaymentToken().then((tokenResponse) => {
                     this.processBoldOrder(tokenResponse).then(() => {

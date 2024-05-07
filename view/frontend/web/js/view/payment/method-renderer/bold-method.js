@@ -68,7 +68,7 @@ define([
         initializePaymentGateway: function () {
             console.log('initializing pigi...');
             // Set frame src once /refresh is done
-            this.iframeSrc(window.checkoutConfig.bold.payment.iframeSrc);
+            this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
 
         /**
@@ -153,7 +153,11 @@ define([
                     }
                 }
             };
-            iframeWindow.postMessage(action, '*');
+            try {
+                iframeWindow.postMessage(action, '*');
+            } catch (e) {
+                console.error('Error displaying error message in PIGI iframe', e);
+            }
         },
 
         /**

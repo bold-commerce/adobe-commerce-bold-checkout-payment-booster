@@ -17,8 +17,8 @@ define(
                 console.error('Shipping address fieldset not found');
                 return;
             }
-            if (window.checkoutConfig.shippingAddressFields) {
-                newShippingAddressFieldset.elems(window.checkoutConfig.shippingAddressFields);
+            if (window.checkoutConfig.bold.shippingAddressFields) {
+                newShippingAddressFieldset.elems(window.checkoutConfig.bold.shippingAddressFields);
             }
         };
     });

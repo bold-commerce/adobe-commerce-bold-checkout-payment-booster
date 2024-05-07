@@ -23,6 +23,7 @@ define([
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
             isPigiLoading: ko.observable(true),
+            errorMessage: 'An error occurred while processing your payment. Please try again.',
         },
 
         /**
@@ -132,28 +133,40 @@ define([
             const taxesResult = await boldClient.post('taxes');
             const processOrderResult = await boldClient.post('process_order');
             if (refreshResult.errors || taxesResult.errors || processOrderResult.errors) {
-                throw new Error('An error occurred while processing your payment. Please try again.');
+                throw new Error(this.errorMessage);
             }
         },
         /**
          * Display error message in PIGI iframe.
          *
          * @private
-         * @param {string} message
+         * @param {{}} error
          */
-        displayErrorMessage: function (message) {
+        displayErrorMessage: function (error) {
             const iframeElement = document.getElementById('PIGI');
             const iframeWindow = iframeElement.contentWindow;
+            let message,
+                subType
+
+            try {
+                message = error.responseJSON.errors[0].message
+                subType = error.responseJSON.errors[0].sub_type
+            } catch (exception) {
+                message = this.errorMessage
+                subType = ''
+            }
+
             const action = {
                 actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
                 payload: {
                     error: {
                         message: message,
-                        sub_type: 'string_to_categorize_error',
+                        sub_type: subType,
                     }
                 }
             };
             iframeWindow.postMessage(action, '*');
+            this.messageContainer.errorMessages([message]);
         },
 
         /**

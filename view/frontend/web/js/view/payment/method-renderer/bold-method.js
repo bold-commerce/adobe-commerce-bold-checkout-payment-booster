@@ -26,9 +26,7 @@ define([
             errorMessage: 'An error occurred while processing your payment. Please try again.',
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (window.checkoutConfig.bold === undefined) {
@@ -72,9 +70,7 @@ define([
             this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         selectPaymentMethod: function () {
             this._super();
             if (this.iframeWindow) {
@@ -83,9 +79,7 @@ define([
             return true;
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         refreshAndAddPayment: function () {
             if (this.iframeWindow) {
                 const refreshAction = {actionType: 'PIGI_REFRESH_ORDER'};
@@ -94,9 +88,7 @@ define([
             }
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         placeOrder: function (data, event) {
             loader.startLoader();
             if (!this.iframeWindow) {
@@ -110,9 +102,10 @@ define([
                 this.refreshAndAddPayment();
                 return false;
             }
+
             const originalPlaceOrder = this._super;
             this.processBoldOrder().then(() => {
-                const orderPlacementResult = originalPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
+                const orderPlacementResult = originalPlaceOrder.call(this, data, event); //call Magento_Checkout/js/view/payment/default::placeOrder()
                 if (!orderPlacementResult) {
                     loader.stopLoader()
                 }
@@ -123,21 +116,20 @@ define([
                 return false;
             });
         },
+
         /**
          * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
          *
-         * @return {Promise<void>}
+         * @returns {Promise<void>}
          */
         processBoldOrder: async function () {
-            const refreshResult = await boldClient.get('refresh');
-            const taxesResult = await boldClient.post('taxes');
-            const processOrderResult = await boldClient.post('process_order');
-            if (refreshResult.errors || taxesResult.errors || processOrderResult.errors) {
-                throw new Error(this.errorMessage);
-            }
+            await boldClient.get('refresh');
+            await boldClient.post('taxes');
+            await boldClient.post('process_order');
         },
+
         /**
-         * Display error message in PIGI iframe.
+         * Display error message.
          *
          * @private
          * @param {{}} error
@@ -167,6 +159,7 @@ define([
             };
             iframeWindow.postMessage(action, '*');
             this.messageContainer.errorMessages([message]);
+            console.error(message);
         },
 
         /**

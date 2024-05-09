@@ -1,9 +1,7 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
         'Magento_Checkout/js/model/quote',
     ], function (
-        getBoldGatewayData,
         quote
     ) {
         'use strict';
@@ -31,10 +29,10 @@ define(
              * @return {string}
              */
             getType: function () {
-                if (!window.checkoutConfig.bold.gatewayData) {
+                if (!window.checkoutConfig.bold.fastlane.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return window.checkoutConfig.bold.gatewayData.type;
+                return window.checkoutConfig.bold.fastlane.gatewayData.type;
             },
 
             /**
@@ -43,10 +41,10 @@ define(
              * @returns {string}
              */
             getGatewayPublicId: function () {
-                if (!window.checkoutConfig.bold.gatewayData) {
+                if (!window.checkoutConfig.bold.fastlane.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return window.checkoutConfig.bold.gatewayData.gateway_public_id;
+                return window.checkoutConfig.bold.fastlane.gatewayData.gateway_public_id;
             },
 
             /**
@@ -73,7 +71,7 @@ define(
                 }
                 window.boldFastlaneInstanceCreateInProgress = true;
                 try {
-                    const gatewayData = await getBoldGatewayData();
+                    const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
 
                     if (gatewayData.is_test_mode) {
                         window.localStorage.setItem('axoEnv', 'sandbox');

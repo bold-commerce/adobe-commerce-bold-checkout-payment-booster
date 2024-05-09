@@ -73,14 +73,12 @@ define(
              * @return {Promise<void>}
              */
             renderCardComponent: async function () {
-                const options = {
-                    fields: {
-                        phoneNumber: {
-                            prefill: quote.shippingAddress().telephone
-                        }
-                    },
-                    styles: {}
+                const fields = {
+                    phoneNumber: {
+                        prefill: quote.shippingAddress().telephone
+                    }
                 };
+                const styles = {};
                 const shippingAddress = {
                     firstName: quote.shippingAddress().firstname,
                     lastName: quote.shippingAddress().lastname,
@@ -100,7 +98,8 @@ define(
                     }
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
-                            options,
+                            fields,
+                            styles,
                             shippingAddress
                         }
                     );

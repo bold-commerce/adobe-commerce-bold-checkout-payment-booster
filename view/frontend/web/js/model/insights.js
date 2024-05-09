@@ -1,10 +1,10 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
+        'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Magento_Checkout/js/model/quote',
         'Bold_CheckoutPaymentBooster/js/action/get-country-code',
     ], function (
-        getBoldGatewayDataAction,
+        fastlane,
         quote,
         getCountryCodeAction,
     ) {
@@ -21,21 +21,12 @@ define(
             paymentMethod: null,
 
             /**
-             * Check if PayPal insights is enabled and active.
-             *
-             * @return {*|boolean}
-             * @perivate
-             */
-            isEnabled: function () {
-                return !!window.checkoutConfig.bold.paypal_insights.enabled
-            },
-            /**
              * Send begin_checkout event to PayPal Insights SDK.
              *
              * @return {Promise<void>}
              */
             beginCheckout: async function () {
-                if (!this.isEnabled()) {
+                if (!fastlane.isEnabled()) {
                     return;
                 }
                 if (this.beginCheckoutSent) {
@@ -71,7 +62,7 @@ define(
              * @return {Promise<void>}
              */
             endCheckout: async function () {
-                if (!this.isEnabled()) {
+                if (!fastlane.isEnabled()) {
                     return;
                 }
                 if (this.endCheckoutSent) {
@@ -108,7 +99,7 @@ define(
              * @return {Promise<void>}
              */
             selectPaymentMethod: async function (code = null) {
-                if (!this.isEnabled()) {
+                if (!fastlane.isEnabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -132,7 +123,7 @@ define(
              * @return {Promise<void>}
              */
             submitEmail: async function () {
-                if (!this.isEnabled()) {
+                if (!fastlane.isEnabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -155,14 +146,14 @@ define(
              * @return {Promise<void>}
              */
             initInsightsSDK: async function () {
-                if (!this.isEnabled()) {
+                if (!fastlane.isEnabled()) {
                     return;
                 }
                 if (window.paypalInsight) {
                     return;
                 }
                 try {
-                    const gatewayData = await getBoldGatewayDataAction();
+                    const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
                     const script = gatewayData.is_test_mode ? 'bold_paypal_insights_sandbox' : 'bold_paypal_insights';
                     await new Promise((resolve, reject) => {
                         require([script], () => {

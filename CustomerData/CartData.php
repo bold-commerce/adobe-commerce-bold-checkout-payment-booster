@@ -13,6 +13,9 @@ use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManager;
 use Magento\Ui\Component\Form\Element\Multiline;
 
+/**
+ * Cart data provider for payment booster.
+ */
 class CartData implements SectionSourceInterface
 {
     /**
@@ -63,7 +66,7 @@ class CartData implements SectionSourceInterface
     }
 
     /**
-     * Create address data appropriate to fill checkout address form
+     * Create address data appropriate to fill checkout address.
      *
      * @param AddressInterface $address
      * @return array

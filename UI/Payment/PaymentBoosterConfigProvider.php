@@ -4,14 +4,10 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
 use Bold\Checkout\Api\Http\ClientInterface;
-use Bold\Checkout\Model\ConfigInterface;
 use Bold\Checkout\Model\Payment\Gateway\Service;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Directory\Model\AllowedCountries;
-use Magento\Directory\Model\Country;
-use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Exception\ValidatorException;
 use Magento\Framework\Filesystem\Directory\ReadFactory;
@@ -20,7 +16,7 @@ use Magento\Framework\Module\Dir\Reader;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
- * Config provider for Bold Checkout.
+ * Config provider for Payment Booster.
  */
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
@@ -50,31 +46,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $readFactory;
 
     /**
-     * @var AllowedCountries
-     */
-    private $allowedCountries;
-
-    /**
-     * @var CollectionFactory
-     */
-    private $collectionFactory;
-
-    /**
-     * @var array
-     */
-    private $countries;
-
-    /**
      * @var Config
      */
     private $config;
 
     /**
      * @param Session $checkoutSession
-     * @param ConfigInterface $config
      * @param ClientInterface $client
-     * @param AllowedCountries $allowedCountries
-     * @param CollectionFactory $collectionFactory
      * @param Json $json
      * @param Reader $moduleReader
      * @param ReadFactory $readFactory
@@ -83,8 +61,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     public function __construct(
         Session $checkoutSession,
         ClientInterface $client,
-        AllowedCountries $allowedCountries,
-        CollectionFactory $collectionFactory,
         Json $json,
         Reader $moduleReader,
         ReadFactory $readFactory,
@@ -95,8 +71,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $this->json = $json;
         $this->moduleReader = $moduleReader;
         $this->readFactory = $readFactory;
-        $this->allowedCountries = $allowedCountries;
-        $this->collectionFactory = $collectionFactory;
         $this->config = $config;
     }
 
@@ -109,12 +83,15 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $quote = $this->checkoutSession->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        if (!$boldCheckoutData || !$this->config->isPaymentBoosterEnabled($websiteId)) {
+        if (!$boldCheckoutData
+            || !$this->config->isPaymentBoosterEnabled($websiteId)
+        ) {
             return [];
         }
 
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
+
         return [
             'bold' => [
                 'payment_booster' => [
@@ -172,25 +149,5 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         }
 
         return $this->json->unserialize($read->readFile('iframe-styles.json'));
-    }
-
-    /**
-     * Get allowed countries.
-     *
-     * @return Country[]
-     */
-    public function getAllowedCountries(): array
-    {
-        if ($this->countries) {
-            return $this->countries;
-        }
-        $allowedCountries = $this->allowedCountries->getAllowedCountries();
-        $countriesCollection = $this->collectionFactory->create()->addFieldToFilter(
-            'country_id',
-            ['in' => $allowedCountries]
-        );
-        $this->countries = $countriesCollection->toOptionArray(false);
-
-        return $this->countries;
     }
 }

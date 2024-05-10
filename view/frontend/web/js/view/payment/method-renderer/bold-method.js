@@ -48,9 +48,7 @@ define([
             error: $t('An error occurred while processing your payment. Please try again.'),
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.payment_booster) {
@@ -108,11 +106,11 @@ define([
 
         initializePaymentGateway: function () {
             console.log('initializing pigi...');
+            // Set frame src once /refresh is done
             this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
-        /**
-         * @inheritDoc
-         */
+
+        /** @inheritdoc */
         selectPaymentMethod: function () {
             this._super();
             if (this.iframeWindow) {
@@ -135,11 +133,13 @@ define([
             this.iframeWindow.postMessage(refreshAction, '*');
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         placeOrder: function (data, event) {
             loader.startLoader();
+            if (!this.iframeWindow) {
+                return false;
+            }
+
             const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
             this.iframeWindow.postMessage(clearAction, '*');
 
@@ -160,6 +160,7 @@ define([
                 return false;
             });
         },
+
         /**
          * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
          *
@@ -176,30 +177,40 @@ define([
                 throw new Error(this.error);
             }
         },
+
         /**
-         * Display error message in PIGI iframe.
+         * Display error message.
          *
          * @private
-         * @param {string} message
+         * @param {{}} error
          */
-        displayErrorMessage: function (message) {
-            if (!this.iframeWindow) {
-                this.messageContainer.errorMessages([message]);
-                return;
+        displayErrorMessage: function (error) {
+            const iframeElement = document.getElementById('PIGI');
+            const iframeWindow = iframeElement.contentWindow;
+            let message,
+                subType
+
+            try {
+                message = error.responseJSON.errors[0].message
+                subType = error.responseJSON.errors[0].sub_type
+            } catch (exception) {
+                message = this.errorMessage
+                subType = ''
             }
+
             const action = {
                 actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
                 payload: {
                     error: {
                         message: message,
-                        sub_type: 'string_to_categorize_error',
+                        sub_type: subType,
                     }
                 }
             };
             try {
-                this.iframeWindow.postMessage(action, '*');
+                iframeWindow.postMessage(action, '*');
             } catch (e) {
-                this.messageContainer.errorMessages([this.error]);
+                console.error('Error displaying error message in PIGI iframe', e);
             }
         },
 

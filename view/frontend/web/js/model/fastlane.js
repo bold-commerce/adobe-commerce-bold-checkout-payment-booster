@@ -1,8 +1,10 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-fastlane-gateway-data'
+        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
+        'Magento_Checkout/js/model/quote',
     ], function (
-        getBoldFastlaneGatewayDataAction
+        getBoldGatewayData,
+        quote
     ) {
         'use strict';
 
@@ -21,6 +23,7 @@ define(
                 return window.checkoutConfig.bold
                     && window.checkoutConfig.bold.fastlane
                     && !window.isCustomerLoggedIn
+                    && !quote.isVirtual()
             },
             /**
              * Retrieve Fastlane type (PPCP / Braintree).
@@ -31,7 +34,7 @@ define(
                 if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return window.checkoutConfig.bold.gatewayData.data.type;
+                return window.checkoutConfig.bold.gatewayData.type;
             },
 
             /**
@@ -43,7 +46,7 @@ define(
                 if (!window.checkoutConfig.bold.gatewayData) {
                     throw new Error('Fastlane instance is not initialized');
                 }
-                return window.checkoutConfig.bold.gatewayData.data.gateway_public_id;
+                return window.checkoutConfig.bold.gatewayData.gateway_public_id;
             },
 
             /**
@@ -70,13 +73,13 @@ define(
                 }
                 window.boldFastlaneInstanceCreateInProgress = true;
                 try {
-                    const {data} = await getBoldFastlaneGatewayDataAction();
+                    const gatewayData = await getBoldGatewayData();
 
-                    if (data.is_test_mode) {
+                    if (gatewayData.is_test_mode) {
                         window.localStorage.setItem('axoEnv', 'sandbox');
                         window.localStorage.setItem('fastlaneEnv', 'sandbox');
                     }
-                    switch (data.type) {
+                    switch (gatewayData.type) {
                         case 'braintree':
                             if (!window.braintree) {
                                 window.braintree = {};
@@ -87,7 +90,7 @@ define(
                                     resolve();
                                 }, reject);
                             });
-                            const clientInstance = await this.getBraintreeClientInstance(data.client_token);
+                            const clientInstance = await this.getBraintreeClientInstance(gatewayData.client_token);
                             const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
                             const deviceData = dataCollectorInstance.deviceData;
                             const styles = {}
@@ -98,7 +101,7 @@ define(
                                 }, reject);
                             });
                             window.boldFastlaneInstance = await window.braintree.fastlane.create({
-                                authorization: data.client_token,
+                                authorization: gatewayData.client_token,
                                 client: clientInstance,
                                 deviceData: deviceData,
                                 styles: styles
@@ -106,13 +109,13 @@ define(
                             break;
                         case 'ppcp':
                             let debugMode = '';
-                            if (data.is_test_mode) {
+                            if (gatewayData.is_test_mode) {
                                 debugMode = '&debug=true';
                             }
 
                             require.config({
                                 paths: {
-                                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + data.client_id + '&components=fastlane' + debugMode
+                                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
                                 },
                                 shim: {
                                     'bold_paypal_fastlane': {
@@ -121,7 +124,7 @@ define(
                                 },
                                 attributes: {
                                     "bold_paypal_fastlane": {
-                                        'data-user-id-token': data.client_token,
+                                        'data-user-id-token': gatewayData.client_token,
                                         'data-client-metadata-id': 'Magento2'
                                     }
                                 },

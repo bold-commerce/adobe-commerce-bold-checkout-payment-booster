@@ -21,8 +21,13 @@
                 <!-- ko template: getTemplate() --><!-- /ko -->
             <!--/ko-->
         </div>
-        <div data-bind="blockLoader: isPigiLoading">
-            <iframe id="PIGI" data-bind="attr: {src: iframeSrc()}" scrolling="no" frameborder="0" width="100%"></iframe>
+        <div data-bind="blockLoader: isPigiLoading()">
+            <iframe id="PIGI"
+                    data-bind="attr: { src: iframeSrc()}"
+                    scrolling="no" frameborder="0"
+                    width="100%">
+
+            </iframe>
         </div>
         <div class="actions-toolbar">
             <div class="primary">
@@ -31,7 +36,7 @@
                         data-bind="
                         click: placeOrder,
                         attr: {title: $t('Place Order')},
-                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        css: {disabled: isPigiLoading()},
                         enable: (getCode() == isChecked())
                         "
                         disabled>

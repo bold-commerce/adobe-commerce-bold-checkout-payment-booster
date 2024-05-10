@@ -13,7 +13,8 @@ define([
     'Magento_Checkout/js/action/select-shipping-method',
     'uiRegistry',
     'underscore',
-    'ko'
+    'ko',
+    'mage/translate',
 ], function (
     Component,
     boldClient,
@@ -29,16 +30,22 @@ define([
     selectShippingMethodAction,
     registry,
     _,
-    ko
+    ko,
+    $t
 ) {
     'use strict';
     return Component.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/bold',
             paymentType: null,
+            iframeWindow: null,
+            customerSynced: ko.observable(window.isCustomerLoggedIn),
+            billingAddressSynced: ko.observable(quote.billingAddress() !== null),
+            pigiInitialized: ko.observable(false),
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
             isPigiLoading: ko.observable(true),
+            error: $t('An error occurred while processing your payment. Please try again.'),
         },
 
         /**
@@ -46,47 +53,63 @@ define([
          */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
-            if (window.checkoutConfig.bold === undefined) {
+            if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.payment_booster) {
                 this.isVisible(false);
                 return;
             }
             this.subscribeToPIGI();
-            this.customerIsGuest = !!Number(window.checkoutConfig.bold.customerIsGuest);
+            this.customerSynced.subscribe(function (synced) {
+                if (synced && this.billingAddressSynced() && this.pigiInitialized()) {
+                    this.isPigiLoading(false);
+                }
+            }.bind(this));
+            this.billingAddressSynced.subscribe(function (synced) {
+                if (synced && this.customerSynced() && this.pigiInitialized()) {
+                    this.isPigiLoading(false);
+                }
+            }.bind(this));
+            this.pigiInitialized.subscribe(function (initialized) {
+                if (initialized && this.customerSynced() && this.billingAddressSynced()) {
+                    this.isPigiLoading(false);
+                }
+            }.bind(this));
             this.awaitingRefreshBeforePlacingOrder = false;
             this.messageContainer.errorMessages.subscribe(function (errorMessages) {
                 if (errorMessages.length > 0) {
                     loader.stopLoader();
                 }
             });
-
-            const sendRefreshOrder = _.debounce(
+            const sendBillingAddressData = _.debounce(
                 function () {
-                    this.refreshOrder();
+                    this.sendBillingAddress();
                 }.bind(this),
                 500
             );
-
-            sendRefreshOrder();
-
             quote.billingAddress.subscribe(function () {
-                sendRefreshOrder();
+                sendBillingAddressData();
             }, this);
+            const sendGuestCustomerInfoData = _.debounce(
+                function () {
+                    this.sendGuestCustomerInfo();
+                }.bind(this),
+                500
+            );
             const email = registry.get('index = customer-email');
             if (email) {
                 email.email.subscribe(function () {
                     if (email.validateEmail()) {
-                        sendRefreshOrder();
+                        sendGuestCustomerInfoData();
                     }
                 }.bind(this));
             }
+            this.sendBillingAddress();
+            this.initializePaymentGateway();
         },
 
         initializePaymentGateway: function () {
             console.log('initializing pigi...');
-            // Set frame src once /refresh is done
             this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
-
         /**
          * @inheritDoc
          */
@@ -99,14 +122,17 @@ define([
         },
 
         /**
-         * @inheritDoc
+         * Refresh the order to get the recent cart updates.
+         *
+         * @returns {void}
          */
         refreshAndAddPayment: function () {
-            if (this.iframeWindow) {
-                const refreshAction = {actionType: 'PIGI_REFRESH_ORDER'};
-                this.awaitingRefreshBeforePlacingOrder = true;
-                this.iframeWindow.postMessage(refreshAction, '*');
+            if (!this.iframeWindow) {
+                return;
             }
+            const refreshAction = {actionType: 'PIGI_REFRESH_ORDER'};
+            this.awaitingRefreshBeforePlacingOrder = true;
+            this.iframeWindow.postMessage(refreshAction, '*');
         },
 
         /**
@@ -114,10 +140,6 @@ define([
          */
         placeOrder: function (data, event) {
             loader.startLoader();
-            if (!this.iframeWindow) {
-                return false;
-            }
-
             const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
             this.iframeWindow.postMessage(clearAction, '*');
 
@@ -125,9 +147,9 @@ define([
                 this.refreshAndAddPayment();
                 return false;
             }
-            const originalPlaceOrder = this._super;
+            const defaultPlaceOrder = this._super;
             this.processBoldOrder().then(() => {
-                const orderPlacementResult = originalPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
+                const orderPlacementResult = defaultPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
                 if (!orderPlacementResult) {
                     loader.stopLoader()
                 }
@@ -144,13 +166,15 @@ define([
          * @return {Promise<void>}
          */
         processBoldOrder: async function () {
-            const refreshResult = await boldClient.get('refresh');
-            const taxesResult = await boldClient.post('taxes');
-            const processOrderResult = await boldClient.post('process_order');
-            if (refreshResult.errors || taxesResult.errors || processOrderResult.errors) {
-                throw new Error('An error occurred while processing your payment. Please try again.');
+            try {
+                await boldClient.get('refresh');
+                await boldClient.post('taxes');
+                const processOrderResult = await boldClient.post('process_order');
+                this.updateCart(processOrderResult.data);
+            } catch (e) {
+                console.error('Error processing order', e);
+                throw new Error(this.error);
             }
-            this.updateCart(processOrderResult.data);
         },
         /**
          * Display error message in PIGI iframe.
@@ -159,8 +183,10 @@ define([
          * @param {string} message
          */
         displayErrorMessage: function (message) {
-            const iframeElement = document.getElementById('PIGI');
-            const iframeWindow = iframeElement.contentWindow;
+            if (!this.iframeWindow) {
+                this.messageContainer.errorMessages([message]);
+                return;
+            }
             const action = {
                 actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
                 payload: {
@@ -171,9 +197,9 @@ define([
                 }
             };
             try {
-                iframeWindow.postMessage(action, '*');
+                this.iframeWindow.postMessage(action, '*');
             } catch (e) {
-                console.error('Error displaying error message in PIGI iframe', e);
+                this.messageContainer.errorMessages([this.error]);
             }
         },
 
@@ -201,7 +227,7 @@ define([
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }
                             this.iframeWindow = iframeElement ? iframeElement.contentWindow : null;
-                            this.isPigiLoading(false);
+                            this.pigiInitialized(true);
                             break;
                         case 'PIGI_REFRESH_ORDER':
                             if (this.awaitingRefreshBeforePlacingOrder) {
@@ -241,39 +267,6 @@ define([
         },
 
         /**
-         * Sync Magento order with Bold.
-         *
-         * @private
-         * @returns {void}
-         */
-        refreshOrder() {
-            boldClient.get('refresh').then(
-                function (response) {
-                    this.messageContainer.errorMessages([]);
-                    if (!this.isRadioButtonVisible() && !quote.shippingMethod()) {
-                        return this.selectPaymentMethod(); // some one-step checkout updates shipping lines only after payment method is selected.
-                    }
-
-                    if (
-                        response &&
-                        response.data &&
-                        response.data.application_state &&
-                        response.data.application_state.customer &&
-                        response.data.application_state.customer.email_address &&
-                        response.data.application_state.addresses.billing &&
-                        response.data.application_state.addresses.billing.address_line_1
-                    ) {
-                        if (this.isPigiLoading()) {
-                            this.initializePaymentGateway(); // don't initialize pigi until there's a customer on the order
-                        }
-                        if (this.iframeWindow) {
-                            this.iframeWindow.postMessage({actionType: 'PIGI_REFRESH_ORDER'}, '*');
-                        }
-                    }
-                }.bind(this)
-            );
-        },
-        /**
          * Update cart with the data from Bold.
          *
          * @param {{application_state: {addresses:{billing:{}, shipping:{}}}}} data
@@ -282,6 +275,42 @@ define([
             const billingAddress = data.application_state.addresses.billing;
             const magentoAddress = convertBoldAddressAction(billingAddress);
             selectBillingAddressAction(magentoAddress);
-        }
+        },
+        /**
+         * Send guest customer info to Bold.
+         *
+         * @private
+         * @returns {Promise<void>}
+         */
+        sendGuestCustomerInfo: async function () {
+            if (window.isCustomerLoggedIn) {
+                return;
+            }
+            try {
+                const result = await boldClient.post('customer/guest')
+                this.customerSynced(!result.errors);
+                this.messageContainer.errorMessages([]);
+            } catch (e) {
+                const message = e.message || (e.responseJSON && e.responseJSON.errors[0].message) || this.error;
+                this.displayErrorMessage(message)
+            }
+        },
+        /**
+         * Synchronize billing address with Bold.
+         *
+         * @private
+         * @returns {Promise<void>}
+         */
+        sendBillingAddress: async function () {
+            await this.sendGuestCustomerInfo();
+            try {
+                const result = await boldClient.post('addresses/billing');
+                this.billingAddressSynced(!result.errors);
+                this.messageContainer.errorMessages([]);
+            } catch (e) {
+                const message = e.message || (e.responseJSON && e.responseJSON.errors[0].message) || this.error;
+                this.displayErrorMessage(message);
+            }
+        },
     });
 });

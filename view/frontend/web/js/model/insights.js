@@ -1,10 +1,10 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-fastlane-gateway-data',
+        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
         'Magento_Checkout/js/model/quote',
         'Bold_CheckoutPaymentBooster/js/action/get-country-code',
     ], function (
-        getBoldFastlaneGatewayDataAction,
+        getBoldGatewayDataAction,
         quote,
         getCountryCodeAction,
     ) {
@@ -162,8 +162,8 @@ define(
                     return;
                 }
                 try {
-                    const {data} = await getBoldFastlaneGatewayDataAction();
-                    const script = data.is_test_mode ? 'bold_paypal_insights_sandbox' : 'bold_paypal_insights';
+                    const gatewayData = await getBoldGatewayDataAction();
+                    const script = gatewayData.is_test_mode ? 'bold_paypal_insights_sandbox' : 'bold_paypal_insights';
                     await new Promise((resolve, reject) => {
                         require([script], () => {
                             window.paypalInsightDataLayer = window.paypalInsightDataLayer || [];
@@ -172,7 +172,7 @@ define(
                                 paypalInsightDataLayer.push(arguments);
                             }
 
-                            paypalInsight("config", data.client_id, {debug: true});
+                            paypalInsight("config", gatewayData.client_id, {debug: true});
                             paypalInsight("event", "js_load", {timestamp: Date.now()});
                             resolve();
                         }, reject);

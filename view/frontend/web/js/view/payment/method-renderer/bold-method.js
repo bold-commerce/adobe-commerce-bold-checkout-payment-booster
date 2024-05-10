@@ -39,11 +39,10 @@ define([
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
             isPigiLoading: ko.observable(true),
+            errorMessage: 'An error occurred while processing your payment. Please try again.',
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (window.checkoutConfig.bold === undefined) {
@@ -87,9 +86,7 @@ define([
             this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         selectPaymentMethod: function () {
             this._super();
             if (this.iframeWindow) {
@@ -98,9 +95,7 @@ define([
             return true;
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         refreshAndAddPayment: function () {
             if (this.iframeWindow) {
                 const refreshAction = {actionType: 'PIGI_REFRESH_ORDER'};
@@ -109,9 +104,7 @@ define([
             }
         },
 
-        /**
-         * @inheritDoc
-         */
+        /** @inheritdoc */
         placeOrder: function (data, event) {
             loader.startLoader();
             if (!this.iframeWindow) {
@@ -125,9 +118,10 @@ define([
                 this.refreshAndAddPayment();
                 return false;
             }
+
             const originalPlaceOrder = this._super;
             this.processBoldOrder().then(() => {
-                const orderPlacementResult = originalPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
+                const orderPlacementResult = originalPlaceOrder.call(this, data, event); //call Magento_Checkout/js/view/payment/default::placeOrder()
                 if (!orderPlacementResult) {
                     loader.stopLoader()
                 }
@@ -138,6 +132,7 @@ define([
                 return false;
             });
         },
+
         /**
          * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
          *
@@ -152,29 +147,39 @@ define([
             }
             this.updateCart(processOrderResult.data);
         },
+
         /**
-         * Display error message in PIGI iframe.
+         * Display error message.
          *
          * @private
-         * @param {string} message
+         * @param {{}} error
          */
-        displayErrorMessage: function (message) {
+        displayErrorMessage: function (error) {
             const iframeElement = document.getElementById('PIGI');
             const iframeWindow = iframeElement.contentWindow;
+            let message,
+                subType
+
+            try {
+                message = error.responseJSON.errors[0].message
+                subType = error.responseJSON.errors[0].sub_type
+            } catch (exception) {
+                message = this.errorMessage
+                subType = ''
+            }
+
             const action = {
                 actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
                 payload: {
                     error: {
                         message: message,
-                        sub_type: 'string_to_categorize_error',
+                        sub_type: subType,
                     }
                 }
             };
-            try {
-                iframeWindow.postMessage(action, '*');
-            } catch (e) {
-                console.error('Error displaying error message in PIGI iframe', e);
-            }
+            iframeWindow.postMessage(action, '*');
+            this.messageContainer.errorMessages([message]);
+            console.error(message);
         },
 
         /**

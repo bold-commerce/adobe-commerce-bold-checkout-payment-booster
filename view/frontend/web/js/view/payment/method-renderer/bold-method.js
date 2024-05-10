@@ -86,14 +86,14 @@ define([
             quote.billingAddress.subscribe(function () {
                 sendBillingAddressData();
             }, this);
-            const sendGuestCustomerInfoData = _.debounce(
-                function () {
-                    this.sendGuestCustomerInfo();
-                }.bind(this),
-                500
-            );
             const email = registry.get('index = customer-email');
             if (email) {
+                const sendGuestCustomerInfoData = _.debounce(
+                    function () {
+                        this.sendGuestCustomerInfo();
+                    }.bind(this),
+                    500
+                );
                 email.email.subscribe(function () {
                     if (email.validateEmail()) {
                         sendGuestCustomerInfoData();
@@ -104,9 +104,11 @@ define([
             this.initializePaymentGateway();
         },
 
+        /**
+         * Initialize PIGI iframe.
+         */
         initializePaymentGateway: function () {
             console.log('initializing pigi...');
-            // Set frame src once /refresh is done
             this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
         },
 
@@ -185,19 +187,19 @@ define([
          * @param {{}} error
          */
         displayErrorMessage: function (error) {
-            const iframeElement = document.getElementById('PIGI');
-            const iframeWindow = iframeElement.contentWindow;
             let message,
                 subType
-
             try {
                 message = error.responseJSON.errors[0].message
                 subType = error.responseJSON.errors[0].sub_type
             } catch (exception) {
-                message = this.errorMessage
+                message = this.error
                 subType = ''
             }
-
+            if (!this.iframeWindow) {
+                this.messageContainer.errorMessages([message]);
+                return;
+            }
             const action = {
                 actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
                 payload: {
@@ -208,9 +210,9 @@ define([
                 }
             };
             try {
-                iframeWindow.postMessage(action, '*');
+                this.iframeWindow.postMessage(action, '*');
             } catch (e) {
-                console.error('Error displaying error message in PIGI iframe', e);
+                this.messageContainer.errorMessages([this.error]);
             }
         },
 
@@ -301,9 +303,8 @@ define([
                 const result = await boldClient.post('customer/guest')
                 this.customerSynced(!result.errors);
                 this.messageContainer.errorMessages([]);
-            } catch (e) {
-                const message = e.message || (e.responseJSON && e.responseJSON.errors[0].message) || this.error;
-                this.displayErrorMessage(message)
+            } catch (error) {
+                this.displayErrorMessage(error)
             }
         },
         /**
@@ -318,9 +319,8 @@ define([
                 const result = await boldClient.post('addresses/billing');
                 this.billingAddressSynced(!result.errors);
                 this.messageContainer.errorMessages([]);
-            } catch (e) {
-                const message = e.message || (e.responseJSON && e.responseJSON.errors[0].message) || this.error;
-                this.displayErrorMessage(message);
+            } catch (error) {
+                this.displayErrorMessage(error);
             }
         },
     });

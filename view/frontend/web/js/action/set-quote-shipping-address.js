@@ -1,13 +1,13 @@
 define(
     [
         'checkoutData',
-        'Bold_CheckoutPaymentBooster/js/action/convert-address',
+        'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
         'Magento_Customer/js/model/address-list',
         'Magento_Checkout/js/action/select-shipping-address',
         'Bold_CheckoutPaymentBooster/js/action/hide-shipping-address-form'
     ], function (
         checkoutData,
-        convertAddress,
+        converFastlaneAddressAction,
         addressList,
         selectShippingAddressAction,
         hideShippingAddressFormAction
@@ -21,7 +21,7 @@ define(
          * @return {void}
          */
         return function (fastlaneAddress) {
-            const shippingAddress = convertAddress(fastlaneAddress);
+            const shippingAddress = converFastlaneAddressAction(fastlaneAddress);
             addressList([shippingAddress]);
             selectShippingAddressAction(shippingAddress);
             checkoutData.setSelectedShippingAddress(shippingAddress.getKey());

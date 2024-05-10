@@ -1,12 +1,12 @@
 define(
     [
         'Magento_Checkout/js/view/payment/default',
-        'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/model/error-processor',
         'Magento_Checkout/js/action/select-payment-method',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
-        'Bold_CheckoutPaymentBooster/js/action/convert-address',
+        'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
+        'Magento_Checkout/js/model/quote',
         'checkoutData',
         'Magento_Checkout/js/model/full-screen-loader',
         'uiRegistry',
@@ -14,12 +14,12 @@ define(
         'ko'
     ], function (
         MagentoPayment,
-        quote,
         errorProcessor,
         selectPaymentMethodAction,
         boldFrontendClient,
         fastlane,
-        convertAddressAction,
+        convertFastlaneAddressAction,
+        quote,
         checkoutData,
         loader,
         registry,
@@ -204,7 +204,7 @@ define(
                 if (!billingAddress.phoneNumber) {
                     billingAddress.phoneNumber = quote.shippingAddress().telephone;
                 }
-                const billingAddressData = convertAddressAction(billingAddress, 'braintree');
+                const billingAddressData = convertFastlaneAddressAction(billingAddress, 'braintree');
                 quote.billingAddress(billingAddressData);
             }
         });

@@ -1,11 +1,12 @@
 define(
     [
         'Magento_Checkout/js/view/payment/default',
+        'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/model/error-processor',
+        'Magento_Checkout/js/action/select-payment-method',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/action/convert-address',
-        'Magento_Checkout/js/model/quote',
         'checkoutData',
         'Magento_Checkout/js/model/full-screen-loader',
         'uiRegistry',
@@ -13,11 +14,12 @@ define(
         'ko'
     ], function (
         MagentoPayment,
+        quote,
         errorProcessor,
+        selectPaymentMethodAction,
         boldFrontendClient,
         fastlane,
         convertAddressAction,
-        quote,
         checkoutData,
         loader,
         registry,
@@ -43,6 +45,12 @@ define(
                     this.isVisible(false);
                     return;
                 }
+                quote.shippingAddress.subscribe(function () {
+                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true) {
+                        selectPaymentMethodAction(null);
+                        checkoutData.setSelectedPaymentMethod(null);
+                    }
+                }, this);
                 this.waitForPaymentContainer();
             },
             /**

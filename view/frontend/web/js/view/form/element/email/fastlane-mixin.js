@@ -104,6 +104,7 @@ define(
                                 }
                                 return;
                             }
+                            window.checkoutConfig.bold.fastlane.memberAuthenticated = false;
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);

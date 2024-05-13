@@ -2,7 +2,15 @@ define([
     'Magento_Checkout/js/view/payment/default',
     'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
     'Magento_Checkout/js/model/quote',
+    'checkoutData',
+    'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
     'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_Checkout/js/action/get-totals',
+    'Magento_Customer/js/customer-data',
+    'Magento_Checkout/js/model/address-converter',
+    'Magento_Checkout/js/action/select-shipping-address',
+    'Magento_Checkout/js/action/select-billing-address',
+    'Magento_Checkout/js/action/select-shipping-method',
     'uiRegistry',
     'underscore',
     'ko'
@@ -10,7 +18,15 @@ define([
     Component,
     boldClient,
     quote,
+    checkoutData,
+    convertBoldAddressAction,
     loader,
+    getTotals,
+    customerData,
+    coreAddressConverter,
+    selectShippingAddressAction,
+    selectBillingAddressAction,
+    selectShippingMethodAction,
     registry,
     _,
     ko
@@ -120,12 +136,16 @@ define([
         /**
          * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
          *
-         * @returns {Promise<void>}
+         * @return {Promise<void>}
          */
         processBoldOrder: async function () {
-            await boldClient.get('refresh');
-            await boldClient.post('taxes');
-            await boldClient.post('process_order');
+            const refreshResult = await boldClient.get('refresh');
+            const taxesResult = await boldClient.post('taxes');
+            const processOrderResult = await boldClient.post('process_order');
+            if (refreshResult.errors || taxesResult.errors || processOrderResult.errors) {
+                throw new Error('An error occurred while processing your payment. Please try again.');
+            }
+            this.updateCart(processOrderResult.data);
         },
 
         /**
@@ -194,6 +214,23 @@ define([
                                 this.awaitingRefreshBeforePlacingOrder = false;
                             }
                             break;
+                        case 'PIGI_CHANGED_ORDER':
+                            customerData.reload(['bold'], false).then((cartData) => {
+                                const billingAddress = coreAddressConverter.formAddressDataToQuoteAddress(cartData.bold.billingAddress);
+                                selectBillingAddressAction(billingAddress);
+                                if (cartData.bold.shippingAddress) {
+                                    const shippingAddress = coreAddressConverter.formAddressDataToQuoteAddress(cartData.bold.shippingAddress);
+                                    selectShippingAddressAction(shippingAddress);
+                                    checkoutData.setSelectedShippingAddress(shippingAddress.getKey());
+                                }
+                                if (cartData.bold.shippingMethod) {
+                                    selectShippingMethodAction(cartData.bold.shippingMethod);
+                                }
+                                getTotals([]);
+                            }).catch((error) => {
+                                console.error('Error reloading customer data', error);
+                            });
+                            break;
                         case 'PIGI_ADD_PAYMENT':
                             this.messageContainer.errorMessages([]);
                             loader.stopLoader(true);
@@ -241,5 +278,15 @@ define([
                 }.bind(this)
             );
         },
+        /**
+         * Update cart with the data from Bold.
+         *
+         * @param {{application_state: {addresses:{billing:{}, shipping:{}}}}} data
+         */
+        updateCart(data) {
+            const billingAddress = data.application_state.addresses.billing;
+            const magentoAddress = convertBoldAddressAction(billingAddress);
+            selectBillingAddressAction(magentoAddress);
+        }
     });
 });

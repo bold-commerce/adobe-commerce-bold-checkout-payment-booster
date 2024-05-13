@@ -7,7 +7,7 @@
   ],
   "version": "1.0.0",
   "require": {
-    "magento/framework": ">=102.0.2 <103.0.8",
+    "magento/framework": ">=102.0.1 <103.0.8",
     "bold-commerce/module-checkout": "^1.1.34"
   },
   "autoload": {

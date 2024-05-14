@@ -5,6 +5,7 @@ namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
 use Bold\Checkout\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Exception;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\UrlInterface;
@@ -60,25 +61,29 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
-        $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        $quote = $this->checkoutSession->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
-
-        if (!$boldCheckoutData
-            || !$this->config->isFastlaneEnabled($websiteId)
-        ) {
+        try {
+            $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
+            $quote = $this->checkoutSession->getQuote();
+            $websiteId = (int)$quote->getStore()->getWebsiteId();
+            if (!$boldCheckoutData || !$this->config->isFastlaneEnabled($websiteId)) {
+                return [];
+            }
+            $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
+            if (!$publicOrderId) {
+                return [];
+            }
+            $gatewayData = $this->getGatewayData($websiteId, $publicOrderId);
+        } catch (Exception $e) {
             return [];
         }
-
-        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
-
         return [
             'bold' => [
                 'fastlane' => [
-                    'gatewayData' => $this->getGatewayData($websiteId, $publicOrderId),
+                    'gatewayData' => $gatewayData,
                     'payment' => [
                         'method' => 'bold_fastlane',
                     ],
+                    'styles' => [], // Add custom styles for the Fastlane Payment Component here if needed.
                 ],
             ],
         ];
@@ -88,37 +93,27 @@ class FastlaneConfigProvider implements ConfigProviderInterface
      * Retrieve gateway data.
      *
      * @param int $websiteId
-     * @param string|null $publicOrderId
+     * @param string $publicOrderId
      * @return array
+     * @throws Exception
      */
-    private function getGatewayData(int $websiteId, ?string $publicOrderId): array
+    private function getGatewayData(int $websiteId, string $publicOrderId): array
     {
-        if (!$publicOrderId) {
-            return [];
+        $apiUrl = sprintf(self::PAYPAL_FASTLANE_CLIENT_TOKEN_URL, $publicOrderId);
+        $baseUrl = $this->storeManagement->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
+        $domain = preg_replace('#^https?://|/$#', '', $baseUrl);
+        $response = $this->client->post(
+            $websiteId,
+            $apiUrl,
+            [
+                "domains" => [
+                    $domain,
+                ],
+            ]
+        );
+        if ($response->getErrors()) {
+            throw new Exception('Something went wrong while fetching the Fastlane gateway data.');
         }
-
-        try {
-            $apiUrl = sprintf(self::PAYPAL_FASTLANE_CLIENT_TOKEN_URL, $publicOrderId);
-            $baseUrl = $this->storeManagement->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
-            $domain = preg_replace('#^https?://|/$#', '', $baseUrl);
-
-            $response = $this->client->post(
-                $websiteId,
-                $apiUrl,
-                [
-                    "domains" => [
-                        $domain
-                    ]
-                ]
-            );
-
-            if ($response->getErrors()) {
-                return [];
-            }
-
-            return $response->getBody()['data'];
-        } catch (\Exception $e) {
-            return [];
-        }
+        return $response->getBody()['data'];
     }
 }

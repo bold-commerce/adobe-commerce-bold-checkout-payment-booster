@@ -7,7 +7,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/hide-shipping-address-form'
     ], function (
         checkoutData,
-        converFastlaneAddressAction,
+        convertFastlaneAddressAction,
         addressList,
         selectShippingAddressAction,
         hideShippingAddressFormAction
@@ -21,7 +21,7 @@ define(
          * @return {void}
          */
         return function (fastlaneAddress) {
-            const shippingAddress = converFastlaneAddressAction(fastlaneAddress);
+            const shippingAddress = convertFastlaneAddressAction(fastlaneAddress);
             addressList([shippingAddress]);
             selectShippingAddressAction(shippingAddress);
             checkoutData.setSelectedShippingAddress(shippingAddress.getKey());

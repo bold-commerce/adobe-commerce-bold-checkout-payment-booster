@@ -26,7 +26,12 @@ define(
              */
             const convertBraintreeAddress = (fastlaneAddress) => {
                 const directoryData = customerData.get('directory-data');
-                const regions = directoryData()[fastlaneAddress.countryCodeAlpha2].regions;
+                let regions;
+                try {
+                    regions = directoryData()[fastlaneAddress.countryCodeAlpha2].regions;
+                } catch (e) {
+                    regions = null;
+                }
                 let regionId = null;
                 let regionName = null;
                 if (regions !== undefined) {

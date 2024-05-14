@@ -1,10 +1,8 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Magento_Checkout/js/model/quote',
         'Bold_CheckoutPaymentBooster/js/action/get-country-code',
     ], function (
-        fastlane,
         quote,
         getCountryCodeAction,
     ) {
@@ -26,7 +24,7 @@ define(
              * @return {Promise<void>}
              */
             beginCheckout: async function () {
-                if (!fastlane.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (this.beginCheckoutSent) {
@@ -62,7 +60,7 @@ define(
              * @return {Promise<void>}
              */
             endCheckout: async function () {
-                if (!fastlane.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (this.endCheckoutSent) {
@@ -99,7 +97,7 @@ define(
              * @return {Promise<void>}
              */
             selectPaymentMethod: async function (code = null) {
-                if (!fastlane.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -123,7 +121,7 @@ define(
              * @return {Promise<void>}
              */
             submitEmail: async function () {
-                if (!fastlane.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -146,7 +144,7 @@ define(
              * @return {Promise<void>}
              */
             initInsightsSDK: async function () {
-                if (!fastlane.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (window.paypalInsight) {
@@ -200,6 +198,14 @@ define(
                     this.paymentMethod = 'other';
                 }
                 return this.paymentMethod;
+            },
+            /**
+             * Check if Insights SDK is enabled.
+             *
+             * @return {boolean}
+             */
+            enabled: function () {
+                return false; // Should be disabled for now. https://perkybytes.slack.com/archives/C066ZMP3ECQ/p1715347041228029
             },
             /**
              * Try to get payment method from PIGI iframe and Fastlane Payment Component.

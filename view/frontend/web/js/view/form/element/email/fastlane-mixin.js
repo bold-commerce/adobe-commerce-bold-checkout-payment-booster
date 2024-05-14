@@ -7,10 +7,10 @@ define(
         'Magento_Checkout/js/action/create-shipping-address',
         'uiRegistry',
         'Magento_Checkout/js/model/full-screen-loader',
-        'Magento_Checkout/js/action/select-shipping-address',
         'checkoutData',
         'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address',
-        'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address'
+        'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address',
+        'Magento_Checkout/js/model/quote'
     ], function (
         fastlane,
         addressList,
@@ -19,10 +19,10 @@ define(
         createShippingAddress,
         registry,
         fullScreenLoader,
-        selectShippingAddressAction,
         checkoutData,
         setQuoteShippingAddressAction,
-        resetShippingAddressAction
+        resetShippingAddressAction,
+        quote
     ) {
         'use strict';
 
@@ -99,6 +99,7 @@ define(
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
                                     window.checkoutConfig.bold.fastlane.memberAuthenticated = true;
+                                    window.checkoutConfig.bold.fastlane.profileData = profileData;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
                                 }
@@ -119,6 +120,9 @@ define(
                      * @return {void}
                      */
                     setShippingAddress: function (profileData) {
+                        if (quote.isVirtual()) {
+                            return;
+                        }
                         const shippingAddress = profileData.shippingAddress || null;
                         if (!shippingAddress) {
                             resetShippingAddressAction();

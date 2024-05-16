@@ -13,6 +13,9 @@
                     <label>Is Fastlane Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Use PayPal Fastlane Checkout.]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
                 </field>
                 <field id="fastlane_payment_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>Fastlane Payment Title</label>
@@ -20,11 +23,6 @@
                     <depends>
                         <field id="is_fastlane_enabled">1</field>
                     </depends>
-                </field>
-                <field id="is_paypal_insights_enabled" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1">
-                    <label>Is PayPal Insights Enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Enable PayPal Insights.]]></comment>
                 </field>
             </group>
         </section>

@@ -1,10 +1,8 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/action/get-bold-gateway-data',
         'Magento_Checkout/js/model/quote',
         'Bold_CheckoutPaymentBooster/js/action/get-country-code',
     ], function (
-        getBoldGatewayDataAction,
         quote,
         getCountryCodeAction,
     ) {
@@ -21,21 +19,12 @@ define(
             paymentMethod: null,
 
             /**
-             * Check if PayPal insights is enabled and active.
-             *
-             * @return {*|boolean}
-             * @perivate
-             */
-            isEnabled: function () {
-                return !!window.checkoutConfig.bold.paypal_insights.enabled
-            },
-            /**
              * Send begin_checkout event to PayPal Insights SDK.
              *
              * @return {Promise<void>}
              */
             beginCheckout: async function () {
-                if (!this.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (this.beginCheckoutSent) {
@@ -71,7 +60,7 @@ define(
              * @return {Promise<void>}
              */
             endCheckout: async function () {
-                if (!this.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (this.endCheckoutSent) {
@@ -108,7 +97,7 @@ define(
              * @return {Promise<void>}
              */
             selectPaymentMethod: async function (code = null) {
-                if (!this.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -132,7 +121,7 @@ define(
              * @return {Promise<void>}
              */
             submitEmail: async function () {
-                if (!this.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 await new Promise((resolve) => {
@@ -155,14 +144,14 @@ define(
              * @return {Promise<void>}
              */
             initInsightsSDK: async function () {
-                if (!this.isEnabled()) {
+                if (!this.enabled()) {
                     return;
                 }
                 if (window.paypalInsight) {
                     return;
                 }
                 try {
-                    const gatewayData = await getBoldGatewayDataAction();
+                    const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
                     const script = gatewayData.is_test_mode ? 'bold_paypal_insights_sandbox' : 'bold_paypal_insights';
                     await new Promise((resolve, reject) => {
                         require([script], () => {
@@ -209,6 +198,14 @@ define(
                     this.paymentMethod = 'other';
                 }
                 return this.paymentMethod;
+            },
+            /**
+             * Check if Insights SDK is enabled.
+             *
+             * @return {boolean}
+             */
+            enabled: function () {
+                return false; // Should be disabled for now. https://perkybytes.slack.com/archives/C066ZMP3ECQ/p1715347041228029
             },
             /**
              * Try to get payment method from PIGI iframe and Fastlane Payment Component.

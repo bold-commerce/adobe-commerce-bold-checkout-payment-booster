@@ -49,7 +49,8 @@ define(
                     return;
                 }
                 quote.shippingAddress.subscribe(function () {
-                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true) {
+                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
+                        && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
                         selectPaymentMethodAction(null);
                         checkoutData.setSelectedPaymentMethod(null);
                     }

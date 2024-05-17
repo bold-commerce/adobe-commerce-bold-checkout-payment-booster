@@ -16,8 +16,6 @@ use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
  */
 class BoldConfigProvider implements ConfigProviderInterface
 {
-    private const GET_COUNTRY_CODE_URL = 'https://shappify-cdn.com/cf_helper/get_country.php';
-
     /**
      * @var Session
      */
@@ -92,7 +90,6 @@ class BoldConfigProvider implements ConfigProviderInterface
                 'shopId' => $shopId,
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
-                'getCountryCodeUrl' => self::GET_COUNTRY_CODE_URL,
             ],
         ];
     }

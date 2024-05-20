@@ -2,6 +2,9 @@ define(
     [
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/model/error-processor',
+        'Magento_Checkout/js/action/select-payment-method',
+        'Magento_Checkout/js/action/select-billing-address',
+        'Magento_Checkout/js/action/set-billing-address',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
@@ -14,6 +17,9 @@ define(
     ], function (
         MagentoPayment,
         errorProcessor,
+        selectPaymentMethodAction,
+        selectBillingAddressAction,
+        setBillingAddressAction,
         boldFrontendClient,
         fastlane,
         convertFastlaneAddressAction,
@@ -30,7 +36,6 @@ define(
                 template: 'Bold_CheckoutPaymentBooster/payment/fastlane',
                 paymentContainer: '#bold-fastlane-payment-container',
                 isVisible: ko.observable(true),
-                /** @type {{getPaymentToken: function}} */
                 fastlanePaymentComponent: null,
             },
 
@@ -43,7 +48,14 @@ define(
                     this.isVisible(false);
                     return;
                 }
-                this.waitForPaymentContainer();
+                quote.shippingAddress.subscribe(function () {
+                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
+                        && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
+                        selectPaymentMethodAction(null);
+                        checkoutData.setSelectedPaymentMethod(null);
+                    }
+                }, this);
+                this.renderPaymentContainer();
             },
             /**
              * Wait for the payment container to be rendered before rendering the Fastlane component.
@@ -52,9 +64,10 @@ define(
              *
              * @returns {void}
              */
-            waitForPaymentContainer: function () {
+            renderPaymentContainer: function () {
                 const observer = new MutationObserver(function () {
-                    if (quote.shippingAddress().firstname && document.querySelector(this.paymentContainer)) {
+                    const addressFilled = quote.isVirtual() || (quote.shippingAddress().firstname && quote.shippingAddress().lastname);
+                    if (addressFilled && document.querySelector(this.paymentContainer)) {
                         observer.disconnect();
                         this.renderCardComponent();
                         if (window.checkoutConfig.bold.fastlane.memberAuthenticated === true) {
@@ -73,39 +86,37 @@ define(
              * @return {Promise<void>}
              */
             renderCardComponent: async function () {
-                const options = {
-                    fields: {
-                        phoneNumber: {
-                            prefill: quote.shippingAddress().telephone
-                        }
-                    },
-                    styles: {}
-                };
-                const shippingAddress = {
-                    firstName: quote.shippingAddress().firstname,
-                    lastName: quote.shippingAddress().lastname,
-                    streetAddress: quote.shippingAddress().street[0],
-                    extendedAddress: quote.shippingAddress().street[1],
-                    locality: quote.shippingAddress().city,
-                    region: quote.shippingAddress().regionCode,
-                    postalCode: quote.shippingAddress().postcode,
-                    countryCodeAlpha2: quote.shippingAddress().countryId,
-                    phoneNumber: quote.shippingAddress().telephone
-                };
                 try {
                     const fastlaneInstance = await fastlane.getFastlaneInstance();
                     if (!fastlaneInstance) {
                         this.isVisible(false);
                         return;
                     }
+                    const quoteAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
+                    let telephone = null;
+                    if (quoteAddress) {
+                        telephone = quoteAddress.telephone;
+                    }
+                    const fields = {
+                        phoneNumber: {
+                            prefill: telephone
+                        }
+                    };
+                    const styles = window.checkoutConfig.bold.fastlane.styles || {};
+                    const shippingAddress = this.getFastlaneShippingAddress();
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
-                            options,
-                            shippingAddress
+                            fields,
+                            styles
                         }
                     );
+                    if (shippingAddress) {
+                        this.fastlanePaymentComponent.setShippingAddress(shippingAddress);
+                    }
                     this.fastlanePaymentComponent.render(this.paymentContainer);
+                    this.isPlaceOrderActionAllowed(true);
                 } catch (e) {
+                    this.isPlaceOrderActionAllowed(false);
                     this.isVisible(false);
                 }
             },
@@ -137,7 +148,7 @@ define(
                     }).catch((error) => {
                         const errorMessage = error.responseJSON && error.responseJSON.errors
                             ? error.responseJSON.errors[0].message
-                            : error;
+                            : error.message;
                         loader.stopLoader();
                         errorProcessor.process(errorMessage, this.messageContainer);
                         return false;
@@ -181,24 +192,76 @@ define(
              * @param {{paymentSource: {card: {billingAddress}}}}tokenResponse
              */
             updateQuoteBillingAddress(tokenResponse) {
-                const billingAddress = tokenResponse.paymentSource
-                && tokenResponse.paymentSource.card
-                && tokenResponse.paymentSource.card.billingAddress
-                    ? tokenResponse.paymentSource.card.billingAddress : null;
-                if (!billingAddress) {
-                    return;
+                const fastlaneBillingAddress = tokenResponse.paymentSource && tokenResponse.paymentSource.card && tokenResponse.paymentSource.card.billingAddress
+                    ? tokenResponse.paymentSource.card.billingAddress
+                    : null;
+                if (!fastlaneBillingAddress) {
+                    throw new Error('Billing address is missing in the payment token response.');
                 }
-                if (!billingAddress.firstName) {
-                    billingAddress.firstName = quote.shippingAddress().firstname;
+                let quoteAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
+                if (!quoteAddress) {
+                    quoteAddress = {
+                        firstname: null,
+                        lastname: null,
+                        telephone: null
+                    };
                 }
-                if (!billingAddress.lastName) {
-                    billingAddress.lastName = quote.shippingAddress().lastname;
+                let fastlaneFirstName;
+                try {
+                    fastlaneFirstName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.firstName
+                        ? window.checkoutConfig.bold.fastlane.profileData.name.firstName
+                        : tokenResponse.paymentSource.card.name.split(' ')[0];
+                } catch (e) {
+                    fastlaneFirstName = quoteAddress.firstname;
                 }
-                if (!billingAddress.phoneNumber) {
-                    billingAddress.phoneNumber = quote.shippingAddress().telephone;
+                if (!fastlaneFirstName) {
+                    throw new Error('First name is missing.');
                 }
-                const billingAddressData = convertFastlaneAddressAction(billingAddress, 'braintree');
-                quote.billingAddress(billingAddressData);
+                let fastlaneLastName;
+                try {
+                    fastlaneLastName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.lastName
+                        ? window.checkoutConfig.bold.fastlane.profileData.name.lastName
+                        : tokenResponse.paymentSource.card.name.split(' ')[1];
+                } catch (e) {
+                    fastlaneLastName = quoteAddress.lastname;
+                }
+                if (!fastlaneLastName) {
+                    fastlaneLastName = fastlaneFirstName;
+                }
+                fastlaneBillingAddress.firstName = fastlaneFirstName;
+                fastlaneBillingAddress.lastName = fastlaneLastName;
+                if (!fastlaneBillingAddress.phoneNumber) {
+                    fastlaneBillingAddress.phoneNumber = quoteAddress.telephone;
+                }
+                const billingAddress = convertFastlaneAddressAction(fastlaneBillingAddress, 'braintree');
+                selectBillingAddressAction(billingAddress);
+                setBillingAddressAction(this.messageContainer);
+            },
+            /**
+             * Get Fastlane shipping address for the payment component.
+             *
+             * @return {object|null}
+             * @private
+             */
+            getFastlaneShippingAddress: function () {
+                if (quote.isVirtual()) {
+                    return null;
+                }
+                const quoteAddress = quote.shippingAddress();
+                if (!quoteAddress) {
+                    return null;
+                }
+                return {
+                    firstName: quoteAddress.firstname,
+                    lastName: quoteAddress.lastname,
+                    streetAddress: quoteAddress.street[0],
+                    extendedAddress: quoteAddress.street[1],
+                    locality: quoteAddress.city,
+                    region: quoteAddress.regionCode,
+                    postalCode: quoteAddress.postcode,
+                    countryCodeAlpha2: quoteAddress.countryId,
+                    phoneNumber: quoteAddress.telephone
+                };
             }
         });
     });

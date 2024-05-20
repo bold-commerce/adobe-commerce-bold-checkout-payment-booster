@@ -3,7 +3,7 @@
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
     <groups>
         <group id="bold_payments_fastlane">
-            <label>PayPal Fastlane</label>
+            <label>Credit card</label>
         </group>
     </groups>
     <methods>

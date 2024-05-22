@@ -31,21 +31,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $client;
 
     /**
-     * @var Json
-     */
-    private $json;
-
-    /**
-     * @var Reader
-     */
-    private $moduleReader;
-
-    /**
-     * @var ReadFactory
-     */
-    private $readFactory;
-
-    /**
      * @var Config
      */
     private $config;
@@ -53,24 +38,15 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     /**
      * @param Session $checkoutSession
      * @param ClientInterface $client
-     * @param Json $json
-     * @param Reader $moduleReader
-     * @param ReadFactory $readFactory
      * @param Config $config
      */
     public function __construct(
         Session $checkoutSession,
         ClientInterface $client,
-        Json $json,
-        Reader $moduleReader,
-        ReadFactory $readFactory,
         Config $config
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->client = $client;
-        $this->json = $json;
-        $this->moduleReader = $moduleReader;
-        $this->readFactory = $readFactory;
         $this->config = $config;
     }
 
@@ -121,33 +97,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return null;
         }
 
-        try {
-            $styles = $this->getStyles();
-            if ($styles) {
-                $this->client->post($websiteId, 'payments/styles', $styles);
-            }
-        } catch (\Exception $e) {
-            return null;
-        }
-
         return $this->client->getUrl($websiteId, 'payments/iframe?token=' . $jwtToken);
-    }
-
-    /**
-     * Get iframe styles.
-     *
-     * @return array
-     * @throws FileSystemException
-     * @throws ValidatorException
-     */
-    private function getStyles(): array
-    {
-        $dir = $this->moduleReader->getModuleDir(Dir::MODULE_VIEW_DIR, 'Bold_CheckoutPaymentBooster');
-        $read = $this->readFactory->create($dir . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR . 'web');
-        if (!$read->isFile('iframe-styles.json')) {
-            return [];
-        }
-
-        return $this->json->unserialize($read->readFile('iframe-styles.json'));
     }
 }

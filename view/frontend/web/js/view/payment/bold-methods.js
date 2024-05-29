@@ -7,7 +7,7 @@ define([
 ) {
     'use strict';
 
-    let shouldShowPaymentMethod = function () {
+    const shouldShowPaymentMethod = function () {
         if (window.checkoutConfig.bold !== undefined) {
             if (window.checkoutConfig.bold.fastlane !== undefined) {
                 return window.checkoutConfig.bold.alternativePaymentMethods.some(function (method) {

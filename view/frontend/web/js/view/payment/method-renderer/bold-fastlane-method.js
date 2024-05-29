@@ -169,13 +169,30 @@ define(
                     this.updateQuoteBillingAddress(tokenResponse);
                     const refreshResult = await boldFrontendClient.get('refresh');
                     const taxesResult = await boldFrontendClient.post('taxes');
+                    if (fastlane.getType() === 'ppcp') {
+                        const walletPayResult = await boldFrontendClient.post(
+                            'wallet_pay/create_order',
+                            {
+                                gateway_type: 'paypal',
+                                payment_data: {
+                                    locale: navigator.language,
+                                    payment_type: 'fastlane',
+                                    token: tokenResponse.id,
+                                }
+                            }
+                        );
+                        if (walletPayResult.errors) {
+                            return Promise.reject('An error occurred while processing your payment. Please try again.');
+                        }
+                        tokenResponse.id = walletPayResult.data?.payment_data?.id;
+                    }
                     const paymentResult = await boldFrontendClient.post(
                         'payments',
                         {
-                            'gateway_public_id': fastlane.getGatewayPublicId(),
-                            'currency': quote.totals().quote_currency_code,
-                            'amount': quote.totals().grand_total * 100,
-                            'token': tokenResponse.id
+                            gateway_public_id: fastlane.getGatewayPublicId(),
+                            currency: quote.totals().quote_currency_code,
+                            amount: quote.totals().grand_total * 100,
+                            token: tokenResponse.id
                         }
                     );
                     const orderPlacementResult = await boldFrontendClient.post('process_order');

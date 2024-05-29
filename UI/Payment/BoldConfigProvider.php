@@ -82,6 +82,7 @@ class BoldConfigProvider implements ConfigProviderInterface
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
+        $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
 
         return [
             'bold' => [
@@ -90,6 +91,7 @@ class BoldConfigProvider implements ConfigProviderInterface
                 'shopId' => $shopId,
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
+                'alternativePaymentMethods' => $alternativePaymentMethods,
             ],
         ];
     }

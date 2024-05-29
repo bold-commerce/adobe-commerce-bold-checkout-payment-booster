@@ -7,7 +7,20 @@ define([
 ) {
     'use strict';
 
-    if (window.checkoutConfig.bold !== undefined) {
+    let shouldShowPaymentMethod = function () {
+        if (window.checkoutConfig.bold !== undefined) {
+            if (window.checkoutConfig.bold.fastlane !== undefined) {
+                return window.checkoutConfig.bold.alternativePaymentMethods.some(function (method) {
+                    return method.type === 'braintree-paypal' || method.type === 'paypal_commerce_platform';
+                });
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    if (shouldShowPaymentMethod()) {
         rendererList.push(
             {
                 type: 'bold',

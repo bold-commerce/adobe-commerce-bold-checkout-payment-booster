@@ -186,14 +186,18 @@ define(
                         }
                         tokenResponse.id = walletPayResult.data?.payment_data?.id;
                     }
+                    const paymentPayload = {
+                        'gateway_public_id': fastlane.getGatewayPublicId(),
+                        'currency': quote.totals().quote_currency_code,
+                        'amount': quote.totals().grand_total * 100,
+                        'token': tokenResponse.id
+                    }
+                    if (fastlane.getType() === 'braintree') {
+                        paymentPayload.type = 'fastlane'
+                    }
                     const paymentResult = await boldFrontendClient.post(
                         'payments',
-                        {
-                            gateway_public_id: fastlane.getGatewayPublicId(),
-                            currency: quote.totals().quote_currency_code,
-                            amount: quote.totals().grand_total * 100,
-                            token: tokenResponse.id
-                        }
+                        paymentPayload
                     );
                     const orderPlacementResult = await boldFrontendClient.post('process_order');
                     if (refreshResult.errors || taxesResult.errors || paymentResult.errors || orderPlacementResult.errors) {

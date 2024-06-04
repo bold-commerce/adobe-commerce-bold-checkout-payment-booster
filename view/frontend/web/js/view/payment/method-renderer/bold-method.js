@@ -1,6 +1,7 @@
 define([
     'Magento_Checkout/js/view/payment/default',
     'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
+    'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Magento_Checkout/js/model/quote',
     'checkoutData',
     'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
@@ -18,6 +19,7 @@ define([
 ], function (
     Component,
     boldClient,
+    fastlane,
     quote,
     checkoutData,
     convertBoldAddressAction,
@@ -236,10 +238,13 @@ define([
                             iframeElement.height = Math.round(data.payload.height) + 'px';
                             break;
                         case 'PIGI_INITIALIZED':
+                            this.iframeWindow = iframeElement.contentWindow;
+                            if (fastlane.isEnabled()) {
+                                this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
+                            }
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }
-                            this.iframeWindow = iframeElement ? iframeElement.contentWindow : null;
                             this.pigiInitialized(true);
                             break;
                         case 'PIGI_REFRESH_ORDER':

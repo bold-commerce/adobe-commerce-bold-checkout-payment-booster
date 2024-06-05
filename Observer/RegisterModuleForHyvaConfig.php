@@ -7,6 +7,9 @@ use Magento\Framework\Component\ComponentRegistrar;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 
+/**
+ * Register module for Hyva config.
+ */
 class RegisterModuleForHyvaConfig implements ObserverInterface
 {
     /**
@@ -14,11 +17,17 @@ class RegisterModuleForHyvaConfig implements ObserverInterface
      */
     private $componentRegistrar;
 
+    /**
+     * @param ComponentRegistrar $componentRegistrar
+     */
     public function __construct(ComponentRegistrar $componentRegistrar)
     {
         $this->componentRegistrar = $componentRegistrar;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function execute(Observer $event)
     {
         $config = $event->getData('config');

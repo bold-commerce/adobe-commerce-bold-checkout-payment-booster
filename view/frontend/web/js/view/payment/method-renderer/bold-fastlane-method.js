@@ -48,7 +48,9 @@ define(
                     this.isVisible(false);
                     return;
                 }
+                this.sendGuestCustomerInfo();
                 quote.shippingAddress.subscribe(function () {
+                    this.sendGuestCustomerInfo();
                     if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
                         && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
                         selectPaymentMethodAction(null);
@@ -283,6 +285,24 @@ define(
                     countryCodeAlpha2: quoteAddress.countryId,
                     phoneNumber: quoteAddress.telephone
                 };
+            },
+            /**
+             * Send guest customer info to Bold.
+             *
+             * @private
+             */
+            sendGuestCustomerInfo: async function () {
+                if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true) {
+                    return;
+                }
+                try {
+                    await boldFrontendClient.post('customer/guest');
+                } catch (error) {
+                    const errorMessage = error.responseJSON && error.responseJSON.errors
+                        ? error.responseJSON.errors[0].message
+                        : error.message;
+                    errorProcessor.process(errorMessage, this.messageContainer);
+                }
             }
         });
     });

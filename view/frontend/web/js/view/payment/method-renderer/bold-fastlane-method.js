@@ -108,8 +108,8 @@ define(
                     const shippingAddress = this.getFastlaneShippingAddress();
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
-                            fields,
-                            styles
+                            styles,
+                            fields
                         }
                     );
                     if (shippingAddress) {

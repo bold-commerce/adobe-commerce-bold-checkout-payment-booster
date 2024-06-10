@@ -73,6 +73,8 @@ class FastlaneConfigProvider implements ConfigProviderInterface
                 return [];
             }
             $gatewayData = $this->getGatewayData($websiteId, $publicOrderId);
+            $styles = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'][0]['fastlane_styles']
+                ?? [];
         } catch (Exception $e) {
             return [];
         }
@@ -83,7 +85,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
                     'payment' => [
                         'method' => 'bold_fastlane',
                     ],
-                    'styles' => [], // Add custom styles for the Fastlane Payment Component here if needed.
+                    'styles' => $styles,
                 ],
             ],
         ];

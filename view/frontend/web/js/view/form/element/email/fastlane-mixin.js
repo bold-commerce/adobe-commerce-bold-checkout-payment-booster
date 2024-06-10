@@ -10,7 +10,8 @@ define(
         'checkoutData',
         'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address',
         'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address',
-        'Magento_Checkout/js/model/quote'
+        'Magento_Checkout/js/model/quote',
+        'Magento_Checkout/js/view/billing-address',
     ], function (
         fastlane,
         addressList,
@@ -22,7 +23,8 @@ define(
         checkoutData,
         setQuoteShippingAddressAction,
         resetShippingAddressAction,
-        quote
+        quote,
+        billingAddress
     ) {
         'use strict';
 
@@ -88,8 +90,9 @@ define(
                         if (!fastlaneInstance) {
                             return;
                         }
-                        const identity = fastlaneInstance.identity;
+
                         try {
+                            const {identity} = fastlaneInstance;
                             const {customerContextId} = await identity.lookupCustomerByEmail(this.email());
                             fullScreenLoader.stopLoader();
                             if (customerContextId) {
@@ -129,6 +132,7 @@ define(
                             return;
                         }
                         setQuoteShippingAddressAction(shippingAddress);
+                        billingAddress().useShippingAddress();
                     }
                 }
             );

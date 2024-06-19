@@ -9,21 +9,21 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Use the native checkout with Bold Checkout's payment options.]]></comment>
                 </field>
-<!--                <field id="is_fastlane_enabled" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1">-->
-<!--                    <label>Is Fastlane Enabled</label>-->
-<!--                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
-<!--                    <comment><![CDATA[Use PayPal Fastlane Checkout.]]></comment>-->
-<!--                    <depends>-->
-<!--                        <field id="is_payment_booster_enabled">1</field>-->
-<!--                    </depends>-->
-<!--                </field>-->
-<!--                <field id="fastlane_payment_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">-->
-<!--                    <label>Fastlane Payment Title</label>-->
-<!--                    <comment><![CDATA[Payment title that will be displayed on the checkout page.]]></comment>-->
-<!--                    <depends>-->
-<!--                        <field id="is_fastlane_enabled">1</field>-->
-<!--                    </depends>-->
-<!--                </field>-->
+                <field id="is_fastlane_enabled" translate="label" type="select" sortOrder="15" showInDefault="1" showInWebsite="1">
+                    <label>Is Fastlane Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Use PayPal Fastlane Checkout.]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="fastlane_payment_title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
+                    <label>Fastlane Payment Title</label>
+                    <comment><![CDATA[Payment title that will be displayed on the checkout page.]]></comment>
+                    <depends>
+                        <field id="is_fastlane_enabled">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="bold_checkout_custom_elements">
                 <field id="payment_css" translate="label" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1">

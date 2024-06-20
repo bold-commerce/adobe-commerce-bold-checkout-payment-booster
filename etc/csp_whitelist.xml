@@ -7,11 +7,15 @@
                 <value id="bold_commerce" type="host">https://api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">https://api.staging.boldcommerce.com</value>
                 <value id="cashier" type="host">https://cashier.boldcommerce.com</value>
+                <value id="www_paypal" type="host">https://www.paypal.com</value>
+                <value id="www_sandbox_paypal" type="host">https://www.sandbox.paypal.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
                 <value id="bold_commerce" type="host">https://api.boldcommerce.com</value>
+                <value id="cashier" type="host">https://cashier.boldcommerce.com</value>
+                <value id="js_braintree_gateway" type="host">https://js.braintreegateway.com</value>
             </values>
         </policy>
         <policy id="frame-src">
@@ -26,7 +30,7 @@
         </policy>
         <policy id="font-src">
             <values>
-                <value id="bold_fastlane_paypal_objects" type="host">https://www.paypalobjects.com</value>
+                <value id="www_paypal_objects" type="host">https://www.paypalobjects.com</value>
             </values>
         </policy>
     </policies>

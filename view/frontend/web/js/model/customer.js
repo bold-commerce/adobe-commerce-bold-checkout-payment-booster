@@ -14,12 +14,17 @@ define([
          * @return object|null
          */
         getCustomer: function () {
-            const billingAddress = quote.billingAddress();
-            if (!billingAddress) {
+            const billingAddress = checkoutData.getBillingAddressFromData();
+            const shippingAddress = checkoutData.getShippingAddressFromData();
+            if (!billingAddress && !shippingAddress) {
                 return null;
             }
-            const firstname = billingAddress.firstname;
-            const lastname = billingAddress.lastname;
+            const firstname = (billingAddress && billingAddress.firstname)
+                || (shippingAddress && shippingAddress.firstname)
+                || '';
+            const lastname = (billingAddress && billingAddress.lastname)
+                || (shippingAddress && shippingAddress.lastname)
+                || '';
             const payload = {
                 'email_address': checkoutData.getValidatedEmailValue(),
                 'first_name': firstname,

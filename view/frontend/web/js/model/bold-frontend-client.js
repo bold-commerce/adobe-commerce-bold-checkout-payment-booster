@@ -18,6 +18,8 @@ define([
     return {
         requestInProgress: false,
         requestQueue: [],
+        synchronizedGuestData: {},
+        synchronizedAddressData: {},
 
         /**
          * Post data to Bold API.
@@ -70,7 +72,7 @@ define([
             switch (nextRequest.path) {
                 case 'addresses/billing' :
                     requestData = boldAddress.getBillingAddress();
-                    if (!requestData) {
+                    if (!requestData || _.isEqual(requestData, this.synchronizedAddressData)) {
                         this.requestInProgress = false;
                         this.processNextRequest();
                         return;
@@ -78,7 +80,7 @@ define([
                     break;
                 case 'customer/guest' :
                     requestData = boldCustomer.getCustomer();
-                    if (!requestData) {
+                    if (!requestData || _.isEqual(requestData, this.synchronizedGuestData)) {
                         this.requestInProgress = false;
                         this.processNextRequest();
                         return;
@@ -99,6 +101,16 @@ define([
             }).done(function (result) {
                 nextRequest.resolve(result);
                 this.requestInProgress = false;
+                switch (nextRequest.path) {
+                    case 'addresses/billing' :
+                        this.synchronizedAddressData = requestData;
+                        break;
+                    case 'customer/guest' :
+                        this.synchronizedGuestData = requestData;
+                        break;
+                    default:
+                        break;
+                }
                 this.processNextRequest();
             }.bind(this)).fail(function (error) {
                 nextRequest.reject(error);

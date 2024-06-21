@@ -45,7 +45,6 @@ define([
             if (this.billingAddress.street && this.billingAddress.street[1]) {
                 street2 = this.billingAddress.street[1];
             }
-            // const billing = registry.get('index = billingAddress');
             if (!street1) {
                 const street1Field = this.billingAddress
                 && this.billingAddress.isAddressSameAsShipping

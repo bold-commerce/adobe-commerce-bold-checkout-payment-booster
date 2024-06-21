@@ -12,6 +12,7 @@ define([
     'Magento_Checkout/js/action/select-shipping-address',
     'Magento_Checkout/js/action/select-billing-address',
     'Magento_Checkout/js/action/select-shipping-method',
+    'Magento_Checkout/js/view/form/element/email',
     'uiRegistry',
     'underscore',
     'ko',
@@ -30,6 +31,7 @@ define([
     selectShippingAddressAction,
     selectBillingAddressAction,
     selectShippingMethodAction,
+    emailElement,
     registry,
     _,
     ko,
@@ -52,6 +54,7 @@ define([
 
         /** @inheritdoc */
         initialize: function () {
+            const self = this;
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.payment_booster) {
                 this.isVisible(false);
@@ -104,6 +107,39 @@ define([
             }
             this.sendBillingAddress();
             this.initializePaymentGateway();
+            registry.async('checkoutProvider')(
+                function (checkoutProvider) {
+                    checkoutProvider.on('shippingAddress', self.onAddressChanged.bind(self));
+                    checkoutProvider.on('billingAddress', self.onAddressChanged.bind(self));
+                });
+            registry.async('checkout.customer-information.email')(
+                function (emailComponent) {
+                    emailComponent.emailFocused.subscribe(self.onEmailChanged.bind(self));
+                });
+        },
+
+
+        /**
+         * Observe email change event and synchronize address.
+         *
+         * @param focused
+         */
+        onEmailChanged: function (focused) {
+            if (!focused && emailElement().validateEmail()) {
+                this.sendBillingAddress();
+            }
+        },
+
+        /**
+         * Observe address change event and synchronize it.
+         *
+         * @param addressData
+         * @param changes
+         */
+        onAddressChanged: function (addressData, changes) {
+            if (changes && changes.length !== 0) {
+                this.sendBillingAddress();
+            }
         },
 
         /**

@@ -16,7 +16,7 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class FastlaneConfigProvider implements ConfigProviderInterface
 {
-    private const PAYPAL_FASTLANE_CLIENT_TOKEN_URL = 'checkout/orders/{shopId}/%s/paypal_fastlane/client_token';
+    private const PAYPAL_FASTLANE_CLIENT_TOKEN_URL = 'checkout/orders/{{shopId}}/%s/paypal_fastlane/client_token';
 
     /**
      * @var Session

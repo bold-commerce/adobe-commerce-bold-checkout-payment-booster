@@ -4,33 +4,45 @@
     <policies>
         <policy id="connect-src">
             <values>
-                <value id="bold_commerce" type="host">https://api.boldcommerce.com</value>
-                <value id="bold_commerce_staging" type="host">https://api.staging.boldcommerce.com</value>
-                <value id="cashier" type="host">https://cashier.boldcommerce.com</value>
-                <value id="www_paypal" type="host">https://www.paypal.com</value>
-                <value id="www_sandbox_paypal" type="host">https://www.sandbox.paypal.com</value>
+                <value id="bold_commerce" type="host">api.boldcommerce.com</value>
+                <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+                <value id="cashier" type="host">cashier.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
-                <value id="bold_commerce" type="host">https://api.boldcommerce.com</value>
-                <value id="cashier" type="host">https://cashier.boldcommerce.com</value>
-                <value id="js_braintree_gateway" type="host">https://js.braintreegateway.com</value>
+                <value id="bold_commerce_unsafe-inline" type="host">unsafe-inline</value>
+                <value id="bold_commerce" type="host">api.boldcommerce.com</value>
+                <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+                <value id="cashier" type="host">cashier.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="frame-src">
             <values>
-                <value id="bold_commerce" type="host">https://api.boldcommerce.com</value>
+                <value id="bold_commerce" type="host">api.boldcommerce.com</value>
+                <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+            </values>
+        </policy>
+        <policy id="object-src">
+            <values>
+                <value id="bold_commerce" type="host">api.boldcommerce.com</value>
+                <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+            </values>
+        </policy>
+        <policy id="child-src">
+            <values>
+                <value id="bold_commerce" type="host">api.boldcommerce.com</value>
+                <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="img-src">
             <values>
-                <value id="bold_commerce_static" type="host">https://static.boldcommerce.com</value>
+                <value id="bold_commerce_static" type="host">static.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="font-src">
             <values>
-                <value id="www_paypal_objects" type="host">https://www.paypalobjects.com</value>
+                <value id="www_paypal_objects" type="host">www.paypalobjects.com</value>
             </values>
         </policy>
     </policies>

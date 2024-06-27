@@ -29,11 +29,10 @@ define([
             'first_name': firstname,
             'last_name': lastname,
           }
-            if (!payload.email_address || !payload.first_name || !payload.last_name) {
-                return null;
-            }
-
-            return payload;
+          if (!payload.email_address || !payload.first_name || !payload.last_name) {
+              return null;
+          }
+          return payload;
         }
     };
 });

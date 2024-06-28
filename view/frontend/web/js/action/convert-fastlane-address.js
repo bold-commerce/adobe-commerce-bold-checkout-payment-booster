@@ -34,7 +34,7 @@ define(
                 }
                 let regionId = null;
                 let regionName = null;
-                if (regions !== undefined) {
+                if (regions !== null) {
                     Object.entries(regions).forEach(([key, value]) => {
                         if (value.code === fastlaneAddress.region) {
                             regionId = key;
@@ -70,10 +70,15 @@ define(
              */
             const convertPPCPAddress = (fastlaneAddress) => {
                 const directoryData = customerData.get('directory-data');
-                const regions = directoryData()[fastlaneAddress.address.countryCode].regions;
+                let regions;
+                try {
+                    regions = directoryData()[fastlaneAddress.address.countryCode].regions;
+                } catch (e) {
+                    regions = null;
+                }
                 let regionId = null;
                 let regionName = null;
-                if (regions !== undefined) {
+                if (regions !== null) {
                     Object.entries(regions).forEach(([key, value]) => {
                         if (value.code === fastlaneAddress.address.adminArea1) {
                             regionId = key;

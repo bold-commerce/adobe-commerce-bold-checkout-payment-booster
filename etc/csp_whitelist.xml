@@ -11,7 +11,7 @@
         </policy>
         <policy id="script-src">
             <values>
-                <value id="bold_commerce_unsafe-inline" type="host">unsafe-inline</value>
+                <value id="allow_inline_resource" type="host">unsafe-inline</value>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="cashier" type="host">cashier.boldcommerce.com</value>

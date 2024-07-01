@@ -64,7 +64,7 @@ class PaymentCssBackend extends Value
     {
         try {
             $value = (string)$this->getValue()
-                ? $this->serializer->unserialize($this->geValue())
+                ? $this->serializer->unserialize($this->getValue())
                 : $this->getDefaultPaymentCss->getCss();
         } catch (Exception $e) {
             $this->_logger->critical($e);

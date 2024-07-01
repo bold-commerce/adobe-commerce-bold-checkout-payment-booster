@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Model\Config\Backend;
 
 use Bold\CheckoutPaymentBooster\Model\GetDefaultPaymentCss;
+use Exception;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Value;
@@ -41,15 +42,15 @@ class PaymentCssBackend extends Value
      * @param array $data
      */
     public function __construct(
-        Context              $context,
-        Registry             $registry,
+        Context $context,
+        Registry $registry,
         ScopeConfigInterface $config,
-        TypeListInterface    $cacheTypeList,
-        SerializerInterface  $serializer,
+        TypeListInterface $cacheTypeList,
+        SerializerInterface $serializer,
         GetDefaultPaymentCss $getDefaultPaymentCss,
-        AbstractResource     $resource = null,
-        AbstractDb           $resourceCollection = null,
-        array                $data = []
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
+        array $data = []
     ) {
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
         $this->serializer = $serializer;
@@ -61,15 +62,13 @@ class PaymentCssBackend extends Value
      */
     public function afterLoad()
     {
-        $serialized = (string)$this->getValue();
-        if (!empty($serialized)) {
-            try {
-                $value = $this->serializer->unserialize($serialized) ?: $this->getDefaultPaymentCss->getCss();
-            } catch (\Exception $exception) {
-                $value = $this->getDefaultPaymentCss->getCss();
-            }
-        } else {
-            $value = $this->getDefaultPaymentCss->getCss();
+        try {
+            $value = (string)$this->getValue()
+                ? $this->serializer->unserialize($this->geValue())
+                : $this->getDefaultPaymentCss->getCss();
+        } catch (Exception $e) {
+            $this->_logger->critical($e);
+            $value = '';
         }
         $this->setValue($value);
     }
@@ -79,8 +78,7 @@ class PaymentCssBackend extends Value
      */
     public function beforeSave()
     {
-        $value = (string)$this->getValue() ?: $this->getDefaultPaymentCss->getCss();
-        $serialized = $this->serializer->serialize($value);
+        $serialized = $this->serializer->serialize($this->getValue());
         $this->setValue($serialized);
     }
 }

@@ -1,19 +1,20 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
-use Bold\Checkout\Model\Config;
 use Bold\Checkout\Model\ConfigInterface;
-use Bold\CheckoutPaymentBooster\Model\Config as PaymentBoosterConfig;
-use Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement\PaymentStyleBuilderFactory;
 use Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface;
+use Bold\CheckoutPaymentBooster\Model\Config as PaymentBoosterConfig;
+use Bold\CheckoutPaymentBooster\Model\GetDefaultPaymentCss;
+use Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement\PaymentStyleBuilderFactory;
+use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Observe 'admin_system_config_changed_section_checkout' event and sync payment iframe styles.
@@ -51,20 +52,34 @@ class SyncPaymentStyle implements ObserverInterface
     private $serializer;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var GetDefaultPaymentCss
+     */
+    private $getDefaultPaymentCss;
+
+    /**
      * @param ConfigInterface $config
      * @param PaymentBoosterConfig $paymentBoosterConfig
      * @param PaymentStyleManagementInterface $paymentStyleManagement
      * @param StoreManagerInterface $storeManager
      * @param PaymentStyleBuilderFactory $paymentStyleBuilderFactory
      * @param SerializerInterface $serializer
+     * @param GetDefaultPaymentCss $getDefaultPaymentCss
+     * @param LoggerInterface $logger
      */
     public function __construct(
-        ConfigInterface                 $config,
-        PaymentBoosterConfig            $paymentBoosterConfig,
+        ConfigInterface $config,
+        PaymentBoosterConfig $paymentBoosterConfig,
         PaymentStyleManagementInterface $paymentStyleManagement,
-        StoreManagerInterface           $storeManager,
-        PaymentStyleBuilderFactory      $paymentStyleBuilderFactory,
-        SerializerInterface             $serializer
+        StoreManagerInterface $storeManager,
+        PaymentStyleBuilderFactory $paymentStyleBuilderFactory,
+        SerializerInterface $serializer,
+        GetDefaultPaymentCss $getDefaultPaymentCss,
+        LoggerInterface $logger
     ) {
         $this->config = $config;
         $this->paymentBoosterConfig = $paymentBoosterConfig;
@@ -72,6 +87,8 @@ class SyncPaymentStyle implements ObserverInterface
         $this->storeManager = $storeManager;
         $this->paymentStyleBuilderFactory = $paymentStyleBuilderFactory;
         $this->serializer = $serializer;
+        $this->logger = $logger;
+        $this->getDefaultPaymentCss = $getDefaultPaymentCss;
     }
 
     /**
@@ -84,25 +101,24 @@ class SyncPaymentStyle implements ObserverInterface
     public function execute(Observer $observer): void
     {
         $event = $observer->getEvent();
-
         $websiteId = (int)$event->getWebsite() ?: (int)$this->storeManager->getWebsite(true)->getId();
-        if (!$this->config->isCheckoutEnabled($websiteId)
-            || !in_array(PaymentBoosterConfig::PATH_PAYMENT_CSS, $event->getChangedPaths())
-        ) {
+        if (!$this->config->isCheckoutEnabled($websiteId)) {
             return;
         }
-
-        $style = preg_replace(
-            '/\s+/',
-            ' ',
-            $this->serializer->unserialize($this->paymentBoosterConfig->getPaymentCss($websiteId))
-        );
-        if (!empty($style)) {
+        try {
+            $savedValue = $this->paymentBoosterConfig->getPaymentCss($websiteId);
+            $newStyle = $savedValue
+                ? preg_replace('/\s+/', ' ', $this->serializer->unserialize($savedValue))
+                : $this->getDefaultPaymentCss->getCss();
             $styleBuilder = $this->paymentStyleBuilderFactory->create();
-            $styleBuilder->addCssRule($style);
-            $this->paymentStyleManagement->update($websiteId, $styleBuilder->build());
-        } else {
-            $this->paymentStyleManagement->delete($websiteId);
+            $savedStyles = $this->paymentStyleManagement->get($websiteId);
+            $oldStyle = $savedStyles['css_rules'][0]['cssText'] ?? '';
+            if ($oldStyle !== $newStyle) {
+                $styleBuilder->addCssRule($newStyle);
+                $this->paymentStyleManagement->update($websiteId, $styleBuilder->build());
+            }
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
         }
     }
 }

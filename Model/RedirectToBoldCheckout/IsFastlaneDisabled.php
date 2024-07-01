@@ -34,6 +34,7 @@ class IsFastlaneDisabled implements IsRedirectToBoldCheckoutAllowedInterface
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
 
-        return !$this->moduleConfig->isFastlaneEnabled($websiteId);
+        return !$this->moduleConfig->isFastlaneEnabled($websiteId)
+            || !$this->moduleConfig->isPaymentBoosterEnabled($websiteId);
     }
 }

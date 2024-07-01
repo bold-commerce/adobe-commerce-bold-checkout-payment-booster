@@ -42,7 +42,8 @@ class MarkQuoteAsFastlane implements OrderDataProcessorInterface
     public function process(array $data, CartInterface $quote): array
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if ($this->moduleConfig->isFastlaneEnabled($websiteId)) {
+        if ($this->moduleConfig->isPaymentBoosterEnabled($websiteId)
+            && $this->moduleConfig->isFastlaneEnabled($websiteId)) {
             $this->setQuoteExtensionData->execute((int)$quote->getId(), [QuoteExtensionData::ORDER_CREATED => true]);
         }
 

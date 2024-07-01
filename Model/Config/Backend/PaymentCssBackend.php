@@ -63,7 +63,7 @@ class PaymentCssBackend extends Value
     public function afterLoad()
     {
         try {
-            $value = (string)$this->getValue()
+            $value = $this->getValue()
                 ? $this->serializer->unserialize($this->getValue())
                 : $this->getDefaultPaymentCss->getCss();
         } catch (Exception $e) {

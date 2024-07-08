@@ -11,7 +11,7 @@ use Exception;
  */
 interface PaymentStyleManagementInterface
 {
-    public const PAYMENT_CSS_API_URI = 'checkout/shop/{shopId}/payment_css';
+    public const PAYMENT_CSS_API_URI = 'checkout/shop/{{shopId}}/payment_css';
 
     /**
      * Retrieve payment iframe styles.

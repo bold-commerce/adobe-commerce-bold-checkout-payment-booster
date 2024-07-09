@@ -1,5 +1,6 @@
 define([
     'Magento_Checkout/js/view/payment/default',
+    'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Magento_Checkout/js/model/quote',
@@ -19,6 +20,7 @@ define([
     'mage/translate',
 ], function (
     Component,
+    platformClient,
     boldClient,
     fastlane,
     quote,
@@ -82,14 +84,14 @@ define([
                     loader.stopLoader();
                 }
             });
-            const sendBillingAddressData = _.debounce(
+            const syncQuoteData = _.debounce(
                 function () {
-                    this.sendBillingAddress();
+                    this.syncQuote();
                 }.bind(this),
                 500
             );
             quote.billingAddress.subscribe(function () {
-                sendBillingAddressData();
+                syncQuoteData();
             }, this);
             const email = registry.get('index = customer-email');
             if (email) {
@@ -105,7 +107,7 @@ define([
                     }
                 }.bind(this));
             }
-            this.sendBillingAddress();
+            this.syncQuote();
             this.initializePaymentGateway();
             registry.async('checkoutProvider')(
                 function (checkoutProvider) {
@@ -126,7 +128,7 @@ define([
          */
         onEmailChanged: function (focused) {
             if (!focused && emailElement().validateEmail()) {
-                this.sendBillingAddress();
+                this.syncQuote();
             }
         },
 
@@ -138,7 +140,7 @@ define([
          */
         onAddressChanged: function (addressData, changes) {
             if (changes && changes.length !== 0) {
-                this.sendBillingAddress();
+                this.syncQuote();
             }
         },
 
@@ -348,20 +350,25 @@ define([
                 this.displayErrorMessage(error)
             }
         },
+
         /**
-         * Synchronize billing address with Bold.
+         * Synchronize quote data with Bold.
          *
          * @private
          * @returns {Promise<void>}
          */
-        sendBillingAddress: async function () {
-            await this.sendGuestCustomerInfo();
+        syncQuote: async function () {
             try {
-                const result = await boldClient.post('addresses/billing');
-                this.billingAddressSynced(!result.errors);
+                await this.sendGuestCustomerInfo();
+                const url = 'rest/V1/shops/{{shopId}}/guest-cart/:cartId/hydrate/:publicOrderId'
+                    .replace(':cartId', window.checkoutConfig.quoteData.entity_id)
+                    .replace(':publicOrderId', window.checkoutConfig.bold.publicOrderId);
+                const result = await platformClient.put(url, {});
+                // TODO: check result?
+                // TODO: save something
                 this.messageContainer.errorMessages([]);
             } catch (error) {
-                this.displayErrorMessage(error);
+                this.displayErrorMessage(error)
             }
         },
     });

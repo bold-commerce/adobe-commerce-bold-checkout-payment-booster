@@ -111,13 +111,8 @@ class SyncPaymentStyle implements ObserverInterface
                 ? preg_replace('/\s+/', ' ', $this->serializer->unserialize($savedValue))
                 : $this->getDefaultPaymentCss->getCss();
             $styleBuilder = $this->paymentStyleBuilderFactory->create();
-            $oldStyle = null;
-            try {
-                $savedStyles = $this->paymentStyleManagement->get($websiteId);
-                $oldStyle = $savedStyles['css_rules'][0]['cssText'] ?? '';
-            } catch (Exception $exception) {
-                // Just ignore it.
-            }
+            $savedStyles = $this->paymentStyleManagement->get($websiteId);
+            $oldStyle = $savedStyles['css_rules'][0]['cssText'] ?? '';
             if ($oldStyle !== $newStyle) {
                 $styleBuilder->addCssRule($newStyle);
                 $this->paymentStyleManagement->update($websiteId, $styleBuilder->build());

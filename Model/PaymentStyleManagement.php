@@ -13,6 +13,8 @@ use Magento\Framework\Serialize\Serializer\Json;
  */
 class PaymentStyleManagement implements PaymentStyleManagementInterface
 {
+    private const ERROR_TYPE_STYLES_NOT_SET = 'payment_method_style_sheet.not_found';
+
     /**
      * @var ClientInterface
      */
@@ -73,12 +75,14 @@ class PaymentStyleManagement implements PaymentStyleManagementInterface
         $result = $this->client->get($websiteId, self::PAYMENT_CSS_API_URI);
         if ($result->getErrors()) {
             $error = current($result->getErrors());
-            if (is_array($error)) {
-                $error = $this->serializer->serialize($error);
+            if (!isset($error['type']) || $error['type'] !== self::ERROR_TYPE_STYLES_NOT_SET) {
+                if (is_array($error)) {
+                    $error = $this->serializer->serialize($error);
+                }
+                throw new \Exception($error);
             }
-            throw new \Exception($error);
         }
 
-        return $result->getBody()['data']['style_sheet'];
+        return $result->getBody()['data']['style_sheet'] ?? [];
     }
 }

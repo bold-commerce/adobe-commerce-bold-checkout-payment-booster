@@ -3,5 +3,6 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="admin_system_config_changed_section_checkout">
         <observer name="bold_checkout_sync_pigi_css" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\SyncPaymentStyle"/>
+        <observer name="save_shop_id" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\SaveShopIdObserver"/>
     </event>
 </config>

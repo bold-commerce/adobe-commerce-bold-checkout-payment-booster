@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote;
 
-use Bold\Checkout\Model\Order\InitOrderFromQuote\OrderDataProcessorInterface;
 use Bold\Checkout\Model\Quote\SetQuoteExtensionData;
 use Bold\Checkout\Model\ResourceModel\Quote\QuoteExtensionData;
 use Bold\CheckoutPaymentBooster\Model\Config as ModuleConfig;

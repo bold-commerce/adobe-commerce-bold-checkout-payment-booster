@@ -18,7 +18,6 @@ class DisableFastlaneAddressValidationPlugin
      * @param Quote $quote
      * @param array $orderData
      * @return void
-     *
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
     public function beforeSubmit(

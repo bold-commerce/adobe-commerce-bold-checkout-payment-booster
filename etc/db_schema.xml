@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="bold_checkout_payment_booster_order" resource="default" engine="innodb" comment="Bold Checkout Order Additional Data">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="order_id" unsigned="true" nullable="false" identity="false" comment="Magento Order ID"/>
+        <column xsi:type="varchar" name="public_id" nullable="true" length="255" comment="Bold Order Public ID"/>
+        <column xsi:type="smallint" name="is_delayed_capture" nullable="false" default="0" comment="Is Order Using Delayed Payment Capture."/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID" indexType="btree">
+            <column name="order_id"/>
+        </index>
+    </table>
+    <table name="bold_checkout_payment_booster_quote_progress" resource="default" engine="innodb" comment="Is Bold Checkout Order In Progress">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false" comment="Magento Quote ID"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <index referenceId="BOLD_CHECKOUT_PAYMENT_BOOSTER_QUOTE_PROGRESS_QUOTE_ID" indexType="btree">
+            <column name="quote_id"/>
+        </index>
+    </table>
+    <table name="bold_checkout_payment_booster_quote" resource="default" engine="innodb" comment="Bold Checkout Quote Additional Data">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false" comment="Magento Quote ID"/>
+        <column xsi:type="smallint" name="order_created" default="0" comment="Magento Order Should Be Created On Magento Side"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="BOLD_CHECKOUT_PAYMENT_BOOSTER_QUOTE_QUOTE_ID">
+            <column name="quote_id"/>
+        </constraint>
+    </table>
+</schema>

@@ -65,11 +65,11 @@ class InitOrderFromQuote
             'cart_id' => $quote->getId(),
         ];
         $orderData = $this->client->post(
-            $quote->getStore()->getWebsiteId(),
+            (int)$quote->getStore()->getWebsiteId(),
             self::INIT_SIMPLE_ORDER_URI,
             $body
         );
-        if ($orderData->getErrors() || !isset($orderData->getBody()->public_order_id)) {
+        if ($orderData->getErrors() || !isset($orderData->getBody()['data']['public_order_id'])) {
             $errorMessage = $orderData->getErrors()
                 ? $this->json->serialize($orderData->getErrors())
                 : 'Unknown error';
@@ -77,9 +77,10 @@ class InitOrderFromQuote
                 'Cannot initialize order, quote id: ' . $quote->getId() . ', error: ' . $errorMessage
             );
         }
+        $boldCheckoutData = $orderData->getBody();
         foreach ($this->orderDataProcessors as $processor) {
-            $orderData = $processor->process($orderData, $quote);
+            $boldCheckoutData = $processor->process($orderData->getBody(), $quote);
         }
-        return $orderData->getBody();
+        return $boldCheckoutData;
     }
 }

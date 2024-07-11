@@ -5,6 +5,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
 
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
+use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\HTTP\ClientInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 

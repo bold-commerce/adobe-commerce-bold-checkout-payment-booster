@@ -141,9 +141,9 @@ class Config
      * Get Bold Shop Id.
      *
      * @param int $websiteId
-     * @return string
+     * @return string|null
      */
-    public function getShopId(int $websiteId): string
+    public function getShopId(int $websiteId): ?string
     {
         return $this->scopeConfig->getValue(
             self::PATH_SHOP_ID,
@@ -177,6 +177,7 @@ class Config
     {
         $encryptedToken = $this->scopeConfig->getValue(
             self::PATH_TOKEN,
+            ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
 

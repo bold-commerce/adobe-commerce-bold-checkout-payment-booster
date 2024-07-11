@@ -3,15 +3,13 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
-use Bold\Checkout\Api\Http\ClientInterface;
-use Bold\Checkout\Model\Payment\Gateway\Service;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
-use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Config provider for Payment Booster.
@@ -24,7 +22,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $checkoutSession;
 
     /**
-     * @var ClientInterface
+     * @var BoldClient
      */
     private $client;
 
@@ -44,15 +42,20 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $collectionFactory;
 
     /**
+     * @var array
+     */
+    private $countries = [];
+
+    /**
      * @param Session $checkoutSession
-     * @param ClientInterface $client
+     * @param BoldClient $client
      * @param Config $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
      */
     public function __construct(
         Session $checkoutSession,
-        ClientInterface $client,
+        BoldClient $client,
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory
@@ -99,7 +102,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                     'alternativePaymentMethods' => $alternativePaymentMethods,
                     'payment' => [
                         'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
-                        'method' => Service::CODE,
+                        'method' => 'bold',
                     ],
                 ],
             ],
@@ -122,8 +125,10 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         if (!$publicOrderId || !$jwtToken) {
             return null;
         }
-
-        return $this->client->getUrl($websiteId, 'payments/iframe?token=' . $jwtToken);
+        return $this->getBoldStorefrontUrl(
+            $websiteId,
+            'payments/iframe?token=' . $jwtToken
+        );
     }
 
     /**

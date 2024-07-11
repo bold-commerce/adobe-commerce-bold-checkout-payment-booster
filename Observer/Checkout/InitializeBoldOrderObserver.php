@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
 use Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\IsPaymentBoosterAvailable;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -32,26 +33,26 @@ class InitializeBoldOrderObserver implements ObserverInterface
     private $logger;
 
     /**
-     * @var CanUseCheckoutValueHandler
+     * @var IsPaymentBoosterAvailable
      */
-    private $canUseCheckout;
+    private $isPaymentBoosterAvailable;
 
     /**
      * @param Session $session
      * @param InitOrderFromQuote $initOrderFromQuote
      * @param LoggerInterface $logger
-     * @param CanUseCheckoutValueHandler $canUseCheckout
+     * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      */
     public function __construct(
         Session $session,
         InitOrderFromQuote $initOrderFromQuote,
         LoggerInterface $logger,
-        CanUseCheckoutValueHandler $canUseCheckout
+        IsPaymentBoosterAvailable $isPaymentBoosterAvailable
     ) {
         $this->session = $session;
         $this->initOrderFromQuote = $initOrderFromQuote;
         $this->logger = $logger;
-        $this->canUseCheckout = $canUseCheckout;
+        $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
     }
 
     /**
@@ -62,7 +63,7 @@ class InitializeBoldOrderObserver implements ObserverInterface
         $quote = $this->session->getQuote();
         $this->session->setBoldCheckoutData(null);
         try {
-            if (!$this->canUseCheckout->handle([], (int)$quote->getStoreId())) {
+            if (!$this->isPaymentBoosterAvailable->isAvailable()) {
                 return;
             }
             $checkoutData = $this->initOrderFromQuote->init($quote);

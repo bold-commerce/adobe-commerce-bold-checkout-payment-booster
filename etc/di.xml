@@ -3,68 +3,6 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface" type="Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement"/>
 
-    <type name="Bold\Checkout\Observer\Order\CheckoutSubmitAllAfterObserver">
-        <arguments>
-            <argument name="boldPaymentMethods" xsi:type="array">
-                <item name="bold_checkout_fastlane" xsi:type="string">bold_fastlane</item>
-            </argument>
-        </arguments>
-    </type>
-
-    <!-- Bold Fastlane Payment Method Configuration. -->
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Model\Method\Adapter" type="Magento\Payment\Model\Method\Adapter">
-        <arguments>
-            <argument name="code" xsi:type="string">bold_fastlane</argument>
-            <argument name="valueHandlerPool" xsi:type="object">Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\ValueHandlerPool</argument>
-            <argument name="commandPool" xsi:type="object">Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Command\CommandPool</argument>
-            <argument name="formBlockType" xsi:type="object">Magento\Payment\Block\Form</argument>
-            <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Value Handler Pool -->
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\TitleValueHandler"
-                 type="Bold\Checkout\Model\Payment\Gateway\Config\TitleValueHandler">
-        <arguments>
-            <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_FASTLANE_PAYMENT_TITLE</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\ValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
-        <arguments>
-            <argument name="handlers" xsi:type="array">
-                <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\ConfigValueHandler</item>
-                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
-                <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\TitleValueHandler</item>
-                <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\ConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
-        <arguments>
-            <argument name="configInterface" xsi:type="object">Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\Config</argument>
-        </arguments>
-    </virtualType>
-
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Config\Config" type="Magento\Payment\Gateway\Config\Config">
-        <arguments>
-            <argument name="methodCode" xsi:type="string">bold_fastlane</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Command Pool -->
-    <virtualType name="Bold\CheckoutPaymentBooster\Payment\Fastlane\Gateway\Command\CommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
-        <arguments>
-            <argument name="commands" xsi:type="array">
-                <item name="capture" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command\CapturePayment</item>
-                <item name="refund" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command\RefundPayment</item>
-                <item name="void" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command\VoidPayment</item>
-                <item name="cancel" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command\CancelOrder</item>
-            </argument>
-        </arguments>
-    </virtualType>
-
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_fastlane_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableFastlaneAddressValidationPlugin" />
     </type>

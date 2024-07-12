@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
-    <event name="hyva_config_generate_before">
-        <observer name="bold_checkout_payment_booster" instance="Bold\CheckoutPaymentBooster\Observer\RegisterModuleForHyvaConfig"/>
+    <event name="controller_action_predispatch_checkout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
     </event>
-    <event name="hyva_react_checkout_config">
-        <observer name="bold_checkout_payment_booster" instance="Bold\CheckoutPaymentBooster\Observer\AddBoldCheckoutConfigForHyva"/>
+    <event name="controller_action_predispatch_onestepcheckout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
+    </event>
+    <event name="controller_action_predispatch_firecheckout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
     </event>
 </config>

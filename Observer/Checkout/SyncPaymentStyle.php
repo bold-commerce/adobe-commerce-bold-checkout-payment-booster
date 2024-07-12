@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
-use Bold\Checkout\Model\ConfigInterface;
 use Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface;
 use Bold\CheckoutPaymentBooster\Model\Config as PaymentBoosterConfig;
 use Bold\CheckoutPaymentBooster\Model\GetDefaultPaymentCss;
@@ -21,11 +20,6 @@ use Psr\Log\LoggerInterface;
  */
 class SyncPaymentStyle implements ObserverInterface
 {
-    /**
-     * @var ConfigInterface
-     */
-    private $config;
-
     /**
      * @var PaymentBoosterConfig
      */
@@ -62,7 +56,6 @@ class SyncPaymentStyle implements ObserverInterface
     private $getDefaultPaymentCss;
 
     /**
-     * @param ConfigInterface $config
      * @param PaymentBoosterConfig $paymentBoosterConfig
      * @param PaymentStyleManagementInterface $paymentStyleManagement
      * @param StoreManagerInterface $storeManager
@@ -72,7 +65,6 @@ class SyncPaymentStyle implements ObserverInterface
      * @param LoggerInterface $logger
      */
     public function __construct(
-        ConfigInterface $config,
         PaymentBoosterConfig $paymentBoosterConfig,
         PaymentStyleManagementInterface $paymentStyleManagement,
         StoreManagerInterface $storeManager,
@@ -81,7 +73,6 @@ class SyncPaymentStyle implements ObserverInterface
         GetDefaultPaymentCss $getDefaultPaymentCss,
         LoggerInterface $logger
     ) {
-        $this->config = $config;
         $this->paymentBoosterConfig = $paymentBoosterConfig;
         $this->paymentStyleManagement = $paymentStyleManagement;
         $this->storeManager = $storeManager;
@@ -102,7 +93,7 @@ class SyncPaymentStyle implements ObserverInterface
     {
         $event = $observer->getEvent();
         $websiteId = (int)$event->getWebsite() ?: (int)$this->storeManager->getWebsite(true)->getId();
-        if (!$this->config->isCheckoutEnabled($websiteId)) {
+        if (!$this->paymentBoosterConfig->isPaymentBoosterEnabled($websiteId)) {
             return;
         }
         try {

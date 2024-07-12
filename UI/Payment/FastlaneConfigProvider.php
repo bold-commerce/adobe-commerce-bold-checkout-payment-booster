@@ -3,8 +3,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
-use Bold\Checkout\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Exception;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
@@ -29,7 +29,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
     private $config;
 
     /**
-     * @var ClientInterface
+     * @var BoldClient
      */
     private $client;
 
@@ -41,13 +41,13 @@ class FastlaneConfigProvider implements ConfigProviderInterface
     /**
      * @param Session $checkoutSession
      * @param Config $config
-     * @param ClientInterface $client
+     * @param BoldClient $client
      * @param StoreManagerInterface $storeManagement
      */
     public function __construct(
         Session $checkoutSession,
         Config $config,
-        ClientInterface $client,
+        BoldClient $client,
         StoreManagerInterface $storeManagement
     ) {
         $this->checkoutSession = $checkoutSession;

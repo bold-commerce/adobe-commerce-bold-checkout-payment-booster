@@ -1,11 +1,10 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
 
-use Bold\Checkout\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
@@ -16,7 +15,7 @@ class PaymentStyleManagement implements PaymentStyleManagementInterface
     private const ERROR_TYPE_STYLES_NOT_SET = 'payment_method_style_sheet.not_found';
 
     /**
-     * @var ClientInterface
+     * @var BoldClient
      */
     private $client;
 
@@ -26,12 +25,12 @@ class PaymentStyleManagement implements PaymentStyleManagementInterface
     private $serializer;
 
     /**
-     * @param ClientInterface $client
+     * @param BoldClient $client
      * @param Json $serializer
      */
     public function __construct(
-        ClientInterface $client,
-        Json            $serializer
+        BoldClient $client,
+        Json $serializer
     ) {
         $this->client = $client;
         $this->serializer = $serializer;

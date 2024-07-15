@@ -2,11 +2,17 @@
 <payment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Payment:etc/payment.xsd">
     <groups>
+        <group id="bold_payments">
+            <label>Bold Payments</label>
+        </group>
         <group id="bold_payments_fastlane">
             <label>Credit card</label>
         </group>
     </groups>
     <methods>
+        <method name="bold">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
         <method name="bold_fastlane">
             <allow_multiple_address>1</allow_multiple_address>
         </method>

@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
-use Bold\Checkout\Model\Http\Client\Request\Validator\ShopIdValidator;
-use Bold\Checkout\Model\Order\HydrateOrderFromQuote;
-use Bold\CheckoutMeta\Api\GuestHydrateOrderInterface;
+use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValidator;
+use Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 
@@ -39,10 +38,10 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
      * @param ShopIdValidator $shopIdValidator
      */
     public function __construct(
-        CartRepositoryInterface             $cartRepository,
-        QuoteIdMaskFactory                  $quoteIdMaskFactory,
-        HydrateOrderFromQuote               $hydrateOrderFromQuote,
-        ShopIdValidator                     $shopIdValidator
+        CartRepositoryInterface $cartRepository,
+        QuoteIdMaskFactory      $quoteIdMaskFactory,
+        HydrateOrderFromQuote   $hydrateOrderFromQuote,
+        ShopIdValidator         $shopIdValidator
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;

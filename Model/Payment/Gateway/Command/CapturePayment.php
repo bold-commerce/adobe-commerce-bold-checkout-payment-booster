@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 
-use Bold\Checkout\Model\Order\SetIsDelayedCapture;
-use Bold\Checkout\Model\Payment\Gateway\Service;
+use Bold\CheckoutPaymentBooster\Model\Order\SetIsDelayedCapture;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
 use Magento\Payment\Gateway\CommandInterface;
 

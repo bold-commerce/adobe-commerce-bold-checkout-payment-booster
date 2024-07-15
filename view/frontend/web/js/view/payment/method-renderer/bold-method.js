@@ -58,7 +58,7 @@ define([
         initialize: function () {
             const self = this;
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
-            if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.payment_booster) {
+            if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.paymentBooster) {
                 this.isVisible(false);
                 return;
             }
@@ -93,20 +93,6 @@ define([
             quote.billingAddress.subscribe(function () {
                 syncQuoteData();
             }, this);
-            const email = registry.get('index = customer-email');
-            if (email) {
-                const sendGuestCustomerInfoData = _.debounce(
-                    function () {
-                        this.sendGuestCustomerInfo();
-                    }.bind(this),
-                    500
-                );
-                email.email.subscribe(function () {
-                    if (email.validateEmail()) {
-                        sendGuestCustomerInfoData();
-                    }
-                }.bind(this));
-            }
             this.syncQuote();
             this.initializePaymentGateway();
             registry.async('checkoutProvider')(
@@ -149,7 +135,7 @@ define([
          */
         initializePaymentGateway: function () {
             console.log('initializing pigi...');
-            this.iframeSrc(window.checkoutConfig.bold.payment_booster.payment.iframeSrc);
+            this.iframeSrc(window.checkoutConfig.bold.paymentBooster.payment.iframeSrc);
         },
 
         /** @inheritdoc */
@@ -332,24 +318,6 @@ define([
             const magentoAddress = convertBoldAddressAction(billingAddress);
             selectBillingAddressAction(magentoAddress);
         },
-        /**
-         * Send guest customer info to Bold.
-         *
-         * @private
-         * @returns {Promise<void>}
-         */
-        sendGuestCustomerInfo: async function () {
-            if (window.isCustomerLoggedIn) {
-                return;
-            }
-            try {
-                const result = await boldClient.post('customer/guest')
-                this.customerSynced(!result.errors);
-                this.messageContainer.errorMessages([]);
-            } catch (error) {
-                this.displayErrorMessage(error)
-            }
-        },
 
         /**
          * Synchronize quote data with Bold.
@@ -359,13 +327,12 @@ define([
          */
         syncQuote: async function () {
             try {
-                await this.sendGuestCustomerInfo();
-                const url = 'rest/V1/shops/{{shopId}}/guest-cart/:cartId/hydrate/:publicOrderId'
-                    .replace(':cartId', window.checkoutConfig.quoteData.entity_id)
-                    .replace(':publicOrderId', window.checkoutConfig.bold.publicOrderId);
-                const result = await platformClient.put(url, {});
-                // TODO: check result?
-                // TODO: save something
+                const urlTemplate = window.isCustomerLoggedIn
+                    ? 'rest/V1/shops/{{shopId}}/cart/hydrate/:publicOrderId'
+                    : 'rest/V1/shops/{{shopId}}/guest-cart/:cartId/hydrate/:publicOrderId';
+                const url = urlTemplate.replace(':cartId', window.checkoutConfig.quoteData.entity_id)
+                    .replace(':publicOrderId', window.checkoutConfig.bold.paymentBooster.publicOrderId);
+                await platformClient.put(url, {});
                 this.messageContainer.errorMessages([]);
             } catch (error) {
                 this.displayErrorMessage(error)

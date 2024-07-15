@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http;
@@ -11,7 +12,6 @@ use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PostCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PutCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\UserAgent;
-use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Client to perform http request to Bold.

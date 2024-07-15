@@ -18,7 +18,8 @@ define([
          * @return void
          */
         initialize: function () {
-            this.shopId = window.checkoutConfig.bold.shopId? window.checkoutConfig.bold.shopId : null;
+            this.shopId = window.checkoutConfig.bold.paymentBooster.shopId
+                ? window.checkoutConfig.bold.paymentBooster.shopId : null;
         },
 
         /**

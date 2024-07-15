@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway;
 
-use Bold\Checkout\Api\Http\ClientInterface;
-use Bold\Checkout\Model\Order\OrderExtensionDataFactory;
-use Bold\Checkout\Model\ResourceModel\Order\OrderExtensionData;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
+use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;

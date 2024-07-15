@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
-use Bold\Checkout\Model\Http\Client\Request\Validator\ShopIdValidator;
-use Bold\Checkout\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValidator;
 use Bold\CheckoutMeta\Api\HydrateOrderInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 class HydrateOrder implements HydrateOrderInterface
 {
@@ -44,7 +41,6 @@ class HydrateOrder implements HydrateOrderInterface
     public function hydrate(string $shopId, string $publicOrderId): void
     {
         $quote = $this->checkoutSession->getQuote();
-//        $this->metaCheckoutCartValidator->validate($quote);
         $storeId = $quote->getStoreId();
         $this->shopIdValidator->validate($shopId, $storeId);
 

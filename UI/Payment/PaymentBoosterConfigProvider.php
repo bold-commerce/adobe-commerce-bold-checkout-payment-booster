@@ -93,7 +93,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
         return [
             'bold' => [
-                'payment_booster' => [
+                'paymentBooster' => [
                     'jwtToken' => $jwtToken,
                     'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
                     'shopId' => $shopId,

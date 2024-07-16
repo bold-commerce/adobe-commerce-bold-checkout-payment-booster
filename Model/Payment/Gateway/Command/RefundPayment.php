@@ -1,9 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 
-use Bold\Checkout\Model\Payment\Gateway\Service;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;

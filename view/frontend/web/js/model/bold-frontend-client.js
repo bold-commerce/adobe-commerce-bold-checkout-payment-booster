@@ -48,10 +48,10 @@ define([
          */
         get: function (path) {
             return $.ajax({
-                url: window.checkoutConfig.bold.url + path,
+                url: window.checkoutConfig.bold.paymentBooster.url + path,
                 type: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
+                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
                     'Content-Type': 'application/json'
                 }
             });
@@ -69,48 +69,18 @@ define([
             this.requestInProgress = true;
             const nextRequest = this.requestQueue.shift();
             let requestData;
-            switch (nextRequest.path) {
-                case 'addresses/billing' :
-                    requestData = boldAddress.getBillingAddress();
-                    if (!requestData || _.isEqual(requestData, this.synchronizedAddressData)) {
-                        this.requestInProgress = false;
-                        this.processNextRequest();
-                        return;
-                    }
-                    break;
-                case 'customer/guest' :
-                    requestData = boldCustomer.getCustomer();
-                    if (!requestData || _.isEqual(requestData, this.synchronizedGuestData)) {
-                        this.requestInProgress = false;
-                        this.processNextRequest();
-                        return;
-                    }
-                    break;
-                default:
-                    requestData = nextRequest.body;
-                    break;
-            }
+            requestData = nextRequest.body;
             $.ajax({
-                url: window.checkoutConfig.bold.url + nextRequest.path,
+                url: window.checkoutConfig.bold.paymentBooster.url + nextRequest.path,
                 type: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
+                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
                     'Content-Type': 'application/json',
                 },
                 data: JSON.stringify(requestData)
             }).done(function (result) {
                 nextRequest.resolve(result);
                 this.requestInProgress = false;
-                switch (nextRequest.path) {
-                    case 'addresses/billing' :
-                        this.synchronizedAddressData = requestData;
-                        break;
-                    case 'customer/guest' :
-                        this.synchronizedGuestData = requestData;
-                        break;
-                    default:
-                        break;
-                }
                 this.processNextRequest();
             }.bind(this)).fail(function (error) {
                 nextRequest.reject(error);

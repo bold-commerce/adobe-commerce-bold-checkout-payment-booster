@@ -1,13 +1,15 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValidator;
-use Bold\CheckoutMeta\Api\HydrateOrderInterface;
 use Magento\Checkout\Model\Session;
 
+/**
+ * Hydrate order for the registered customer.
+ */
 class HydrateOrder implements HydrateOrderInterface
 {
     /**
@@ -25,6 +27,11 @@ class HydrateOrder implements HydrateOrderInterface
      */
     private $hydrateOrderFromQuote;
 
+    /**
+     * @param Session $checkoutSession
+     * @param ShopIdValidator $shopIdValidator
+     * @param HydrateOrderFromQuote $hydrateOrderFromQuote
+     */
     public function __construct(
         Session $checkoutSession,
         ShopIdValidator $shopIdValidator,

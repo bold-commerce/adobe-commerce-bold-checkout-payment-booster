@@ -91,6 +91,7 @@ define(
                 try {
                     const fastlaneInstance = await fastlane.getFastlaneInstance();
                     if (!fastlaneInstance) {
+                        this.isPlaceOrderActionAllowed(false);
                         this.isVisible(false);
                         return;
                     }

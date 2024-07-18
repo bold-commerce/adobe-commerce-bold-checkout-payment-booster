@@ -1,9 +1,11 @@
 define([
     'underscore',
+    'checkoutData',
     'Magento_Checkout/js/model/quote',
     'uiRegistry',
 ], function (
     _,
+    checkoutData,
     quote,
     registry
 ) {
@@ -11,20 +13,16 @@ define([
 
     /**
      * Bold address model.
-     *
-     * @type object
      */
-    const boldAddress = {
-        initialize: function () {
-            this.countries = window.checkoutConfig.bold.countries;
-        },
-
+    return {
+        billingAddress: {},
+        shippingAddress: {},
         /**
-         * Get billing address api data.
+         * Get address api data.
          *
          * @return object
          */
-        getBillingAddress: function () {
+        getAddress: function () {
             this.billingAddress = quote.billingAddress();
             this.shippingAddress = quote.shippingAddress();
             if (!this.billingAddress && !this.shippingAddress) {
@@ -35,8 +33,6 @@ define([
                 return null;
             }
             const countryId = this.getFieldValue('countryId');
-            const country = this.countries.find(country => country.value === countryId);
-            const countryName = country ? country.label : '';
             let street1 = '';
             let street2 = '';
             if (this.billingAddress.street && this.billingAddress.street[0]) {
@@ -66,29 +62,24 @@ define([
                 }
             }
             const payload = {
-                'id': this.getFieldValue('customerAddressId')
-                    ? Number(this.getFieldValue('customerAddressId')) : null,
-                'business_name': this.getFieldValue('company'),
-                'country_code': countryId,
-                'country': countryName,
+                'email': checkoutData.getValidatedEmailValue(),
+                'country_id': countryId,
+                'company': this.getFieldValue('company'),
                 'city': this.getFieldValue('city'),
-                'first_name': this.getFieldValue('firstname'),
-                'last_name': this.getFieldValue('lastname'),
-                'phone_number': this.getFieldValue('telephone'),
-                'postal_code': this.getFieldValue('postcode'),
-                'province': this.getFieldValue('region'),
-                'province_code': this.getFieldValue('regionCode'),
-                'address_line_1': street1,
-                'address_line_2': street2,
+                'firstname': this.getFieldValue('firstname'),
+                'lastname': this.getFieldValue('lastname'),
+                'telephone': this.getFieldValue('telephone'),
+                'postcode': this.getFieldValue('postcode'),
+                'region': this.getFieldValue('region'),
+                'street': [street1, street2],
             }
             try {
                 this.validatePayload(payload);
+                return payload;
             } catch (e) {
                 return null;
             }
-            return payload;
         },
-
 
         /**
          * Get address field value.
@@ -116,20 +107,20 @@ define([
          */
         validatePayload(payload) {
             let requiredFields = [
-                'first_name',
-                'last_name',
-                'phone_number',
-                'country',
-                'address_line_1',
+                'firstname',
+                'lastname',
+                'telephone',
+                'email',
+                'country_id',
+                'street',
                 'city',
             ];
-            const country = this.countries.find(country => country.value === payload.country_code);
+            const country = window.checkoutConfig.bold.countries.find(country => country.value === payload.country_id);
             if (country && country.is_region_required) {
-                requiredFields.push('province');
-                requiredFields.push('province_code');
+                requiredFields.push('region');
             }
             if (country && country.is_zipcode_optional !== true) {
-                requiredFields.push('postal_code');
+                requiredFields.push('postcode');
             }
             _.each(requiredFields, function (field) {
                 if (!payload[field]) {
@@ -138,7 +129,4 @@ define([
             })
         },
     }
-
-    boldAddress.initialize();
-    return boldAddress;
 });

@@ -160,9 +160,7 @@ define([], function () {
                 return window.boldFastlaneInstance;
             } catch (e) {
                 window.boldFastlaneInstanceCreateInProgress = false;
-                throw new Error(
-                    e.responseJSON && e.responseJSON.errors[0] ? e.responseJSON.errors[0].message : e.message
-                );
+                return null;
             }
         },
 

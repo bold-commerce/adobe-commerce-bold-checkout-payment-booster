@@ -5,6 +5,13 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\GuestHydrateOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\HydrateOrder"/>
 
+    <type name="Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver">
+        <arguments>
+            <argument name="boldPaymentMethods" xsi:type="array">
+                <item name="bold_checkout" xsi:type="string">bold</item>
+            </argument>
+        </arguments>
+    </type>
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_fastlane_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableFastlaneAddressValidationPlugin" />
     </type>

@@ -82,19 +82,22 @@ define([
         },
 
         /**
-         * Get address field value.
+         * Get address field value with fallback.
          *
          * @param field
          * @returns {*|string}
          */
         getFieldValue: function (field) {
-            const useBilling = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
-                && !this.billingAddress.isAddressSameAsShipping();
+            let fieldValue = this.shippingAddress && this.shippingAddress.hasOwnProperty(field) && !quote.isVirtual()
+                ? this.shippingAddress[field]
+                : null;
+            if (fieldValue === null) {
+                fieldValue = this.billingAddress && this.billingAddress.hasOwnProperty(field)
+                    ? this.billingAddress[field]
+                    : null;
 
-            return useBilling
-                ? (this.billingAddress.hasOwnProperty(field) ? this.billingAddress[field] : '')
-                : (this.shippingAddress.hasOwnProperty(field) ? this.shippingAddress[field] : '')
+            }
+            return fieldValue;
         },
 
         /**

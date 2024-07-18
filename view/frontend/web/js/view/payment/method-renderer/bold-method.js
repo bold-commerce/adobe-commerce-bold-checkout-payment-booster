@@ -45,7 +45,7 @@ define([
                 return;
             }
             this.subscribeToPIGI();
-            this.removeLoaderOnError();
+            this.removeFullScreenLoaderOnError();
             const delayedHydrateOrder = _.debounce(
                 async function () {
                     await hydrateOrderAction(this.displayErrorMessage.bind(this));
@@ -135,18 +135,19 @@ define([
         },
 
         /**
-         * Remove loader on place order on backend error.
+         * Remove full-screen loader in case place order returns error from backend.
          *
          * @private
          * @returns {void}
          */
-        removeLoaderOnError: function () {
+        removeFullScreenLoaderOnError: function () {
             this.messageContainer.errorMessages.subscribe(function (errorMessages) {
                 if (errorMessages.length > 0) {
                     fullscreenLoader.stopLoader();
                 }
             });
         },
+
         /**
          * Subscribe to PIGI events.
          *

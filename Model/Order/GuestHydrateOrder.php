@@ -62,6 +62,7 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
         $storeId = (int)$quote->getStoreId();
         $this->shopIdValidator->validate($shopId, $storeId);
         $quote->getBillingAddress()->addData($address->getData());
+        $quote->getShippingAddress()->addData($address->getData());
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
     }
 }

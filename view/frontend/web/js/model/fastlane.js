@@ -105,8 +105,9 @@ define([], function () {
             });
             const clientInstance = await this.getBraintreeClientInstance(gatewayData.client_token);
             const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
-            const deviceData = dataCollectorInstance.deviceData;
-            const styles = window.checkoutConfig.bold.fastlane.styles || {};
+            const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
+                ? window.checkoutConfig.bold.fastlane.styles.length
+                : {};
             await new Promise((resolve, reject) => {
                 require(['bold_braintree_fastlane'], (bold_braintree_fastlane) => {
                     window.braintree.fastlane = bold_braintree_fastlane;
@@ -116,7 +117,7 @@ define([], function () {
             window.boldFastlaneInstance = await window.braintree.fastlane.create({
                 authorization: gatewayData.client_token,
                 client: clientInstance,
-                deviceData: deviceData,
+                deviceData: dataCollectorInstance.deviceData,
                 styles: styles
             });
         },

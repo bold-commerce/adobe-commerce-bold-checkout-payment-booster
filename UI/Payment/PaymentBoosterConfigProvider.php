@@ -117,9 +117,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return null;
         }
         return $this->getBoldStorefrontUrl(
-            $websiteId,
-            'payments/iframe?token=' . $jwtToken
-        );
+                $websiteId,
+                $publicOrderId
+            ) . 'payments/iframe?token=' . $jwtToken;
     }
 
     /**

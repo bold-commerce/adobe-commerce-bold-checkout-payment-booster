@@ -48,7 +48,7 @@ define([
             }
             this.subscribeToPIGI();
             this.pigiInitialized.subscribe(function (initialized) {
-                if (initialized && this.orderHydrated()) {
+                if (initialized) {
                     this.isPigiLoading(false);
                 }
             }.bind(this));
@@ -58,16 +58,22 @@ define([
                 }
             });
             const delayedHydrateOrder = _.debounce(
-                function () {
-                    hydrateOrderAction(this.displayErrorMessage.bind(this));
+                async function () {
+                    await hydrateOrderAction(this.displayErrorMessage.bind(this));
+                    if (window.checkoutConfig.bold.hydratedOrderAddress) {
+                        this.initializePaymentGateway();
+                    }
                 }.bind(this),
                 500
             );
             quote.billingAddress.subscribe(function () {
                 delayedHydrateOrder();
             }, this);
-            hydrateOrderAction(this.displayErrorMessage.bind(this));
-            this.initializePaymentGateway();
+            hydrateOrderAction(this.displayErrorMessage.bind(this)).then(() => {
+                if (window.checkoutConfig.bold.hydratedOrderAddress) {
+                    this.initializePaymentGateway();
+                }
+            });
         },
         /**
          * Initialize PIGI iframe.
@@ -86,44 +92,19 @@ define([
             return true;
         },
 
-        /**
-         * Refresh the order to get the recent cart updates.
-         *
-         * @returns {void}
-         */
-        pigiAddPayment: function () {
-            if (!this.iframeWindow) {
-                return;
-            }
-            this.iframeWindow.postMessage({actionType: 'PIGI_ADD_PAYMENT'}, '*');
-        },
-
         /** @inheritdoc */
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
             if (!this.iframeWindow) {
                 return false;
             }
-
             const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
             this.iframeWindow.postMessage(clearAction, '*');
-
             if (!this.paymentType) {
-                this.pigiAddPayment();
+                this.iframeWindow.postMessage({actionType: 'PIGI_ADD_PAYMENT'}, '*');
                 return false;
             }
-            const defaultPlaceOrder = this._super;
-            this.processBoldOrder().then(() => {
-                const orderPlacementResult = defaultPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
-                if (!orderPlacementResult) {
-                    fullscreenLoader.stopLoader()
-                }
-                return orderPlacementResult;
-            }).catch((error) => {
-                this.displayErrorMessage(error);
-                fullscreenLoader.stopLoader();
-                return false;
-            });
+            return this._super(data, event);
         },
 
         /**
@@ -191,9 +172,9 @@ define([
                             break;
                         case 'PIGI_INITIALIZED':
                             this.iframeWindow = iframeElement.contentWindow;
-                            if (fastlane.isEnabled()) {
-                                this.iframeWindow.postMessage({actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION'}, '*');
-                            }
+                            /* if (fastlane.isEnabled()) {
+                                 this.iframeWindow.postMessage({actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION'}, '*');
+                             }*/ //todo: uncomment after initial state with additional payment methods will be available
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }

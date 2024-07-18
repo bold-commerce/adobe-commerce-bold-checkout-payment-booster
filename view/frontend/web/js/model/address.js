@@ -23,8 +23,8 @@ define([
          * @return object
          */
         getAddress: function () {
-            this.billingAddress = quote.billingAddress();
-            this.shippingAddress = quote.shippingAddress();
+            this.billingAddress = quote.billingAddress() || {};
+            this.shippingAddress = quote.shippingAddress() || {};
             if (!this.billingAddress && !this.shippingAddress) {
                 return null;
             }
@@ -42,8 +42,7 @@ define([
                 street2 = this.billingAddress.street[1];
             }
             if (!street1) {
-                const street1Field = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
+                const street1Field = this.billingAddress.isAddressSameAsShipping
                 && !this.billingAddress.isAddressSameAsShipping()
                     ? registry.get('dataScope = billingAddress.street.0')
                     : registry.get('dataScope = shippingAddress.street.0');
@@ -52,8 +51,7 @@ define([
                 }
             }
             if (!street2) {
-                const street2Field = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
+                const street2Field = this.billingAddress.isAddressSameAsShipping
                 && !this.billingAddress.isAddressSameAsShipping()
                     ? registry.get('dataScope = billingAddress.street.1')
                     : registry.get('dataScope = shippingAddress.street.1');
@@ -88,11 +86,11 @@ define([
          * @returns {*|string}
          */
         getFieldValue: function (field) {
-            let fieldValue = this.shippingAddress && this.shippingAddress.hasOwnProperty(field) && !quote.isVirtual()
+            let fieldValue = this.shippingAddress.hasOwnProperty(field) && !quote.isVirtual()
                 ? this.shippingAddress[field]
                 : null;
             if (fieldValue === null) {
-                fieldValue = this.billingAddress && this.billingAddress.hasOwnProperty(field)
+                fieldValue = this.billingAddress.hasOwnProperty(field)
                     ? this.billingAddress[field]
                     : null;
 

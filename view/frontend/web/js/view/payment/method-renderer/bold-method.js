@@ -66,13 +66,14 @@ define([
                 }.bind(this),
                 500
             );
-            quote.billingAddress.subscribe(function () {
-                delayedHydrateOrder();
-            }, this);
             hydrateOrderAction(this.displayErrorMessage.bind(this)).then(() => {
                 if (window.checkoutConfig.bold.hydratedOrderAddress) {
                     this.initializePaymentGateway();
                 }
+            }).finally(() => {
+                quote.billingAddress.subscribe(function () {
+                    delayedHydrateOrder();
+                }, this);
             });
         },
         /**

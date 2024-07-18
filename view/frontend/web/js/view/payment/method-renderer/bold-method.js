@@ -31,8 +31,6 @@ define([
             template: 'Bold_CheckoutPaymentBooster/payment/bold',
             paymentType: null,
             iframeWindow: null,
-            orderHydrated: ko.observable(false),
-            pigiInitialized: ko.observable(false),
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
             isPigiLoading: ko.observable(true),
@@ -47,16 +45,7 @@ define([
                 return;
             }
             this.subscribeToPIGI();
-            this.pigiInitialized.subscribe(function (initialized) {
-                if (initialized) {
-                    this.isPigiLoading(false);
-                }
-            }.bind(this));
-            this.messageContainer.errorMessages.subscribe(function (errorMessages) {
-                if (errorMessages.length > 0) {
-                    fullscreenLoader.stopLoader();
-                }
-            });
+            this.removeLoaderOnError();
             const delayedHydrateOrder = _.debounce(
                 async function () {
                     await hydrateOrderAction(this.displayErrorMessage.bind(this));
@@ -80,7 +69,6 @@ define([
          * Initialize PIGI iframe.
          */
         initializePaymentGateway: function () {
-            console.log('initializing pigi...');
             this.iframeSrc(window.checkoutConfig.bold.paymentBooster.payment.iframeSrc);
         },
 
@@ -97,6 +85,8 @@ define([
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
             if (!this.iframeWindow) {
+                console.error('PIGI iframe is not initialized');
+                fullscreenLoader.stopLoader();
                 return false;
             }
             const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
@@ -106,15 +96,6 @@ define([
                 return false;
             }
             return this._super(data, event);
-        },
-
-        /**
-         * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
-         *
-         * @return {Promise<void>}
-         */
-        processBoldOrder: async function () {
-            // todo: implement the logic to authorize|capture payment on Bold side
         },
 
         /**
@@ -154,6 +135,19 @@ define([
         },
 
         /**
+         * Remove loader on place order on backend error.
+         *
+         * @private
+         * @returns {void}
+         */
+        removeLoaderOnError: function () {
+            this.messageContainer.errorMessages.subscribe(function (errorMessages) {
+                if (errorMessages.length > 0) {
+                    fullscreenLoader.stopLoader();
+                }
+            });
+        },
+        /**
          * Subscribe to PIGI events.
          *
          * @private
@@ -179,7 +173,7 @@ define([
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }
-                            this.pigiInitialized(true);
+                            this.isPigiLoading(false);
                             break;
                         case 'PIGI_CHANGED_ORDER':
                             reloadCartAction();
@@ -196,26 +190,6 @@ define([
                     }
                 }
             });
-        },
-
-        /**
-         * Synchronize quote data with Bold.
-         *
-         * @private
-         * @returns {Promise<void>}
-         */
-        hydrateOrder: async function () {
-            try {
-                const urlTemplate = window.isCustomerLoggedIn
-                    ? 'rest/V1/shops/{{shopId}}/cart/hydrate/:publicOrderId'
-                    : 'rest/V1/shops/{{shopId}}/guest-cart/:cartId/hydrate/:publicOrderId';
-                const url = urlTemplate.replace(':cartId', window.checkoutConfig.quoteData.entity_id)
-                    .replace(':publicOrderId', window.checkoutConfig.bold.publicOrderId);
-                await platformClient.put(url, {});
-                this.messageContainer.errorMessages([]);
-            } catch (error) {
-                this.displayErrorMessage(error)
-            }
         },
     });
 });

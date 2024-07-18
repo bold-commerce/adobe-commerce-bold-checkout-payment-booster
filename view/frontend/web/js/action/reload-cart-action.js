@@ -5,6 +5,7 @@ define(
         'Magento_Checkout/js/model/address-converter',
         'Magento_Checkout/js/action/select-billing-address',
         'Magento_Checkout/js/action/select-shipping-address',
+        'Magento_Checkout/js/action/select-shipping-method',
         'Magento_Checkout/js/action/get-totals'
     ], function (
         checkoutData,
@@ -12,6 +13,7 @@ define(
         addressConverter,
         selectBillingAddressAction,
         selectShippingAddressAction,
+        selectShippingMethodAction,
         getTotalsAction
     ) {
         'use strict';

@@ -10,7 +10,7 @@ define([], function () {
         /**
          * Check if Fastlane flow is enabled and active.
          *
-         * @return {*|boolean}
+         * @return {Boolean}
          */
         isEnabled: function () {
             return window.checkoutConfig.bold
@@ -66,93 +66,16 @@ define([], function () {
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
                 const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
-
                 if (gatewayData.is_test_mode) {
                     window.localStorage.setItem('axoEnv', 'sandbox');
                     window.localStorage.setItem('fastlaneEnv', 'sandbox');
                 }
                 switch (gatewayData.type) {
                     case 'braintree':
-                        if (!window.braintree) {
-                            window.braintree = {};
-                        }
-                        await new Promise((resolve, reject) => {
-                            require(['bold_braintree_fastlane_hosted_fields'], (hostedFields) => {
-                                window.braintree.hostedFields = hostedFields;
-                                resolve();
-                            }, reject);
-                        });
-                        const clientInstance = await this.getBraintreeClientInstance(gatewayData.client_token);
-                        const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
-                        const deviceData = dataCollectorInstance.deviceData;
-                        const styles = window.checkoutConfig.bold.fastlane.styles || {};
-                        await new Promise((resolve, reject) => {
-                            require(['bold_braintree_fastlane'], (bold_braintree_fastlane) => {
-                                window.braintree.fastlane = bold_braintree_fastlane;
-                                resolve();
-                            }, reject);
-                        });
-                        window.boldFastlaneInstance = await window.braintree.fastlane.create({
-                            authorization: gatewayData.client_token,
-                            client: clientInstance,
-                            deviceData: deviceData,
-                            styles: styles
-                        });
+                        await this.buildBraintreeFastlaneInstance(gatewayData);
                         break;
                     case 'ppcp':
-                        let debugMode = '';
-                        if (gatewayData.is_test_mode) {
-                            debugMode = '&debug=true';
-                        }
-
-                        require.config({
-                            paths: {
-                                bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
-                            },
-                            shim: {
-                                'bold_paypal_fastlane': {
-                                    exports: 'paypal.fastlane'
-                                }
-                            },
-                            attributes: {
-                                "bold_paypal_fastlane": {
-                                    'data-user-id-token': gatewayData.client_token,
-                                    'data-client-metadata-id': 'Magento2'
-                                }
-                            },
-                            onNodeCreated: function (node, config, name) {
-                                if (config.attributes && config.attributes[name]) {
-                                    Object.keys(config.attributes[name]).forEach(attribute => {
-                                        node.setAttribute(attribute, config.attributes[name][attribute]);
-                                    });
-                                }
-                            }
-                        });
-                        if (!window.braintree) {
-                            window.braintree = {};
-                        }
-                        await new Promise((resolve, reject) => {
-                            require(
-                                ['bold_paypal_fastlane_hosted_fields'],
-                                (hostedFields) => {
-                                    window.braintree.hostedFields = hostedFields;
-                                    resolve();
-                                }, reject);
-                        });
-                        await new Promise((resolve, reject) => {
-                            require(
-                                ['bold_paypal_fastlane_client'],
-                                (client) => {
-                                    window.braintree.client = client;
-                                    resolve();
-                                },
-                                reject
-                            );
-                        });
-                        await new Promise((resolve, reject) => {
-                            require(['bold_paypal_fastlane'], resolve, reject);
-                        });
-                        window.boldFastlaneInstance = await window.paypal.Fastlane();
+                        await this.buildPPCPFastlaneInstance(gatewayData);
                         break;
                 }
                 this.setLocale();
@@ -160,12 +83,105 @@ define([], function () {
                 return window.boldFastlaneInstance;
             } catch (e) {
                 window.boldFastlaneInstanceCreateInProgress = false;
-                throw new Error(
-                    e.responseJSON && e.responseJSON.errors[0] ? e.responseJSON.errors[0].message : e.message
-                );
+                console.error('Error creating Fastlane instance', e);
+                return null;
             }
         },
+        /**
+         * Build Braintree Fastlane instance.
+         *
+         * @param {{client_token: string}} gatewayData
+         * @return {Promise<void>}
+         */
+        buildBraintreeFastlaneInstance: async function (gatewayData) {
+            if (!window.braintree) {
+                window.braintree = {};
+            }
+            await new Promise((resolve, reject) => {
+                require(['bold_braintree_fastlane_hosted_fields'], (hostedFields) => {
+                    window.braintree.hostedFields = hostedFields;
+                    resolve();
+                }, reject);
+            });
+            const clientInstance = await this.getBraintreeClientInstance(gatewayData.client_token);
+            const dataCollectorInstance = await this.getDataCollectorInstance(clientInstance);
+            const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
+                ? window.checkoutConfig.bold.fastlane.styles.length
+                : {};
+            await new Promise((resolve, reject) => {
+                require(['bold_braintree_fastlane'], (bold_braintree_fastlane) => {
+                    window.braintree.fastlane = bold_braintree_fastlane;
+                    resolve();
+                }, reject);
+            });
+            window.boldFastlaneInstance = await window.braintree.fastlane.create({
+                authorization: gatewayData.client_token,
+                client: clientInstance,
+                deviceData: dataCollectorInstance.deviceData,
+                styles: styles
+            });
+        },
+        /**
+         * Build PPCP Fastlane instance.
+         *
+         * @param {{is_test_mode: boolean, client_id: string, client_token: string}} gatewayData
+         * @return {Promise<void>}
+         */
+        buildPPCPFastlaneInstance: async function (gatewayData) {
+            let debugMode = '';
+            if (gatewayData.is_test_mode) {
+                debugMode = '&debug=true';
+            }
 
+            require.config({
+                paths: {
+                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
+                },
+                shim: {
+                    'bold_paypal_fastlane': {
+                        exports: 'paypal.fastlane'
+                    }
+                },
+                attributes: {
+                    "bold_paypal_fastlane": {
+                        'data-user-id-token': gatewayData.client_token,
+                        'data-client-metadata-id': 'Magento2'
+                    }
+                },
+                onNodeCreated: function (node, config, name) {
+                    if (config.attributes && config.attributes[name]) {
+                        Object.keys(config.attributes[name]).forEach(attribute => {
+                            node.setAttribute(attribute, config.attributes[name][attribute]);
+                        });
+                    }
+                }
+            });
+            if (!window.braintree) {
+                window.braintree = {};
+            }
+            await new Promise((resolve, reject) => {
+                require(
+                    ['bold_paypal_fastlane_hosted_fields'],
+                    (hostedFields) => {
+                        window.braintree.hostedFields = hostedFields;
+                        resolve();
+                    }, reject);
+            });
+            await new Promise((resolve, reject) => {
+                require(
+                    ['bold_paypal_fastlane_client'],
+                    (client) => {
+                        window.braintree.client = client;
+                        resolve();
+                    },
+                    reject
+                );
+            });
+            await new Promise((resolve, reject) => {
+                require(['bold_paypal_fastlane'], resolve, reject);
+            });
+            window.boldFastlaneInstance = await window.paypal.Fastlane();
+        },
         /**
          * Retrieve Data Collector instance.
          *

@@ -1,53 +1,36 @@
 define([
     'Magento_Checkout/js/view/payment/default',
-    'Bold_CheckoutPaymentBooster/js/model/platform-client',
-    'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
-    'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Magento_Checkout/js/model/quote',
-    'checkoutData',
-    'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
     'Magento_Checkout/js/model/full-screen-loader',
-    'Magento_Checkout/js/action/get-totals',
     'Magento_Customer/js/customer-data',
-    'Magento_Checkout/js/model/address-converter',
-    'Magento_Checkout/js/action/select-shipping-address',
-    'Magento_Checkout/js/action/select-billing-address',
-    'Magento_Checkout/js/action/select-shipping-method',
-    'Magento_Checkout/js/view/form/element/email',
-    'uiRegistry',
+    'checkoutData',
     'underscore',
     'ko',
     'mage/translate',
+    'Bold_CheckoutPaymentBooster/js/model/platform-client',
+    'Bold_CheckoutPaymentBooster/js/model/fastlane',
+    'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
+    'Bold_CheckoutPaymentBooster/js/action/reload-cart-action'
 ], function (
-    Component,
-    platformClient,
-    boldClient,
-    fastlane,
+    DefaultPaymentComponent,
     quote,
-    checkoutData,
-    convertBoldAddressAction,
-    loader,
-    getTotals,
+    fullscreenLoader,
     customerData,
-    coreAddressConverter,
-    selectShippingAddressAction,
-    selectBillingAddressAction,
-    selectShippingMethodAction,
-    emailElement,
-    registry,
+    checkoutData,
     _,
     ko,
-    $t
+    $t,
+    platformClient,
+    fastlane,
+    hydrateOrderAction,
+    reloadCartAction
 ) {
     'use strict';
-    return Component.extend({
+    return DefaultPaymentComponent.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/bold',
             paymentType: null,
             iframeWindow: null,
-            customerSynced: ko.observable(window.isCustomerLoggedIn),
-            billingAddressSynced: ko.observable(quote.billingAddress() !== null),
-            pigiInitialized: ko.observable(false),
             isVisible: ko.observable(true),
             iframeSrc: ko.observable(null),
             isPigiLoading: ko.observable(true),
@@ -56,85 +39,36 @@ define([
 
         /** @inheritdoc */
         initialize: function () {
-            const self = this;
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.paymentBooster) {
                 this.isVisible(false);
                 return;
             }
             this.subscribeToPIGI();
-            this.customerSynced.subscribe(function (synced) {
-                if (synced && this.billingAddressSynced() && this.pigiInitialized()) {
-                    this.isPigiLoading(false);
-                }
-            }.bind(this));
-            this.billingAddressSynced.subscribe(function (synced) {
-                if (synced && this.customerSynced() && this.pigiInitialized()) {
-                    this.isPigiLoading(false);
-                }
-            }.bind(this));
-            this.pigiInitialized.subscribe(function (initialized) {
-                if (initialized && this.customerSynced() && this.billingAddressSynced()) {
-                    this.isPigiLoading(false);
-                }
-            }.bind(this));
-            this.awaitingRefreshBeforePlacingOrder = false;
-            this.messageContainer.errorMessages.subscribe(function (errorMessages) {
-                if (errorMessages.length > 0) {
-                    loader.stopLoader();
-                }
-            });
-            const syncQuoteData = _.debounce(
-                function () {
-                    this.syncQuote();
+            this.removeFullScreenLoaderOnError();
+            const delayedHydrateOrder = _.debounce(
+                async function () {
+                    await hydrateOrderAction(this.displayErrorMessage.bind(this));
+                    if (window.checkoutConfig.bold.hydratedOrderAddress) {
+                        this.initializePaymentGateway();
+                    }
                 }.bind(this),
                 500
             );
-            quote.billingAddress.subscribe(function () {
-                syncQuoteData();
-            }, this);
-            this.syncQuote();
-            this.initializePaymentGateway();
-            registry.async('checkoutProvider')(
-                function (checkoutProvider) {
-                    checkoutProvider.on('shippingAddress', self.onAddressChanged.bind(self));
-                    checkoutProvider.on('billingAddress', self.onAddressChanged.bind(self));
-                });
-            registry.async('checkout.customer-information.email')(
-                function (emailComponent) {
-                    emailComponent.emailFocused.subscribe(self.onEmailChanged.bind(self));
-                });
+            hydrateOrderAction(this.displayErrorMessage.bind(this)).then(() => {
+                if (window.checkoutConfig.bold.hydratedOrderAddress) {
+                    this.initializePaymentGateway();
+                }
+            }).finally(() => {
+                quote.billingAddress.subscribe(function () {
+                    delayedHydrateOrder();
+                }, this);
+            });
         },
-
-
-        /**
-         * Observe email change event and synchronize address.
-         *
-         * @param focused
-         */
-        onEmailChanged: function (focused) {
-            if (!focused && emailElement().validateEmail()) {
-                this.syncQuote();
-            }
-        },
-
-        /**
-         * Observe address change event and synchronize it.
-         *
-         * @param addressData
-         * @param changes
-         */
-        onAddressChanged: function (addressData, changes) {
-            if (changes && changes.length !== 0) {
-                this.syncQuote();
-            }
-        },
-
         /**
          * Initialize PIGI iframe.
          */
         initializePaymentGateway: function () {
-            console.log('initializing pigi...');
             this.iframeSrc(window.checkoutConfig.bold.paymentBooster.payment.iframeSrc);
         },
 
@@ -147,63 +81,21 @@ define([
             return true;
         },
 
-        /**
-         * Refresh the order to get the recent cart updates.
-         *
-         * @returns {void}
-         */
-        refreshAndAddPayment: function () {
-            if (!this.iframeWindow) {
-                return;
-            }
-            const refreshAction = {actionType: 'PIGI_REFRESH_ORDER'};
-            this.awaitingRefreshBeforePlacingOrder = true;
-            this.iframeWindow.postMessage(refreshAction, '*');
-        },
-
         /** @inheritdoc */
         placeOrder: function (data, event) {
-            loader.startLoader();
+            fullscreenLoader.startLoader();
             if (!this.iframeWindow) {
+                console.error('PIGI iframe is not initialized');
+                fullscreenLoader.stopLoader();
                 return false;
             }
-
             const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
             this.iframeWindow.postMessage(clearAction, '*');
-
             if (!this.paymentType) {
-                this.refreshAndAddPayment();
+                this.iframeWindow.postMessage({actionType: 'PIGI_ADD_PAYMENT'}, '*');
                 return false;
             }
-            const defaultPlaceOrder = this._super;
-            this.processBoldOrder().then(() => {
-                const orderPlacementResult = defaultPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
-                if (!orderPlacementResult) {
-                    loader.stopLoader()
-                }
-                return orderPlacementResult;
-            }).catch((error) => {
-                this.displayErrorMessage(error);
-                loader.stopLoader();
-                return false;
-            });
-        },
-
-        /**
-         * Refresh the order to get the recent cart updates, calculate taxes and authorize|capture payment on Bold side.
-         *
-         * @return {Promise<void>}
-         */
-        processBoldOrder: async function () {
-            try {
-                await boldClient.get('refresh');
-                await boldClient.post('taxes');
-                const processOrderResult = await boldClient.post('process_order');
-                this.updateCart(processOrderResult.data);
-            } catch (e) {
-                console.error('Error processing order', e);
-                throw new Error(this.error);
-            }
+            return this._super(data, event);
         },
 
         /**
@@ -243,6 +135,20 @@ define([
         },
 
         /**
+         * Remove full-screen loader in case place order returns error from backend.
+         *
+         * @private
+         * @returns {void}
+         */
+        removeFullScreenLoaderOnError: function () {
+            this.messageContainer.errorMessages.subscribe(function (errorMessages) {
+                if (errorMessages.length > 0) {
+                    fullscreenLoader.stopLoader();
+                }
+            });
+        },
+
+        /**
          * Subscribe to PIGI events.
          *
          * @private
@@ -252,7 +158,6 @@ define([
             window.addEventListener('message', ({data}) => {
                 const responseType = data.responseType;
                 const iframeElement = document.getElementById('PIGI');
-                const addPaymentAction = {actionType: 'PIGI_ADD_PAYMENT'};
                 if (responseType) {
                     switch (responseType) {
                         case 'PIGI_UPDATE_HEIGHT':
@@ -263,40 +168,20 @@ define([
                             break;
                         case 'PIGI_INITIALIZED':
                             this.iframeWindow = iframeElement.contentWindow;
-                            if (fastlane.isEnabled()) {
-                                this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
-                            }
+                            /* if (fastlane.isEnabled()) {
+                                 this.iframeWindow.postMessage({actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION'}, '*');
+                             }*/ //todo: uncomment after initial state with additional payment methods will be available
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }
-                            this.pigiInitialized(true);
-                            break;
-                        case 'PIGI_REFRESH_ORDER':
-                            if (this.awaitingRefreshBeforePlacingOrder) {
-                                this.iframeWindow.postMessage(addPaymentAction, '*');
-                                this.awaitingRefreshBeforePlacingOrder = false;
-                            }
+                            this.isPigiLoading(false);
                             break;
                         case 'PIGI_CHANGED_ORDER':
-                            customerData.reload(['bold'], false).then((cartData) => {
-                                const billingAddress = coreAddressConverter.formAddressDataToQuoteAddress(cartData.bold.billingAddress);
-                                selectBillingAddressAction(billingAddress);
-                                if (cartData.bold.shippingAddress) {
-                                    const shippingAddress = coreAddressConverter.formAddressDataToQuoteAddress(cartData.bold.shippingAddress);
-                                    selectShippingAddressAction(shippingAddress);
-                                    checkoutData.setSelectedShippingAddress(shippingAddress.getKey());
-                                }
-                                if (cartData.bold.shippingMethod) {
-                                    selectShippingMethodAction(cartData.bold.shippingMethod);
-                                }
-                                getTotals([]);
-                            }).catch((error) => {
-                                console.error('Error reloading customer data', error);
-                            });
+                            reloadCartAction();
                             break;
                         case 'PIGI_ADD_PAYMENT':
                             this.messageContainer.errorMessages([]);
-                            loader.stopLoader(true);
+                            fullscreenLoader.stopLoader(true);
                             if (!data.payload.success) {
                                 this.paymentType = null;
                                 return;
@@ -306,37 +191,6 @@ define([
                     }
                 }
             });
-        },
-
-        /**
-         * Update cart with the data from Bold.
-         *
-         * @param {{application_state: {addresses:{billing:{}, shipping:{}}}}} data
-         */
-        updateCart(data) {
-            const billingAddress = data.application_state.addresses.billing;
-            const magentoAddress = convertBoldAddressAction(billingAddress);
-            selectBillingAddressAction(magentoAddress);
-        },
-
-        /**
-         * Synchronize quote data with Bold.
-         *
-         * @private
-         * @returns {Promise<void>}
-         */
-        syncQuote: async function () {
-            try {
-                const urlTemplate = window.isCustomerLoggedIn
-                    ? 'rest/V1/shops/{{shopId}}/cart/hydrate/:publicOrderId'
-                    : 'rest/V1/shops/{{shopId}}/guest-cart/:cartId/hydrate/:publicOrderId';
-                const url = urlTemplate.replace(':cartId', window.checkoutConfig.quoteData.entity_id)
-                    .replace(':publicOrderId', window.checkoutConfig.bold.paymentBooster.publicOrderId);
-                await platformClient.put(url, {});
-                this.messageContainer.errorMessages([]);
-            } catch (error) {
-                this.displayErrorMessage(error)
-            }
         },
     });
 });

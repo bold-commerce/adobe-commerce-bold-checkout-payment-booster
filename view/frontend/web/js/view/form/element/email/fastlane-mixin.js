@@ -85,13 +85,12 @@ define(
                      * @return {Promise<void>}
                      */
                     lookupEmail: async function () {
-                        fullScreenLoader.startLoader();
-                        const fastlaneInstance = await fastlane.getFastlaneInstance();
-                        if (!fastlaneInstance) {
-                            return;
-                        }
-
                         try {
+                            fullScreenLoader.startLoader();
+                            const fastlaneInstance = await fastlane.getFastlaneInstance();
+                            if (!fastlaneInstance) {
+                                return;
+                            }
                             const {identity} = fastlaneInstance;
                             const {customerContextId} = await identity.lookupCustomerByEmail(this.email());
                             fullScreenLoader.stopLoader();

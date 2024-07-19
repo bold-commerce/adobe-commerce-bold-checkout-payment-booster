@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
+use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
 use Magento\Checkout\Model\Session;
@@ -39,29 +40,29 @@ class BeforePlaceObserver implements ObserverInterface
     private $hydrateOrderFromQuote;
 
     /**
-     * @var array
+     * @var CheckPaymentMethod
      */
-    private $boldPaymentMethods;
+    private $checkPaymentMethod;
 
     /**
      * @param Authorize $authorize
      * @param CartRepositoryInterface $cartRepository
      * @param Session $checkoutSession
      * @param HydrateOrderFromQuote $hydrateOrderFromQuote
-     * @param array $boldPaymentMethods
+     * @param CheckPaymentMethod $checkPaymentMethod
      */
     public function __construct(
         Authorize               $authorize,
         CartRepositoryInterface $cartRepository,
         Session                 $checkoutSession,
         HydrateOrderFromQuote   $hydrateOrderFromQuote,
-        array                   $boldPaymentMethods = []
+        CheckPaymentMethod      $checkPaymentMethod
     ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
         $this->checkoutSession = $checkoutSession;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
-        $this->boldPaymentMethods = $boldPaymentMethods;
+        $this->checkPaymentMethod = $checkPaymentMethod;
     }
 
     /**
@@ -75,8 +76,7 @@ class BeforePlaceObserver implements ObserverInterface
     public function execute(Observer $observer): void
     {
         $order = $observer->getEvent()->getOrder();
-        $paymentMethod = $order->getPayment()->getMethod();
-        if (!in_array($paymentMethod, $this->boldPaymentMethods)) {
+        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
             return;
         }
         $quoteId = $order->getQuoteId();

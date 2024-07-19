@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface" type="Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement"/>
-    <type name="Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver">
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>
             <argument name="boldPaymentMethods" xsi:type="array">
                 <item name="bold_checkout" xsi:type="string">bold</item>

@@ -53,7 +53,6 @@ define(
                 );
                 window.checkoutConfig.bold.hydratedOrderAddress = Object.assign({}, address);
             } catch (e) {
-                console.error('Error hydrating order', e);
                 processExceptionCallback(e);
             }
         }

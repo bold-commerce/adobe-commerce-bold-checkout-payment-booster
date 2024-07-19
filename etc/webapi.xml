@@ -10,7 +10,7 @@
     <route url="/V1/shops/:shopId/cart/hydrate/:publicOrderId" method="PUT">
         <service class="Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface" method="hydrate"/>
         <resources>
-            <resource ref="anonymous" />
+            <resource ref="self" />
         </resources>
     </route>
 </routes>

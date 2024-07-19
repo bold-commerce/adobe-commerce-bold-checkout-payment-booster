@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
@@ -58,7 +57,6 @@ class HydrateOrderFromQuote
     private $searchCriteriaBuilder;
 
     /**
-     * @param ClientInterface $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
@@ -82,12 +80,18 @@ class HydrateOrderFromQuote
     }
 
     /**
-     * @inheritDoc
+     * Hydrate and post Bold order from Magento quote.
+     *
+     * @param CartInterface $quote
+     * @param string $publicOrderId
+     * @return void
+     * @throws LocalizedException
      */
     public function hydrate(CartInterface $quote, string $publicOrderId): void
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
+        $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
 
         if ($quote->getIsVirtual()) {
             $totals = $quote->getBillingAddress()->getTotals();
@@ -96,8 +100,8 @@ class HydrateOrderFromQuote
             $shippingDescription = $quote->getShippingAddress()->getShippingDescription();
         }
 
-        list($fees, $discounts) = $this->getFeesAndDiscounts($totals);
-        $discountTotal = array_reduce($discounts, function($sum, $discountLine) {
+        [$fees, $discounts] = $this->getFeesAndDiscounts($totals);
+        $discountTotal = array_reduce($discounts, function ($sum, $discountLine) {
             return $sum + $discountLine['value'];
         });
 
@@ -106,20 +110,21 @@ class HydrateOrderFromQuote
 
         $body = [
             'billing_address' => $this->addressConverter->convert($billingAddress),
+            'shipping_address' => $this->addressConverter->convert($shippingAddress),
             'cart_items' => $formattedCartItems,
             'taxes' => $this->getTaxLines($totals['tax']['full_info']),
             'discounts' => $discounts,
             'fees' => $fees,
             'shipping_line' => [
                 'rate_name' => $shippingDescription ?? '',
-                'cost' => $this->convertToCents($totals['shipping']['value'])
+                'cost' => $this->convertToCents($totals['shipping']['value']),
             ],
             'totals' => [
                 'sub_total' => $this->convertToCents($totals['subtotal']['value']),
                 'tax_total' => $this->convertToCents($totals['tax']['value']),
                 'discount_total' => $discountTotal ?? 0,
                 'shipping_total' => $this->convertToCents($totals['shipping']['value']),
-                'order_total' => $this->convertToCents($totals['grand_total']['value'])
+                'order_total' => $this->convertToCents($totals['grand_total']['value']),
             ],
         ];
 
@@ -168,10 +173,10 @@ class HydrateOrderFromQuote
     {
         $taxLines = [];
 
-        foreach ($taxes as $tax){
+        foreach ($taxes as $tax) {
             $taxLines[] = [
                 'name' => $tax['id'],
-                'value' => $this->convertToCents($tax['base_amount'])
+                'value' => $this->convertToCents($tax['base_amount']),
             ];
         }
 
@@ -192,7 +197,7 @@ class HydrateOrderFromQuote
         if (isset($totals['discount'])) {
             $discounts[] = [
                 'line_text' => $totals['discount']['code'],
-                'value' => abs($this->convertToCents($totals['discount']['value']))
+                'value' => abs($this->convertToCents($totals['discount']['value'])),
             ];
         }
 
@@ -206,12 +211,12 @@ class HydrateOrderFromQuote
             if ($segment['value'] > 0) {
                 $fees[] = [
                     'description' => $description,
-                    'value' => $this->convertToCents($segment['value'])
+                    'value' => $this->convertToCents($segment['value']),
                 ];
             } else {
                 $discounts[] = [
                     'line_text' => $description,
-                    'value' => abs($this->convertToCents($segment['value']))
+                    'value' => abs($this->convertToCents($segment['value'])),
                 ];
             }
         }

@@ -7,58 +7,43 @@ define([
     'use strict';
 
     /**
-     * Magento http client.
-     *
-     * @type {object}
+     * Magento rest http client.
      */
-    const client = {
-        /**
-         * Initialize client.
-         *
-         * @return void
-         */
-        initialize: function () {
-            this.shopId = window.checkoutConfig.bold.paymentBooster.shopId
-                ? window.checkoutConfig.bold.paymentBooster.shopId : null;
-        },
-
+    return {
         /**
          * Get data from Magento API.
          *
-         * @return {Promise}
          * @param url {string}
          * @param data {object}
+         * @return {Deferred}
          */
         get: function (url, data) {
-            url = url.replace('{{shopId}}', this.shopId);
+            url = url.replace('{{shopId}}', window.checkoutConfig.bold.shopId);
             return storage.get(urlBuilder.build(url), JSON.stringify(data));
         },
 
         /**
          * Post data to Magento API.
          *
-         * @return {Promise}
          * @param url {string}
          * @param data {object}
+         * @return {Deferred}
          */
         post: function (url, data) {
-            url = url.replace('{{shopId}}', this.shopId);
+            url = url.replace('{{shopId}}', window.checkoutConfig.bold.shopId);
             return storage.post(urlBuilder.build(url), JSON.stringify(data));
         },
 
         /**
          * Put data to Magento API.
          *
-         * @return {Promise}
          * @param url {string}
          * @param data {object}
+         * @return {Deferred}
          */
         put: function (url, data) {
-            url = url.replace('{{shopId}}', this.shopId);
+            url = url.replace('{{shopId}}', window.checkoutConfig.bold.shopId);
             return storage.put(urlBuilder.build(url), JSON.stringify(data));
         },
     };
-
-    client.initialize();
-    return client;
 });

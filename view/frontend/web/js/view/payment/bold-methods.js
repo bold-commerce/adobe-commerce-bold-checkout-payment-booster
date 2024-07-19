@@ -9,7 +9,7 @@ define([
 
     const shouldShowPaymentMethod = function () {
         if (window.checkoutConfig.bold !== undefined) {
-            if (window.checkoutConfig.bold.fastlane !== undefined) {
+            if (window.checkoutConfig.bold.fastlane !== undefined && window.checkoutConfig.bold.alternativePaymentMethods.length > 0) {
                 return window.checkoutConfig.bold.alternativePaymentMethods.some(function (method) {
                     return method.type === 'braintree-paypal' || method.type === 'paypal_commerce_platform';
                 });

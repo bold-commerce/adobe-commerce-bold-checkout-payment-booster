@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Directory\Model\AllowedCountries;
@@ -20,11 +19,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      * @var Session
      */
     private $checkoutSession;
-
-    /**
-     * @var BoldClient
-     */
-    private $client;
 
     /**
      * @var Config
@@ -48,20 +42,17 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
     /**
      * @param Session $checkoutSession
-     * @param BoldClient $client
      * @param Config $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
      */
     public function __construct(
         Session $checkoutSession,
-        BoldClient $client,
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory
     ) {
         $this->checkoutSession = $checkoutSession;
-        $this->client = $client;
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
@@ -93,13 +84,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
         return [
             'bold' => [
+                'jwtToken' => $jwtToken,
+                'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
+                'shopId' => $shopId,
+                'publicOrderId' => $publicOrderId,
+                'countries' => $this->getAllowedCountries(),
+                'alternativePaymentMethods' => $alternativePaymentMethods,
                 'paymentBooster' => [
-                    'jwtToken' => $jwtToken,
-                    'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
-                    'shopId' => $shopId,
-                    'publicOrderId' => $publicOrderId,
-                    'countries' => $this->getAllowedCountries(),
-                    'alternativePaymentMethods' => $alternativePaymentMethods,
                     'payment' => [
                         'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
                         'method' => 'bold',
@@ -126,9 +117,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return null;
         }
         return $this->getBoldStorefrontUrl(
-            $websiteId,
-            'payments/iframe?token=' . $jwtToken
-        );
+                $websiteId,
+                $publicOrderId
+            ) . 'payments/iframe?token=' . $jwtToken;
     }
 
     /**

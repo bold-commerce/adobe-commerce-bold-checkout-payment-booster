@@ -130,7 +130,7 @@ define([], function () {
         loadAxo: async function () {
             require.config({
                 paths: {
-                    bold_axo: 'https://www.paypalobjects.com/connect-boba/axo'
+                    bold_axo: 'https://www.paypalobjects.com/connect-boba/axo.min'
                 },
                 attributes: {
                     "bold_axo": {

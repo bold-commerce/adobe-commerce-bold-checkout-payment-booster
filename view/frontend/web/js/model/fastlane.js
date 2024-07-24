@@ -176,11 +176,13 @@ define([], function () {
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
+            await this.loadAxo();
+            await this.loadScript('bold_paypal_fastlane_hosted_fields', 'hostedFields');
+            await this.loadScript('bold_paypal_fastlane_client', 'client');
             let debugMode = '';
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';
             }
-
             require.config({
                 paths: {
                     bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
@@ -204,31 +206,10 @@ define([], function () {
                     }
                 }
             });
-            if (!window.braintree) {
-                window.braintree = {};
-            }
-            await new Promise((resolve, reject) => {
-                require(
-                  ['bold_paypal_fastlane_hosted_fields'],
-                  (hostedFields) => {
-                      window.braintree.hostedFields = hostedFields;
-                      resolve();
-                  }, reject);
-            });
-            await new Promise((resolve, reject) => {
-                require(
-                  ['bold_paypal_fastlane_client'],
-                  (client) => {
-                      window.braintree.client = client;
-                      resolve();
-                  },
-                  reject
-                );
-            });
             await new Promise((resolve, reject) => {
                 require(['bold_paypal_fastlane'], resolve, reject);
             });
-            await this.loadAxo();
+
             window.boldFastlaneInstance = await window.paypal.Fastlane();
         },
 

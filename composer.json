@@ -1,6 +1,6 @@
 {
   "name": "bold-commerce/module-checkout-payment-booster",
-  "description": "N/A",
+  "description": "Bold Payment Booster integration for Adobe Commerce",
   "type": "magento2-module",
   "license": [
     "MIT"

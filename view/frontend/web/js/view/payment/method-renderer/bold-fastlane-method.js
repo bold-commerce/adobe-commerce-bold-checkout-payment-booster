@@ -134,13 +134,6 @@ define(
              */
             placeOrder: function (data, event) {
                 loader.startLoader();
-                window.postMessage(
-                    {
-                        responseType: 'FASTLANE_ADD_PAYMENT',
-                        paymentType: fastlane.getType()
-                    },
-                    '*'
-                );
                 const placeMagentoOrder = this._super.bind(this);
                 this.fastlanePaymentComponent.getPaymentToken().then((tokenResponse) => {
                     this.processBoldOrder(tokenResponse).then(() => {

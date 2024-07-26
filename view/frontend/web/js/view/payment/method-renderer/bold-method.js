@@ -261,7 +261,10 @@ define([
          * @returns {void}
          */
         subscribeToPIGI() {
-            window.addEventListener('message', ({data}) => {
+            window.addEventListener('message', ({ origin, data }) => {
+                if (origin !== window.checkoutConfig.bold.origin) {
+                    return;
+                }
                 const responseType = data.responseType;
                 const iframeElement = document.getElementById('PIGI');
                 const addPaymentAction = {actionType: 'PIGI_ADD_PAYMENT'};

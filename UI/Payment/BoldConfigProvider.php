@@ -92,6 +92,7 @@ class BoldConfigProvider implements ConfigProviderInterface
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
                 'alternativePaymentMethods' => $alternativePaymentMethods,
+                'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
             ],
         ];
     }

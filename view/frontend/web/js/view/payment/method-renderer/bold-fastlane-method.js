@@ -13,7 +13,8 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'uiRegistry',
         'underscore',
-        'ko'
+        'ko',
+        'mage/translate',
     ], function (
         MagentoPayment,
         errorProcessor,
@@ -28,7 +29,8 @@ define(
         loader,
         registry,
         _,
-        ko
+        ko,
+        $t
     ) {
         'use strict';
         return MagentoPayment.extend({
@@ -37,6 +39,7 @@ define(
                 paymentContainer: '#bold-fastlane-payment-container',
                 isVisible: ko.observable(true),
                 fastlanePaymentComponent: null,
+                error: $t('An error occurred while processing your payment. Please try again.'),
             },
 
             /**
@@ -141,9 +144,14 @@ define(
                         loader.stopLoader()
                         return orderPlacementResult;
                     }).catch((error) => {
-                        const errorMessage = error.responseJSON && error.responseJSON.errors
-                            ? error.responseJSON.errors[0].message
-                            : error.message;
+                        let errorMessage
+                        try {
+                            errorMessage = error.responseJSON && error.responseJSON.errors
+                              ? error.responseJSON.errors[0].message
+                              : error.message;
+                        } catch (e) {
+                            errorMessage = this.error;
+                        }
                         loader.stopLoader();
                         errorProcessor.process(errorMessage, this.messageContainer);
                         return false;
@@ -285,15 +293,17 @@ define(
              * @private
              */
             sendGuestCustomerInfo: async function () {
-                if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true) {
-                    return;
-                }
                 try {
                     await boldFrontendClient.post('customer/guest');
                 } catch (error) {
-                    const errorMessage = error.responseJSON && error.responseJSON.errors
-                        ? error.responseJSON.errors[0].message
-                        : error.message;
+                  let errorMessage;
+                  try {
+                    errorMessage = error.responseJSON && error.responseJSON.errors
+                      ? error.responseJSON.errors[0].message
+                      : error.message;
+                  } catch (e) {
+                    errorMessage = this.error;
+                  }
                     errorProcessor.process(errorMessage, this.messageContainer);
                 }
             }

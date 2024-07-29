@@ -71,7 +71,6 @@ define(
                         }
                         this.lookupEmail().then(() => {
                             fullScreenLoader.stopLoader();
-                            this.isPasswordVisible(false);
                         }).catch((error) => {
                             fullScreenLoader.stopLoader();
                             console.log(error);
@@ -105,6 +104,7 @@ define(
                                     window.checkoutConfig.bold.fastlane.profileData = profileData;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
+                                    this.isPasswordVisible(false);
                                 }
                                 return;
                             }

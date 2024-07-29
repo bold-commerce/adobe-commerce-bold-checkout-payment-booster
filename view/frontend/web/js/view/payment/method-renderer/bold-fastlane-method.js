@@ -51,9 +51,7 @@ define(
                     this.isVisible(false);
                     return;
                 }
-                this.sendGuestCustomerInfo();
                 quote.shippingAddress.subscribe(function () {
-                    this.sendGuestCustomerInfo();
                     if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
                         && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
                         selectPaymentMethodAction(null);
@@ -170,6 +168,7 @@ define(
             processBoldOrder: async function (tokenResponse) {
                 try {
                     this.updateQuoteBillingAddress(tokenResponse);
+                    this.sendGuestCustomerInfo();
                     const refreshResult = await boldFrontendClient.get('refresh');
                     const taxesResult = await boldFrontendClient.post('taxes');
                     if (fastlane.getType() === 'ppcp') {

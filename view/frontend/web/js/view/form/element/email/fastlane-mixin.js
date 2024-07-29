@@ -100,15 +100,15 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    window.checkoutConfig.bold.fastlane.memberAuthenticated = true;
-                                    window.checkoutConfig.bold.fastlane.profileData = profileData;
+                                    fastlane.memberAuthenticated(true);
+                                    fastlane.profileData(profileData);
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
                                     this.isPasswordVisible(false);
                                 }
                                 return;
                             }
-                            window.checkoutConfig.bold.fastlane.memberAuthenticated = false;
+                            fastlane.memberAuthenticated(false);
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);

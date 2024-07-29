@@ -51,14 +51,16 @@ define(
                     this.isVisible(false);
                     return;
                 }
-                quote.shippingAddress.subscribe(function () {
-                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
-                        && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
-                        selectPaymentMethodAction(null);
-                        checkoutData.setSelectedPaymentMethod(null);
-                    }
-                }, this);
                 this.renderPaymentContainer();
+                if (fastlane.memberAuthenticated()) {
+                    this.selectPaymentMethod();
+                }
+                fastlane.memberAuthenticated.subscribe(function (authenticated) {
+                    if (authenticated === true) {
+                        this.selectPaymentMethod();
+                    }
+                    this.renderPaymentContainer();
+                }, this);
             },
             /**
              * Wait for the payment container to be rendered before rendering the Fastlane component.
@@ -122,13 +124,6 @@ define(
                     this.isPlaceOrderActionAllowed(false);
                     this.isVisible(false);
                 }
-            },
-            /**
-             * @inheritDoc
-             */
-            selectPaymentMethod: function () {
-                this.renderCardComponent();
-                return this._super();
             },
             /**
              * @inheritDoc
@@ -231,8 +226,8 @@ define(
                 }
                 let fastlaneFirstName;
                 try {
-                    fastlaneFirstName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.firstName
-                        ? window.checkoutConfig.bold.fastlane.profileData.name.firstName
+                    fastlaneFirstName = fastlane.profileData() && fastlane.profileData().name.firstName
+                        ? fastlane.profileData().name.firstName
                         : tokenResponse.paymentSource.card.name.split(' ')[0];
                 } catch (e) {
                     fastlaneFirstName = quoteAddress.firstname;
@@ -242,8 +237,8 @@ define(
                 }
                 let fastlaneLastName;
                 try {
-                    fastlaneLastName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.lastName
-                        ? window.checkoutConfig.bold.fastlane.profileData.name.lastName
+                    fastlaneLastName = fastlane.profileData() && fastlane.profileData().name.lastName
+                        ? fastlane.profileData().name.lastName
                         : tokenResponse.paymentSource.card.name.split(' ')[1];
                 } catch (e) {
                     fastlaneLastName = quoteAddress.lastname;

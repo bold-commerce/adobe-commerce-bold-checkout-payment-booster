@@ -1,4 +1,8 @@
-define([], function () {
+define([
+  'ko',
+], function (
+  ko
+) {
     'use strict';
 
     /**
@@ -7,6 +11,9 @@ define([], function () {
      * @type {object}
      */
     return {
+        memberAuthenticated: ko.observable(false),
+        profileData: ko.observable(null),
+
         /**
          * Check if Fastlane flow is enabled and active.
          *

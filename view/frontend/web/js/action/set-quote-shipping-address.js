@@ -22,7 +22,7 @@ define(
          */
         return function (fastlaneAddress) {
             const shippingAddress = convertFastlaneAddressAction(fastlaneAddress);
-            addressList([shippingAddress]);
+            addressList([]);
             selectShippingAddressAction(shippingAddress);
             checkoutData.setSelectedShippingAddress(shippingAddress.getKey());
             hideShippingAddressFormAction();

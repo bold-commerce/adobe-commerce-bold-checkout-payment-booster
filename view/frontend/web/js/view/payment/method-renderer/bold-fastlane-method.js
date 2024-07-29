@@ -168,7 +168,7 @@ define(
             processBoldOrder: async function (tokenResponse) {
                 try {
                     this.updateQuoteBillingAddress(tokenResponse);
-                    this.sendGuestCustomerInfo();
+                    await this.sendGuestCustomerInfo();
                     const refreshResult = await boldFrontendClient.get('refresh');
                     const taxesResult = await boldFrontendClient.post('taxes');
                     if (fastlane.getType() === 'ppcp') {

@@ -212,7 +212,7 @@ define(
              *
              * @param {{paymentSource: {card: {billingAddress}}}}tokenResponse
              */
-            updateQuoteBillingAddress (tokenResponse) {
+            updateQuoteBillingAddress(tokenResponse) {
                 const fastlaneBillingAddress = tokenResponse.paymentSource && tokenResponse.paymentSource.card && tokenResponse.paymentSource.card.billingAddress
                     ? tokenResponse.paymentSource.card.billingAddress
                     : null;

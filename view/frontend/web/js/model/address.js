@@ -1,9 +1,11 @@
 define([
     'underscore',
+    'checkoutData',
     'Magento_Checkout/js/model/quote',
     'uiRegistry',
 ], function (
     _,
+    checkoutData,
     quote,
     registry
 ) {
@@ -11,22 +13,18 @@ define([
 
     /**
      * Bold address model.
-     *
-     * @type object
      */
-    const boldAddress = {
-        initialize: function () {
-            this.countries = window.checkoutConfig.bold.countries;
-        },
-
+    return {
+        billingAddress: {},
+        shippingAddress: {},
         /**
-         * Get billing address api data.
+         * Get address api data.
          *
          * @return object
          */
-        getBillingAddress: function () {
-            this.billingAddress = quote.billingAddress();
-            this.shippingAddress = quote.shippingAddress();
+        getAddress: function () {
+            this.billingAddress = quote.billingAddress() || {};
+            this.shippingAddress = quote.shippingAddress() || {};
             if (!this.billingAddress && !this.shippingAddress) {
                 return null;
             }
@@ -35,7 +33,7 @@ define([
                 return null;
             }
             const countryId = this.getFieldValue('countryId');
-            const country = this.countries.find(country => country.value === countryId);
+            const country = window.checkoutConfig.bold.countries.find(country => country.value === countryId);
             const countryName = country ? country.label : '';
             let street1 = '';
             let street2 = '';
@@ -46,8 +44,7 @@ define([
                 street2 = this.billingAddress.street[1];
             }
             if (!street1) {
-                const street1Field = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
+                const street1Field = this.billingAddress.isAddressSameAsShipping
                 && !this.billingAddress.isAddressSameAsShipping()
                     ? registry.get('dataScope = billingAddress.street.0')
                     : registry.get('dataScope = shippingAddress.street.0');
@@ -56,8 +53,7 @@ define([
                 }
             }
             if (!street2) {
-                const street2Field = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
+                const street2Field = this.billingAddress.isAddressSameAsShipping
                 && !this.billingAddress.isAddressSameAsShipping()
                     ? registry.get('dataScope = billingAddress.street.1')
                     : registry.get('dataScope = shippingAddress.street.1');
@@ -83,27 +79,29 @@ define([
             }
             try {
                 this.validatePayload(payload);
+                return payload;
             } catch (e) {
                 return null;
             }
-            return payload;
         },
 
-
         /**
-         * Get address field value.
+         * Get address field value with fallback.
          *
          * @param field
          * @returns {*|string}
          */
         getFieldValue: function (field) {
-            const useBilling = this.billingAddress
-                && this.billingAddress.isAddressSameAsShipping
-                && !this.billingAddress.isAddressSameAsShipping();
+            let fieldValue = this.shippingAddress.hasOwnProperty(field) && !quote.isVirtual()
+                ? this.shippingAddress[field]
+                : null;
+            if (fieldValue === null) {
+                fieldValue = this.billingAddress.hasOwnProperty(field)
+                    ? this.billingAddress[field]
+                    : null;
 
-            return useBilling
-                ? (this.billingAddress.hasOwnProperty(field) ? this.billingAddress[field] : '')
-                : (this.shippingAddress.hasOwnProperty(field) ? this.shippingAddress[field] : '')
+            }
+            return fieldValue;
         },
 
         /**
@@ -123,7 +121,7 @@ define([
                 'address_line_1',
                 'city',
             ];
-            const country = this.countries.find(country => country.value === payload.country_code);
+            const country = window.checkoutConfig.bold.countries.find(country => country.value === payload.country_code);
             if (country && country.is_region_required) {
                 requiredFields.push('province');
                 requiredFields.push('province_code');
@@ -138,7 +136,4 @@ define([
             })
         },
     }
-
-    boldAddress.initialize();
-    return boldAddress;
 });

@@ -149,7 +149,7 @@ define(
                         errorMessage = this.error;
                     }
                     loader.stopLoader();
-                    errorProcessor.process(errorMessage, this.messageContainer);
+                    errorProcessor.process({ responseText: JSON.stringify({ message: errorMessage }) }, this.messageContainer);
                     return false;
                 });
 

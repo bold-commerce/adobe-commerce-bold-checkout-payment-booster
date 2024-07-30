@@ -111,7 +111,9 @@ define(
                             prefill: this.getFormattedPhoneNumber(),
                         },
                     };
-                    const styles = window.checkoutConfig.bold.fastlane.styles || {};
+                    const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
+                        ? window.checkoutConfig.bold.fastlane.styles
+                        : {};
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
                             styles,

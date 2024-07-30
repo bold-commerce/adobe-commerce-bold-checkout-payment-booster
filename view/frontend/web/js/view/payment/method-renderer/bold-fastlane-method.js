@@ -197,7 +197,6 @@ define(
                     {
                         'gateway_public_id': fastlane.getGatewayPublicId(),
                         'currency': quote.totals().quote_currency_code,
-                        'amount': quote.totals().grand_total * 100,
                         'token': tokenResponse.id,
                         'type': 'fastlane',
                     },
@@ -245,7 +244,6 @@ define(
                         {
                             'gateway_public_id': fastlane.getGatewayPublicId(),
                             'currency': quote.totals().quote_currency_code,
-                            'amount': quote.totals().grand_total * 100,
                             'token': walletPayResult.data?.payment_data?.id,
                         },
                     );
@@ -256,7 +254,6 @@ define(
                         {
                             'gateway_public_id': fastlane.getGatewayPublicId(),
                             'currency': quote.totals().quote_currency_code,
-                            'amount': quote.totals().grand_total * 100,
                             'token': this.fastlanePaymentToken,
                         },
                     );

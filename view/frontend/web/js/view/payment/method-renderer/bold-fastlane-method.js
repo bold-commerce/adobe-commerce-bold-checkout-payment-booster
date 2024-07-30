@@ -135,84 +135,135 @@ define(
             placeOrder: function (data, event) {
                 loader.startLoader();
                 const placeMagentoOrder = this._super.bind(this);
-                this.fastlanePaymentComponent.getPaymentToken().then((tokenResponse) => {
-                    this.processBoldOrder(tokenResponse).then(() => {
-                        const orderPlacementResult = placeMagentoOrder(data, event);
-                        loader.stopLoader();
-                        return orderPlacementResult;
-                    }).catch((error) => {
-                        let errorMessage;
-                        try {
-                            errorMessage = error.responseJSON && error.responseJSON.errors
-                                ? error.responseJSON.errors[0].message
-                                : error.message;
-                        } catch (e) {
-                            errorMessage = this.error;
-                        }
-                        loader.stopLoader();
-                        errorProcessor.process(errorMessage, this.messageContainer);
-                        return false;
-                    });
-                }).catch(() => {
+                this.processBoldOrder().then(() => {
+                    const orderPlacementResult = placeMagentoOrder(data, event);
                     loader.stopLoader();
+                    return orderPlacementResult;
+                }).catch((error) => {
+                    let errorMessage;
+                    try {
+                        errorMessage = error.responseJSON && error.responseJSON.errors
+                            ? error.responseJSON.errors[0].message
+                            : error.message;
+                    } catch (e) {
+                        errorMessage = this.error;
+                    }
+                    loader.stopLoader();
+                    errorProcessor.process({ responseText: JSON.stringify({ message: errorMessage }) }, this.messageContainer);
                     return false;
                 });
+
             },
             /**
              * Process order on Bold side before Magento order placement.
              *
-             * @param {{paymentSource: {card: {billingAddress}}} }tokenResponse
              * @return {Promise<*>}
              */
-            processBoldOrder: async function (tokenResponse) {
+            processBoldOrder: async function () {
                 try {
-                    this.updateQuoteBillingAddress(tokenResponse);
-                    await this.sendGuestCustomerInfo();
-                    await boldFrontendClient.get('refresh');
-                    await boldFrontendClient.post('taxes');
-                    if (this.fastlanePaymentToken) {
-                        const orderPlacementResult = await boldFrontendClient.post('process_order');
-                        if (orderPlacementResult.errors) {
-                            return Promise.reject('An error occurred while processing your payment. Please try again.');
-                        }
+                    if (fastlane.getType() === 'braintree') {
+                        await this.processBraintreeOrder();
                         return;
                     }
-                    if (fastlane.getType() === 'ppcp') {
-                        const walletPayResult = await boldFrontendClient.post(
-                            'wallet_pay/create_order',
-                            {
-                                gateway_type: 'paypal',
-                                payment_data: {
-                                    locale: navigator.language,
-                                    payment_type: 'fastlane',
-                                    token: tokenResponse.id,
-                                },
-                            },
-                        );
-                        if (walletPayResult.errors) {
-                            return Promise.reject('An error occurred while processing your payment. Please try again.');
-                        }
-                        this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
-                    }
-                    if (fastlane.getType() === 'braintree') {
-                        this.fastlanePaymentToken = tokenResponse.id;
-                    }
+                    await this.processPPCPOrder();
+                } catch (e) {
+                    return Promise.reject(e);
+                }
+            },
+            /**
+             * Process Bold order for the Braintree gateway.
+             *
+             * @return {Promise<never>}
+             */
+            processBraintreeOrder: async function () {
+                const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
+                this.updateQuoteBillingAddress(tokenResponse);
+                await this.sendGuestCustomerInfo();
+                await boldFrontendClient.get('refresh');
+                await boldFrontendClient.post('taxes');
+                if (this.fastlanePaymentToken) {
                     const paymentPayload = {
+                        'gateway_public_id': fastlane.getGatewayPublicId(),
+                        'token': 'nonce:' + this.fastlanePaymentToken,
+                    };
+                    try {
+                        await boldFrontendClient.delete('payments', paymentPayload);
+                    } catch (e) {
+                        console.log(e);
+                    }
+                }
+                await boldFrontendClient.post(
+                    'payments',
+                    {
                         'gateway_public_id': fastlane.getGatewayPublicId(),
                         'currency': quote.totals().quote_currency_code,
                         'amount': quote.totals().grand_total * 100,
-                        'token': this.fastlanePaymentToken,
-                    };
-                    if (fastlane.getType() === 'braintree') {
-                        paymentPayload.type = 'fastlane';
-                    }
-                    await boldFrontendClient.post('payments', paymentPayload,);
-                    const orderPlacementResult = await boldFrontendClient.post('process_order');
-                    if (orderPlacementResult.errors) {
+                        'token': tokenResponse.id,
+                        'type': 'fastlane',
+                    },
+                );
+                this.fastlanePaymentToken = tokenResponse.id;
+                const orderPlacementResult = await boldFrontendClient.post('process_order');
+                if (orderPlacementResult.errors) {
+                    return Promise.reject('An error occurred while processing your payment. Please try again.');
+                }
+            },
+            /**
+             * Process Bold order for the PPCP gateway.
+             *
+             * @return {Promise<never>}
+             */
+            processPPCPOrder: async function () {
+                let tokenResponse = null;
+                if (!this.fastlanePaymentToken) {
+                    tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
+                    this.updateQuoteBillingAddress(tokenResponse);
+                }
+                await this.sendGuestCustomerInfo();
+                await boldFrontendClient.get('refresh');
+                await boldFrontendClient.post('taxes');
+                if (!this.fastlanePaymentToken) {
+                    if (!tokenResponse) {
                         return Promise.reject('An error occurred while processing your payment. Please try again.');
                     }
-                } catch (e) {
-                    return Promise.reject(e);
+                    const walletPayResult = await boldFrontendClient.post(
+                        'wallet_pay/create_order',
+                        {
+                            gateway_type: 'paypal',
+                            payment_data: {
+                                locale: navigator.language,
+                                payment_type: 'fastlane',
+                                token: tokenResponse.id,
+                            },
+                        },
+                    );
+                    if (walletPayResult.errors) {
+                        return Promise.reject('An error occurred while processing your payment. Please try again.');
+                    }
+                    await boldFrontendClient.post(
+                        'payments',
+                        {
+                            'gateway_public_id': fastlane.getGatewayPublicId(),
+                            'currency': quote.totals().quote_currency_code,
+                            'amount': quote.totals().grand_total * 100,
+                            'token': walletPayResult.data?.payment_data?.id,
+                        },
+                    );
+                    this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
+                } else {
+                    await boldFrontendClient.put(
+                        'payments',
+                        {
+                            'gateway_public_id': fastlane.getGatewayPublicId(),
+                            'currency': quote.totals().quote_currency_code,
+                            'amount': quote.totals().grand_total * 100,
+                            'token': this.fastlanePaymentToken,
+                        },
+                    );
+                }
+                const orderPlacementResult = await boldFrontendClient.post('process_order');
+                if (orderPlacementResult.errors) {
+                    return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },
             /**
@@ -220,7 +271,7 @@ define(
              *
              * @param {{paymentSource: {card: {billingAddress}}}}tokenResponse
              */
-            updateQuoteBillingAddress(tokenResponse) {
+            updateQuoteBillingAddress: function (tokenResponse) {
                 const fastlaneBillingAddress = tokenResponse.paymentSource && tokenResponse.paymentSource.card && tokenResponse.paymentSource.card.billingAddress
                     ? tokenResponse.paymentSource.card.billingAddress
                     : null;

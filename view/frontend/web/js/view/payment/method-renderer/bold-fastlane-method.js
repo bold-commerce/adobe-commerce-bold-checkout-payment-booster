@@ -208,6 +208,11 @@ define(
                     return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },
+            /**
+             * Process Bold order for the PPCP gateway.
+             *
+             * @return {Promise<never>}
+             */
             processPPCPOrder: async function () {
                 let tokenResponse = null;
                 if (!this.fastlanePaymentToken) {

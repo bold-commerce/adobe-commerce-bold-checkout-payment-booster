@@ -77,6 +77,9 @@ define([
                     window.localStorage.setItem('axoEnv', 'sandbox');
                     window.localStorage.setItem('fastlaneEnv', 'sandbox');
                 }
+                if (!window.braintree) {
+                    window.braintree = {};
+                }
                 switch (gatewayData.type) {
                     case 'braintree':
                         await this.buildBraintreeFastlaneInstance(gatewayData);
@@ -101,7 +104,6 @@ define([
          * @return {Promise<void>}
          */
         buildBraintreeFastlaneInstance: async function (gatewayData) {
-            await this.loadAxo();
             await this.loadScript('bold_braintree_fastlane_hosted_fields', 'hostedFields');
             const client = await this.loadScript('bold_braintree_fastlane_client');
             const dataCollector = await this.loadScript('bold_braintree_fastlane_data_collector');
@@ -183,7 +185,6 @@ define([
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
-            await this.loadAxo();
             await this.loadScript('bold_paypal_fastlane_hosted_fields', 'hostedFields');
             await this.loadScript('bold_paypal_fastlane_client', 'client');
             let debugMode = '';

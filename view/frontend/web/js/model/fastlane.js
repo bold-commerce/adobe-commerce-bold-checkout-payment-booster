@@ -117,7 +117,7 @@ define([
               }
             );
             const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
-              ? window.checkoutConfig.bold.fastlane.styles.length
+              ? window.checkoutConfig.bold.fastlane.styles
               : {};
             const {deviceData} = dataCollectorInstance;
             window.boldFastlaneInstance = await fastlane.create(
@@ -202,7 +202,7 @@ define([
                 attributes: {
                     "bold_paypal_fastlane": {
                         'data-user-id-token': gatewayData.client_token,
-                        'data-client-metadata-id': 'Magento2'
+                        'data-client-metadata-id': window.checkoutConfig.bold.publicOrderId
                     }
                 },
                 onNodeCreated: function (node, config, name) {

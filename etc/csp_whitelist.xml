@@ -21,6 +21,7 @@
             <values>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+                <value id="bold_paypal_frame" type="host">*.paypal.com</value>
             </values>
         </policy>
         <policy id="object-src">

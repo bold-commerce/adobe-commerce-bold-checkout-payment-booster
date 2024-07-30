@@ -275,12 +275,12 @@ define([
                                 return;
                             }
                             iframeElement.height = Math.round(data.payload.height) + 'px';
-                            break;
-                        case 'PIGI_INITIALIZED':
-                            this.iframeWindow = iframeElement.contentWindow;
                             if (fastlane.isEnabled()) {
                                 this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
                             }
+                            break;
+                        case 'PIGI_INITIALIZED':
+                            this.iframeWindow = iframeElement.contentWindow;
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }

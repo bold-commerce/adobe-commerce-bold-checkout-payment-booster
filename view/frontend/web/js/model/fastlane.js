@@ -119,7 +119,7 @@ define([
               }
             );
             const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
-              ? window.checkoutConfig.bold.fastlane.styles.length
+              ? window.checkoutConfig.bold.fastlane.styles
               : {};
             const {deviceData} = dataCollectorInstance;
             window.boldFastlaneInstance = await fastlane.create(

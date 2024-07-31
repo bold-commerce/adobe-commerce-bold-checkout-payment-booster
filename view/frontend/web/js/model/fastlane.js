@@ -193,7 +193,7 @@ define([
             }
             require.config({
                 paths: {
-                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=fastlane' + debugMode
+                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=buttons,fastlane' + debugMode
                 },
                 shim: {
                     'bold_paypal_fastlane': {

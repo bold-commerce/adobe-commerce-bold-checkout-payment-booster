@@ -202,7 +202,7 @@ define([
                 },
                 attributes: {
                     "bold_paypal_fastlane": {
-                        'data-user-id-token': gatewayData.client_token,
+                        'data-sdk-client-token': gatewayData.client_token,
                         'data-client-metadata-id': window.checkoutConfig.bold.publicOrderId
                     }
                 },

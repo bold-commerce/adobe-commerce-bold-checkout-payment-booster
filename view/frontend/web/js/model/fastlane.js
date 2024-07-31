@@ -139,7 +139,7 @@ define([
         loadAxo: async function () {
             require.config({
                 paths: {
-                    bold_axo: 'https://www.paypalobjects.com/connect-boba/axo.min'
+                    bold_axo: 'https://www.paypalobjects.com/connect-boba/axo'
                 },
                 attributes: {
                     "bold_axo": {
@@ -203,7 +203,7 @@ define([
                 attributes: {
                     "bold_paypal_fastlane": {
                         'data-user-id-token': gatewayData.client_token,
-                        'data-client-metadata-id': 'Magento2'
+                        'data-client-metadata-id': window.checkoutConfig.bold.publicOrderId
                     }
                 },
                 onNodeCreated: function (node, config, name) {

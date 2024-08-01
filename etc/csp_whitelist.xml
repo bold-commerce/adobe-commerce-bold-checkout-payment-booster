@@ -9,6 +9,9 @@
                 <value id="cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_braintree_sandbox" type="host">*.sandbox.braintree-api.com</value>
                 <value id="bold_braintree" type="host">*.braintree-api.com</value>
+                <value id="bold_paypal" type="host">*.paypal.com</value>
+                <value id="bold_braintreegateway" type="host">*.braintreegateway.com</value>
+                <value id="bold_paypal_objects" type="host">www.paypalobjects.com</value>
             </values>
         </policy>
         <policy id="script-src">

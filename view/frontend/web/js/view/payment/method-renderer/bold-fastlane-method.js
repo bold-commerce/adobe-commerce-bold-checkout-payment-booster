@@ -250,15 +250,6 @@ define(
                         },
                     );
                     this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
-                } else {
-                    await boldFrontendClient.put(
-                        'payments',
-                        {
-                            'gateway_public_id': fastlane.getGatewayPublicId(),
-                            'currency': quote.totals().quote_currency_code,
-                            'token': this.fastlanePaymentToken,
-                        },
-                    );
                 }
                 const orderPlacementResult = await boldFrontendClient.post('process_order');
                 if (orderPlacementResult.errors) {

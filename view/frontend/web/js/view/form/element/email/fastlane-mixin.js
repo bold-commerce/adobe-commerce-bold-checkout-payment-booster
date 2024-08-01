@@ -87,6 +87,7 @@ define(
                         fullScreenLoader.startLoader();
                         const fastlaneInstance = await fastlane.getFastlaneInstance();
                         if (!fastlaneInstance) {
+                            fullScreenLoader.stopLoader();
                             return;
                         }
 

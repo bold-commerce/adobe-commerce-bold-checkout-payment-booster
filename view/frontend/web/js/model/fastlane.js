@@ -104,7 +104,7 @@ define([
          * @return {Promise<void>}
          */
         buildBraintreeFastlaneInstance: async function (gatewayData) {
-            this.loadAxo(gatewayData);
+            this.rewriteAxoLoading(gatewayData); //todo: remove as soon as axo.js is compatible with require js.
             await this.loadScript('bold_braintree_fastlane_hosted_fields', 'hostedFields');
             const client = await this.loadScript('bold_braintree_fastlane_client');
             const dataCollector = await this.loadScript('bold_braintree_fastlane_data_collector');
@@ -157,7 +157,7 @@ define([
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
-            this.loadAxo(gatewayData);
+            this.rewriteAxoLoading(gatewayData); //todo: remove as soon as axo.js is compatible with require js.
             await this.loadScript('bold_paypal_fastlane_hosted_fields', 'hostedFields');
             await this.loadScript('bold_paypal_fastlane_client', 'client');
             let debugMode = '';
@@ -181,7 +181,7 @@ define([
          * @param {{client_token: string}} gatewayData
          * @return {void}
          */
-        loadAxo: function (gatewayData) {
+        rewriteAxoLoading: function (gatewayData) {
             this.saveEventListeners();
             const originalAppendChild = Element.prototype.appendChild;
             const self = this;

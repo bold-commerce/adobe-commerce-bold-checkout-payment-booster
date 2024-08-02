@@ -4,7 +4,6 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/action/select-billing-address',
-        'Magento_Checkout/js/action/set-billing-address',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
@@ -20,7 +19,6 @@ define(
         errorProcessor,
         selectPaymentMethodAction,
         selectBillingAddressAction,
-        setBillingAddressAction,
         boldFrontendClient,
         fastlane,
         convertFastlaneAddressAction,
@@ -305,7 +303,6 @@ define(
                 }
                 const billingAddress = convertFastlaneAddressAction(fastlaneBillingAddress, 'braintree');
                 selectBillingAddressAction(billingAddress);
-                setBillingAddressAction(this.messageContainer);
             },
             /**
              * Get Fastlane shipping address for the payment component.

@@ -9,6 +9,10 @@
         </arguments>
     </type>
 
+    <type name="Bold\Checkout\Model\Quote\SetQuoteAddresses">
+        <plugin name="prevent_address_save" type="Bold\CheckoutPaymentBooster\Plugin\Bold\Checkout\Model\Quote\SetQuoteAddresses\PreventAddressSavePlugin" />
+    </type>
+
     <type name="Bold\Checkout\Observer\Order\CheckoutSubmitAllAfterObserver">
         <arguments>
             <argument name="boldPaymentMethods" xsi:type="array">

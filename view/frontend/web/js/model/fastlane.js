@@ -1,5 +1,6 @@
 define([
     'ko',
+    'prototype'
 ], function (
     ko,
 ) {
@@ -183,25 +184,24 @@ define([
          */
         rewriteAxoLoading: function (gatewayData) {
             this.saveEventListeners();
-            const originalAppendChild = Element.prototype.appendChild;
             const self = this;
-            Element.prototype.appendChild = function (element) {
-                if (element.tagName === 'SCRIPT'
-                    && element.id === 'axo-id'
-                    && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
-                    self.loadWithRequireJs(element);
-                    // prevent axo to be loaded without require js.
-                    return element;
-                }
-                if (element.tagName === 'SCRIPT'
-                    && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
-                    // Magento 2.3.x has no onNodeCreate event, so we need to set the client token manually.
-                    element.setAttribute('data-sdk-client-token', gatewayData.client_token);
-                    element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
-                    return originalAppendChild.call(this, element);
-                }
-                return originalAppendChild.call(this, element);
-            };
+            Element.prototype.appendChild = Element.prototype.appendChild.wrap(
+                function (appendChild, element) {
+                    if (element.tagName === 'SCRIPT'
+                        && element.id === 'axo-id'
+                        && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
+                        self.loadWithRequireJs(element);
+                        // prevent axo to be loaded without require js.
+                        return element;
+                    }
+                    if (element.tagName === 'SCRIPT'
+                        && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
+                        // Magento 2.3.x has no onNodeCreate event, so we need to set the client token manually.
+                        element.setAttribute('data-sdk-client-token', gatewayData.client_token);
+                        element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
+                    }
+                    return appendChild(element);
+                });
         },
         /**
          * Save event listeners for original axo script, to attach them to axo script loaded via require js.

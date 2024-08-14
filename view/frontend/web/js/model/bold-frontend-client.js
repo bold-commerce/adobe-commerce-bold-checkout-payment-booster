@@ -2,65 +2,70 @@ define([
     'jquery',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/address',
-    'Bold_CheckoutPaymentBooster/js/model/customer'
+    'Bold_CheckoutPaymentBooster/js/model/customer',
 ], function (
     $,
     _,
     boldAddress,
-    boldCustomer
+    boldCustomer,
 ) {
     'use strict';
 
-    /**
-     * Bold http client.
-     * @type {object}
-     */
     return {
         requestInProgress: false,
         requestQueue: [],
         synchronizedGuestData: {},
         synchronizedAddressData: {},
 
-        /**
-         * Post data to Bold API.
-         *
-         * @param path string
-         * @param body object
-         * @return {Promise}
-         */
         post: function (path, body = {}) {
             return new Promise((resolve, reject) => {
                 this.requestQueue.push({
                     resolve: resolve,
                     reject: reject,
                     path: path,
-                    body: body
+                    body: body,
+                    method: 'POST',
                 });
                 this.processNextRequest();
             });
         },
-
-        /**
-         * Get data from Bold API.
-         *
-         * @param path
-         * @return {*}
-         */
+        put: function (path, body = {}) {
+            return new Promise((resolve, reject) => {
+                this.requestQueue.push({
+                    resolve: resolve,
+                    reject: reject,
+                    path: path,
+                    body: body,
+                    method: 'PUT',
+                });
+                this.processNextRequest();
+            });
+        },
         get: function (path) {
             return $.ajax({
                 url: window.checkoutConfig.bold.paymentBooster.url + path,
                 type: 'GET',
                 headers: {
                     'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
+            });
+        },
+        delete: function (path, payload = {}) {
+            return $.ajax({
+                url: window.checkoutConfig.bold.url + path,
+                type: 'DELETE',
+                headers: {
+                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
+                    'Content-Type': 'application/json',
+                },
+                data: JSON.stringify(payload),
             });
         },
         /**
-         * Process next request in queue.
+         * Process next request in the queue.
          *
-         * @return void
-         * @private
+         * @return {*}
          */
         processNextRequest: function () {
             if (this.requestInProgress || this.requestQueue.length === 0) {
@@ -72,7 +77,7 @@ define([
             requestData = nextRequest.body;
             $.ajax({
                 url: window.checkoutConfig.bold.paymentBooster.url + nextRequest.path,
-                type: 'POST',
+                type: nextRequest.method,
                 headers: {
                     'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
                     'Content-Type': 'application/json',
@@ -88,5 +93,5 @@ define([
                 this.processNextRequest();
             }.bind(this));
         },
-    }
+    };
 });

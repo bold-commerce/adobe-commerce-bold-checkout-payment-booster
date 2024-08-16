@@ -21,6 +21,7 @@
             </bold>
             <bold_fastlane>
                 <active>1</active>
+                <model>Bold\CheckoutPaymentBooster\Model\Method\FastlaneAdapter</model>
                 <order_status>pending</order_status>
                 <title>Credit card</title>
                 <allowspecific>0</allowspecific>

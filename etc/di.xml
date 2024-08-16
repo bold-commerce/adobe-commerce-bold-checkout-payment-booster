@@ -39,6 +39,15 @@
             <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
         </arguments>
     </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Method\FastlaneAdapter" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_FASTLANE</argument>
+            <argument name="valueHandlerPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Config\ValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Command\CommandPool</argument>
+            <argument name="formBlockType" xsi:type="object">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
+        </arguments>
+    </virtualType>
     <!--Value Handler Pool-->
     <type name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
         <arguments>

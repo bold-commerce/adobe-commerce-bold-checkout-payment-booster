@@ -12,7 +12,8 @@ let config = {
         bold_braintree_fastlane_data_collector: 'https://js.braintreegateway.com/web/3.105.0/js/data-collector.min',
         bold_braintree_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.105.0/js/hosted-fields.min',
         bold_paypal_fastlane_client: 'https://js.braintreegateway.com/web/3.97.3-connect-alpha.6.1/js/client.min',
-        bold_paypal_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.97.3-connect-alpha.6.1/js/hosted-fields.min'
+        bold_paypal_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.97.3-connect-alpha.6.1/js/hosted-fields.min',
+        'fastlane/axo': 'https://www.paypalobjects.com/connect-boba/axo'
     },
     shim: {
         'bold_braintree_fastlane_client': {

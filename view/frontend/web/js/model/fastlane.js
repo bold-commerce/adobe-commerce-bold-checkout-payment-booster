@@ -213,7 +213,6 @@ define([
          */
         rewriteAxoLoading: function (gatewayData) {
             this.saveEventListeners();
-            const originalAppendChild = Element.prototype.appendChild;
             const self = this;
             Element.prototype.appendChild = Element.prototype.appendChild.wrap(
                 function (appendChild, element) {

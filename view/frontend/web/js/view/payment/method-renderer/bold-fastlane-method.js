@@ -202,10 +202,6 @@ define(
                     },
                 );
                 this.fastlanePaymentToken = tokenResponse.id;
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
-                    return Promise.reject('An error occurred while processing your payment. Please try again.');
-                }
             },
             /**
              * Process Bold order for the PPCP gateway.
@@ -218,9 +214,6 @@ define(
                     tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
                     this.updateQuoteBillingAddress(tokenResponse);
                 }
-                await this.sendGuestCustomerInfo();
-                await boldFrontendClient.get('refresh');
-                await boldFrontendClient.post('taxes');
                 if (!this.fastlanePaymentToken) {
                     if (!tokenResponse) {
                         return Promise.reject('An error occurred while processing your payment. Please try again.');
@@ -248,10 +241,6 @@ define(
                         },
                     );
                     this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
-                }
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
-                    return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },
             /**

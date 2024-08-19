@@ -8,7 +8,8 @@
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>
             <argument name="boldPaymentMethods" xsi:type="array">
-                <item name="bold_checkout" xsi:type="string">bold</item>
+                <item name="bold" xsi:type="string">bold</item>
+                <item name="bold_fastlane" xsi:type="string">bold_fastlane</item>
             </argument>
         </arguments>
     </type>
@@ -45,24 +46,39 @@
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Method\FastlaneAdapter" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_FASTLANE</argument>
-            <argument name="valueHandlerPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Config\ValueHandlerPool</argument>
+            <argument name="valueHandlerPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Config\FastlaneValueHandlerPool</argument>
             <argument name="commandPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Command\CommandPool</argument>
             <argument name="formBlockType" xsi:type="object">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
         </arguments>
     </virtualType>
     <!--Value Handler Pool-->
-    <type name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\BaseTitleValueHandler" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
+        <arguments>
+            <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_PAYMENT_TITLE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneTitleValueHandler" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
         <arguments>
             <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_FASTLANE_PAYMENT_TITLE</argument>
         </arguments>
-    </type>
+    </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\ValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\ConfigValueHandler</item>
                 <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
-                <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler</item>
+                <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\BaseTitleValueHandler</item>
+                <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\FastlaneValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\ConfigValueHandler</item>
+                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
+                <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneTitleValueHandler</item>
                 <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
             </argument>
         </arguments>

@@ -216,16 +216,18 @@ define([
             const self = this;
             Element.prototype.appendChild = Element.prototype.appendChild.wrap(
                 function (appendChild, element) {
-                    if (element.tagName === 'SCRIPT'
+                    if (gatewayData.type === 'braintree'
+                        && element.tagName === 'SCRIPT'
                         && element.id === 'axo-id'
                         && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
                         self.loadWithRequireJs(element);
                         // prevent axo to be loaded without require js.
                         return element;
                     }
-                    if (element.tagName === 'SCRIPT'
+                    if (gatewayData.type === 'ppcp'
+                        && element.tagName === 'SCRIPT'
                         && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
-                        // Magento 2.3.x has no onNodeCreate event, so we need to set the client token manually.
+                        // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
                         element.setAttribute('data-sdk-client-token', gatewayData.client_token);
                         element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
                     }

@@ -123,7 +123,7 @@ define([
             const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
                 ? window.checkoutConfig.bold.fastlane.styles
                 : {};
-            const { deviceData } = dataCollectorInstance;
+            const {deviceData} = dataCollectorInstance;
             window.boldFastlaneInstance = await fastlane.create(
                 {
                     authorization: gatewayData.client_token,
@@ -183,8 +183,17 @@ define([
          * @return {void}
          */
         rewriteAxoLoading: function (gatewayData) {
+            this.saveEventListeners();
+            const self = this;
             Element.prototype.appendChild = Element.prototype.appendChild.wrap(
                 function (appendChild, element) {
+                    if (element.tagName === 'SCRIPT'
+                        && element.id === 'axo-id'
+                        && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
+                        self.loadWithRequireJs(element);
+                        // prevent axo to be loaded without require js.
+                        return element;
+                    }
                     if (element.tagName === 'SCRIPT'
                         && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
                         // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
@@ -194,6 +203,77 @@ define([
                     return appendChild(element);
                 });
         },
+        /**
+         * Save event listeners for original axo script, to attach them to axo script loaded via require js.
+         *
+         * @return {void}
+         */
+        saveEventListeners: function () {
+            const originalAddEventListener = Element.prototype.addEventListener;
+            Element.prototype.addEventListener = function (type, listener, options) {
+                this._eventListeners = this._eventListeners || [];
+                this._eventListeners.push({type, listener, options});
+                originalAddEventListener.call(this, type, listener, options);
+            };
+        },
+        /**
+         * Load Axo script with require js.
+         *
+         * @return {Promise<void>}
+         */
+        loadWithRequireJs: async function (originalScript) {
+            const events = this.getEventListeners(originalScript);
+            require.config({
+                paths: {
+                    bold_axo: originalScript.src.replace('.js', ''),
+                },
+            });
+            await new Promise((resolve, reject) => {
+                require(['bold_axo'], () => {
+                    const newScript = document.querySelector('[data-requiremodule = "bold_axo"]');
+                    if (!newScript) {
+                        reject(new Error('AXO script element not found.'));
+                    }
+                    // copy attributes from original script to the script loaded with require js.
+                    const attributeNames = originalScript.getAttributeNames();
+                    attributeNames.forEach((attributeName) => {
+                        if (attributeName === 'src') {
+                            return;
+                        }
+                        newScript.setAttribute(attributeName, originalScript.getAttribute(attributeName));
+                    });
+                    // copy event listeners from original script to the script loaded with require js to notify fastlane axo is loaded.
+                    for (const [event, listeners] of Object.entries(events)) {
+                        listeners.forEach(({listener, options}) => {
+                            newScript.addEventListener(event, listener, options);
+                        });
+                    }
+                    const loadEvent = new Event('load');
+                    // Notify fastlane axo script is loaded.
+                    newScript.dispatchEvent(loadEvent);
+                    resolve(newScript);
+                }, reject);
+            });
+        },
+        /**
+         * Retrieve event listeners from given element.
+         *
+         * @param element
+         * @return {{}}
+         */
+        getEventListeners: function (element) {
+            const events = {};
+            const listeners = element._eventListeners || [];
+            listeners.forEach(({type, listener, options}) => {
+                if (!events[type]) {
+                    events[type] = [];
+                }
+                events[type].push({listener, options});
+            });
+
+            return events;
+        },
+
         /**
          * Set Fastlane locale.
          *

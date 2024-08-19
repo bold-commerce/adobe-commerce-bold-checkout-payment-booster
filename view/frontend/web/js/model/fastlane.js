@@ -194,14 +194,16 @@ define([
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';
             }
-            require.config({
-                paths: {
-                    bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=buttons,fastlane' + debugMode,
-                },
-            });
-            await new Promise((resolve, reject) => {
-                require(['bold_paypal_fastlane'], resolve, reject);
-            });
+            if (!require.defined('bold_paypal_sdk')){
+                require.config({
+                    paths: {
+                        bold_paypal_sdk: 'https://www.paypal.com/sdk/js?client-id=' + gatewayData.client_id + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + debugMode,
+                    },
+                });
+                await new Promise((resolve, reject) => {
+                    require(['bold_paypal_sdk'], resolve, reject);
+                });
+            }
 
             window.boldFastlaneInstance = await window.paypal.Fastlane();
         },
@@ -226,13 +228,14 @@ define([
                     }
                     if (gatewayData.type === 'ppcp'
                         && element.tagName === 'SCRIPT'
-                        && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
+                        && element.attributes['data-requiremodule']?.value === 'bold_paypal_sdk') {
                         // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
                         element.setAttribute('data-sdk-client-token', gatewayData.client_token);
                         element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
                     }
                     return appendChild(element);
-                });
+                }
+            );
         },
         /**
          * Save event listeners for original axo script, to attach them to axo script loaded via require js.

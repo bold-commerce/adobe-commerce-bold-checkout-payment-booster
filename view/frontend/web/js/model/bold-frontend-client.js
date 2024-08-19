@@ -43,10 +43,10 @@ define([
         },
         get: function (path) {
             return $.ajax({
-                url: window.checkoutConfig.bold.paymentBooster.url + path,
+                url: window.checkoutConfig.bold.url + path,
                 type: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
+                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
                     'Content-Type': 'application/json',
                 },
             });
@@ -76,10 +76,10 @@ define([
             let requestData;
             requestData = nextRequest.body;
             $.ajax({
-                url: window.checkoutConfig.bold.paymentBooster.url + nextRequest.path,
+                url: window.checkoutConfig.bold.url + nextRequest.path,
                 type: nextRequest.method,
                 headers: {
-                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.paymentBooster.jwtToken,
+                    'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
                     'Content-Type': 'application/json',
                 },
                 data: JSON.stringify(requestData)

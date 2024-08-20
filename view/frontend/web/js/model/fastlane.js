@@ -1,5 +1,6 @@
 define([
     'ko',
+    'prototype'
 ], function (
     ko,
 ) {
@@ -122,7 +123,7 @@ define([
             const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
                 ? window.checkoutConfig.bold.fastlane.styles
                 : {};
-            const { deviceData } = dataCollectorInstance;
+            const {deviceData} = dataCollectorInstance;
             window.boldFastlaneInstance = await fastlane.create(
                 {
                     authorization: gatewayData.client_token,
@@ -183,25 +184,26 @@ define([
          */
         rewriteAxoLoading: function (gatewayData) {
             this.saveEventListeners();
-            const originalAppendChild = Element.prototype.appendChild;
             const self = this;
-            Element.prototype.appendChild = function (element) {
-                if (element.tagName === 'SCRIPT'
-                    && element.id === 'axo-id'
-                    && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
-                    self.loadWithRequireJs(element);
-                    // prevent axo to be loaded without require js.
-                    return element;
-                }
-                if (element.tagName === 'SCRIPT'
-                    && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
-                    // Magento 2.3.x has no onNodeCreate event, so we need to set the client token manually.
-                    element.setAttribute('data-sdk-client-token', gatewayData.client_token);
-                    element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
-                    return originalAppendChild.call(this, element);
-                }
-                return originalAppendChild.call(this, element);
-            };
+            Element.prototype.appendChild = Element.prototype.appendChild.wrap(
+                function (appendChild, element) {
+                    if (gatewayData.type === 'braintree'
+                        && element.tagName === 'SCRIPT'
+                        && element.id === 'axo-id'
+                        && element.attributes['data-requiremodule']?.value !== 'bold_axo') {
+                        self.loadWithRequireJs(element);
+                        // prevent axo to be loaded without require js.
+                        return element;
+                    }
+                    if (gatewayData.type === 'ppcp'
+                        && element.tagName === 'SCRIPT'
+                        && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
+                        // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
+                        element.setAttribute('data-sdk-client-token', gatewayData.client_token);
+                        element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
+                    }
+                    return appendChild(element);
+                });
         },
         /**
          * Save event listeners for original axo script, to attach them to axo script loaded via require js.
@@ -212,7 +214,7 @@ define([
             const originalAddEventListener = Element.prototype.addEventListener;
             Element.prototype.addEventListener = function (type, listener, options) {
                 this._eventListeners = this._eventListeners || [];
-                this._eventListeners.push({ type, listener, options });
+                this._eventListeners.push({type, listener, options});
                 originalAddEventListener.call(this, type, listener, options);
             };
         },
@@ -244,7 +246,7 @@ define([
                     });
                     // copy event listeners from original script to the script loaded with require js to notify fastlane axo is loaded.
                     for (const [event, listeners] of Object.entries(events)) {
-                        listeners.forEach(({ listener, options }) => {
+                        listeners.forEach(({listener, options}) => {
                             newScript.addEventListener(event, listener, options);
                         });
                     }
@@ -264,11 +266,11 @@ define([
         getEventListeners: function (element) {
             const events = {};
             const listeners = element._eventListeners || [];
-            listeners.forEach(({ type, listener, options }) => {
+            listeners.forEach(({type, listener, options}) => {
                 if (!events[type]) {
                     events[type] = [];
                 }
-                events[type].push({ listener, options });
+                events[type].push({listener, options});
             });
 
             return events;

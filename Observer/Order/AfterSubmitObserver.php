@@ -84,6 +84,7 @@ class AfterSubmitObserver implements ObserverInterface
         $publicOrderId = $this->session->getBoldCheckoutData()['data']['public_order_id'] ?? null;
         $this->session->setBoldCheckoutData(null);
         if (!$publicOrderId) {
+            // TODO: remove?
             /** @var OrderDataInterface $orderPayload */
             $orderPayload = $observer->getEvent()->getOrderPayload();
             $publicOrderId = $orderPayload ? $orderPayload->getPublicId() : null;

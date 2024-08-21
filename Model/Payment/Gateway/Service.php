@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway;
 
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData;
 use Exception;
@@ -47,13 +48,13 @@ class Service
     private $orderExtensionDataResource;
 
     /**
-     * @param ClientInterface $httpClient
+     * @param BoldClient $httpClient
      * @param Random $random
      * @param OrderExtensionDataFactory $orderExtensionDataFactory
      * @param OrderExtensionData $orderExtensionDataResource
      */
     public function __construct(
-        ClientInterface $httpClient,
+        BoldClient $httpClient,
         Random $random,
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionData $orderExtensionDataResource

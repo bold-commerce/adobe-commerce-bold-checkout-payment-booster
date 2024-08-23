@@ -67,7 +67,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
             $websiteId = (int)$quote->getStore()->getWebsiteId();
             if (!$boldCheckoutData
                 || !$this->config->isPaymentBoosterEnabled($websiteId)
-                || !$this->config->isFastlaneEnabled($websiteId)) {
+                || !$this->config->isFastlaneEnabled($websiteId) || $quote->getCustomer()->getId()) {
                 return [];
             }
             $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;

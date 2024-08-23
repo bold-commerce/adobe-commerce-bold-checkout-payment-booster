@@ -33,6 +33,8 @@ define([
                 return null;
             }
             const countryId = this.getFieldValue('countryId');
+            const country = window.checkoutConfig.bold.countries.find(country => country.value === countryId);
+            const countryName = country ? country.label : '';
             let street1 = '';
             let street2 = '';
             if (this.billingAddress.street && this.billingAddress.street[0]) {

@@ -10,7 +10,7 @@ use Magento\Quote\Api\Data\CartInterface;
  */
 class Flow
 {
-    private const THREE_PAGE_FLOW = 'Bold three page';
+    private const THREE_PAGE_FLOW = 'paypal_fastlane_3_page';
 
     /**
      * Get checkout flow id for the quote.

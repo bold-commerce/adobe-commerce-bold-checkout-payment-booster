@@ -90,6 +90,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
                 'alternativePaymentMethods' => $alternativePaymentMethods,
+                'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'paymentBooster' => [
                     'payment' => [
                         'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),

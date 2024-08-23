@@ -11,6 +11,9 @@ define(
          */
         return function () {
             const newShippingAddress = registry.get('index = shippingAddress');
+            if (!newShippingAddress) {
+                return;
+            }
             const newShippingAddressFieldset = newShippingAddress.getChild('shipping-address-fieldset');
             newShippingAddress.isFormInline = true;
             if (!newShippingAddressFieldset) {

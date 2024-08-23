@@ -1,12 +1,16 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Response;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\Response\ErrorExtensionInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\Response\ErrorInterface;
+
 /**
- * Http client error data model.
+ * Place order endpoint error data model.
  */
-class Error
+class Error implements ErrorInterface
 {
     /**
      * @var int
@@ -24,22 +28,30 @@ class Error
     private $message;
 
     /**
+     * @var ErrorExtensionInterface|null
+     */
+    private $extensionAttributes;
+
+    /**
      * @param string $message
      * @param string $type
      * @param int $code
+     * @param ErrorExtensionInterface|null $extensionAttributes
      */
     public function __construct(
         string $message,
         string $type = 'server.internal_error',
-        int $code = 500
+        int $code = 500,
+        ErrorExtensionInterface $extensionAttributes = null
     ) {
         $this->message = $message;
         $this->type = $type;
         $this->code = $code;
+        $this->extensionAttributes = $extensionAttributes;
     }
 
     /**
-     * Get error code.
+     * @inheritDoc
      */
     public function getCode(): int
     {
@@ -47,7 +59,7 @@ class Error
     }
 
     /**
-     * Get error type.
+     * @inheritDoc
      */
     public function getType(): string
     {
@@ -55,10 +67,18 @@ class Error
     }
 
     /**
-     * Get error message.
+     * @inheritDoc
      */
     public function getMessage(): string
     {
         return $this->message;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getExtensionAttributes(): ?ErrorExtensionInterface
+    {
+        return $this->extensionAttributes;
     }
 }

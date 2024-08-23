@@ -33,22 +33,41 @@
                         <field id="is_fastlane_enabled">1</field>
                     </depends>
                 </field>
+                <field id="integration_status" translate="label" type="note" sortOrder="999" showInDefault="1" showInWebsite="1">
+                    <label>Bold Extension Status</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\Status\Platform</frontend_model>
+                    <comment><![CDATA[In case the status is 'Not Found', please re-save configuration.
+                     Otherwise, if the status is not 'Active', open the 'System' -> 'Integrations' grid, find the Integration named <strong>'{{integrationName}}'</strong> and Activate or Reauthorize it.]]></comment>
+                </field>
             </group>
-            <group id="bold_checkout_custom_elements" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
-                <field id="payment_css" translate="label" type="textarea" sortOrder="20" showInDefault="1" showInWebsite="1">
+            <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="170" showInDefault="1" showInWebsite="1">
+                <field id="payment_css" translate="label" type="textarea" sortOrder="10" showInDefault="1" showInWebsite="1">
                     <label>CSS</label>
                     <backend_model>Bold\CheckoutPaymentBooster\Model\Config\Backend\PaymentCssBackend</backend_model>
                     <comment><![CDATA[Add custom styling to the payment section of your checkout.]]></comment>
                 </field>
-            </group>
-            <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="170" showInDefault="1" showInWebsite="1">
-                <label>Bold Checkout Extension Advanced Settings</label>
-                <field id="api_url" translate="label" type="text" sortOrder="70" showInDefault="1" showInWebsite="1">
+                <label>Bold Checkout Payment Booster Advanced Settings</label>
+                <field id="api_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>API URL</label>
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold API URL. Do not change.]]></comment>
                 </field>
-                <field id="log_enabled" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1">
+                <field id="integration_email" translate="select" type="select" sortOrder="30" showInDefault="1" showInWebsite="1">
+                    <label>Bold Extension Email</label>
+                    <source_model>Magento\Config\Model\Config\Source\Email\Identity</source_model>
+                    <comment><![CDATA[An existing Adobe Commerce user's email for communication from Bold.]]></comment>
+                </field>
+                <field id="integration_callback_url" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1">
+                    <label>Bold Extension Callback URL</label>
+                    <validate>required-entry</validate>
+                    <comment><![CDATA[Please do not change.]]></comment>
+                </field>
+                <field id="integration_identity_url" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1">
+                    <label>Bold Extension Identity Link URL</label>
+                    <validate>required-entry</validate>
+                    <comment><![CDATA[Please do not change.]]></comment>
+                </field>
+                <field id="log_enabled" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1">
                     <label>Enable Bold Checkout Requests Log</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>

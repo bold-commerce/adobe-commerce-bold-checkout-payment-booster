@@ -43,6 +43,9 @@
             </bold_checkout_payment_booster>
             <bold_checkout_payment_booster_advanced>
                 <api_url>https://api.boldcommerce.com/</api_url>
+                <integration_callback_url>https://adobe-commerce-connector.boldapps.net/platform/oauth/callback/{{shopId}}</integration_callback_url>
+                <integration_identity_url>https://adobe-commerce-connector.boldapps.net/platform/oauth/identify</integration_identity_url>
+                <integration_email>general</integration_email>
             </bold_checkout_payment_booster_advanced>
         </checkout>
     </default>

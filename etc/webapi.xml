@@ -13,4 +13,10 @@
             <resource ref="self" />
         </resources>
     </route>
+    <route method="POST" url="/V1/shops/:shopId/secret/register">
+        <service class="Bold\CheckoutPaymentBooster\Api\RegisterSharedSecretInterface" method="register"/>
+        <resources>
+            <resource ref="Bold_CheckoutPaymentBooster::secret_create"/>
+        </resources>
+    </route>
 </routes>

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\Status\Platform" type="Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\Status">
+        <arguments>
+            <argument name="boldIntegration" xsi:type="object">Bold\CheckoutPaymentBooster\Model\BoldIntegration</argument>
+        </arguments>
+    </virtualType>
+</config>

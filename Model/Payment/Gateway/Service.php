@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway;
 
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData;
 use Exception;
@@ -26,7 +27,7 @@ class Service
     private const CANCEL_URL = 'checkout/orders/{{shopId}}/%s/cancel';
 
     /**
-     * @var ClientInterface
+     * @var BoldClient
      */
     private $httpClient;
 
@@ -52,7 +53,7 @@ class Service
      * @param OrderExtensionData $orderExtensionDataResource
      */
     public function __construct(
-        ClientInterface $httpClient,
+        BoldClient $httpClient,
         Random $random,
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionData $orderExtensionDataResource

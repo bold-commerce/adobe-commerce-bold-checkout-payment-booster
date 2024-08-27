@@ -4,6 +4,8 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface" type="Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\GuestHydrateOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\HydrateOrder"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

@@ -54,7 +54,7 @@ class RegisterSharedSecret
     public function execute(int $websiteId, string $sharedSecret): void
     {
         $body = [
-            'url' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB),
+            'url' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'rest/V1',
             'shared_secret' => $sharedSecret,
         ];
         $result = $this->boldClient->patch($websiteId, self::REGISTER_URL, $body);

@@ -23,6 +23,7 @@ class Config
     private const PATH_IS_FASTLANE_ENABLED = 'checkout/bold_checkout_payment_booster/is_fastlane_enabled';
     private const PATH_INTEGRATION_API_URL = 'checkout/bold_checkout_payment_booster_advanced/api_url';
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
+    private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
 
     /**
      * @var ScopeConfigInterface
@@ -183,5 +184,40 @@ class Config
         );
 
         return $this->encryptor->decrypt($encryptedToken);
+    }
+
+    /**
+     * Get decrypted Bold API shared secret.
+     *
+     * @param int $websiteId
+     * @return string|null
+     */
+    public function getSharedSecret(int $websiteId): ?string
+    {
+        $encryptedToken = $this->scopeConfig->getValue(
+            self::PATH_SHARED_SECRET,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+
+        return $this->encryptor->decrypt($encryptedToken);
+    }
+
+    /**
+     * Set encrypted Bold API shared secret.
+     *
+     * @param int $websiteId
+     * @param string|null $sharedSecret
+     * @return void
+     */
+    public function setSharedSecret(int $websiteId, ?string $sharedSecret): void
+    {
+        $encryptedToken = $this->encryptor->encrypt($sharedSecret);
+        $this->configWriter->save(
+            self::PATH_SHARED_SECRET,
+            $encryptedToken,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
     }
 }

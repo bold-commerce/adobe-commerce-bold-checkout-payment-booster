@@ -28,7 +28,7 @@ class Service
     private const CANCEL_URL = 'checkout/orders/{{shopId}}/%s/cancel';
 
     /**
-     * @var ClientInterface
+     * @var BoldClient
      */
     private $httpClient;
 

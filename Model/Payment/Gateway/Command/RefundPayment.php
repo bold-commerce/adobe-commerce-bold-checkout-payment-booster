@@ -11,6 +11,9 @@ use Magento\Payment\Gateway\Data\PaymentDataObject;
 
 /**
  * Refund bold order payment.
+ *
+ * Please note: capture authority set in
+ * \Bold\CheckoutPaymentBooster\Plugin\Sales\CreditmemoManagement\SetRefundAuthorityPlugin::beforeRefund.
  */
 class RefundPayment implements CommandInterface
 {
@@ -22,13 +25,14 @@ class RefundPayment implements CommandInterface
     /**
      * @param Service $gatewayService
      */
-    public function __construct(Service $gatewayService)
-    {
+    public function __construct(
+        Service $gatewayService
+    ) {
         $this->gatewayService = $gatewayService;
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @throws Exception
      */

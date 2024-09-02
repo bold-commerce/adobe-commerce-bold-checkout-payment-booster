@@ -22,7 +22,7 @@ class SetCompleteState
     private $client;
 
     /**
-     * @var GetOrderPublicId
+     * @var GetOrderPublicIdByOrderId
      */
     private $getOrderPublicId;
 
@@ -33,13 +33,13 @@ class SetCompleteState
 
     /**
      * @param BoldClient $client
-     * @param GetOrderPublicId $getOrderPublicId
+     * @param GetOrderPublicIdByOrderId $getOrderPublicId
      * @param LoggerInterface $logger
      */
     public function __construct(
-        BoldClient       $client,
-        GetOrderPublicId $getOrderPublicId,
-        LoggerInterface  $logger
+        BoldClient                $client,
+        GetOrderPublicIdByOrderId $getOrderPublicId,
+        LoggerInterface           $logger
     ) {
         $this->client = $client;
         $this->getOrderPublicId = $getOrderPublicId;
@@ -56,7 +56,7 @@ class SetCompleteState
     public function execute(OrderInterface $order): void
     {
         $websiteId = (int)$order->getStore()->getWebsiteId();
-        $publicOrderId = $this->getOrderPublicId->execute($order);
+        $publicOrderId = $this->getOrderPublicId->execute((int)$order->getEntityId());
         $url = sprintf(self::STATE_URL, $publicOrderId);
         $params = [
             'state' => 'order_complete',

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway;
 
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Order\GetOrderPublicIdByOrderId;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData;
 use Exception;
@@ -38,31 +39,23 @@ class Service
     private $random;
 
     /**
-     * @var OrderExtensionDataFactory
+     * @var GetOrderPublicIdByOrderId
      */
-    private $orderExtensionDataFactory;
-
-    /**
-     * @var OrderExtensionData
-     */
-    private $orderExtensionDataResource;
+    private $getOrderPublicId;
 
     /**
      * @param BoldClient $httpClient
      * @param Random $random
-     * @param OrderExtensionDataFactory $orderExtensionDataFactory
-     * @param OrderExtensionData $orderExtensionDataResource
+     * @param GetOrderPublicIdByOrderId $getOrderPublicId
      */
     public function __construct(
         BoldClient $httpClient,
         Random $random,
-        OrderExtensionDataFactory $orderExtensionDataFactory,
-        OrderExtensionData $orderExtensionDataResource
+        GetOrderPublicIdByOrderId $getOrderPublicId
     ) {
         $this->httpClient = $httpClient;
         $this->random = $random;
-        $this->orderExtensionDataFactory = $orderExtensionDataFactory;
-        $this->orderExtensionDataResource = $orderExtensionDataResource;
+        $this->getOrderPublicId = $getOrderPublicId;
     }
 
     /**
@@ -80,7 +73,7 @@ class Service
             'reauth' => true,
             'idempotent_key' => $this->random->getRandomString(10),
         ];
-        $url = sprintf(self::CAPTURE_FULL_URL, $this->getOrderPublicId($order));
+        $url = sprintf(self::CAPTURE_FULL_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendCaptureRequest($websiteId, $url, $body);
     }
 
@@ -101,7 +94,7 @@ class Service
             'amount' => $amount * 100,
             'idempotent_key' => $this->random->getRandomString(10),
         ];
-        $url = sprintf(self::CAPTURE_PARTIALLY_URL, $this->getOrderPublicId($order));
+        $url = sprintf(self::CAPTURE_PARTIALLY_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendCaptureRequest($websiteId, $url, $body);
     }
 
@@ -117,7 +110,7 @@ class Service
     {
         $websiteId = (int)$order->getStore()->getWebsiteId();
         $this->keepTransactionAdditionalData($order);
-        $url = sprintf(self::CANCEL_URL, $this->getOrderPublicId($order));
+        $url = sprintf(self::CANCEL_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         $body = [
             'reason' => $operation === self::CANCEL
                 ? __('Order has been canceled.')
@@ -154,7 +147,7 @@ class Service
             'email_notification' => false,
             'reason' => 'Magento credit memo created.',
         ];
-        $url = sprintf(self::REFUND_FULL_URL, $this->getOrderPublicId($order));
+        $url = sprintf(self::REFUND_FULL_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendRefundRequest($websiteId, $url, $body);
     }
 
@@ -175,7 +168,7 @@ class Service
             'reason' => 'Magento credit memo created.',
             'amount' => $amount * 100,
         ];
-        $url = sprintf(self::REFUND_PARTIALLY_URL, $this->getOrderPublicId($order));
+        $url = sprintf(self::REFUND_PARTIALLY_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendRefundRequest($websiteId, $url, $body);
     }
 
@@ -247,26 +240,5 @@ class Service
         foreach ($transactionAdditionalInfo as $key => $value) {
             $order->getPayment()->setTransactionAdditionalInfo($key, $value);
         }
-    }
-
-    /**
-     * Retrieve order public id.
-     *
-     * @param OrderInterface $order
-     * @return string
-     * @throws LocalizedException
-     */
-    private function getOrderPublicId(OrderInterface $order): string
-    {
-        $orderExtensionData = $this->orderExtensionDataFactory->create();
-        $this->orderExtensionDataResource->load(
-            $orderExtensionData,
-            $order->getId(),
-            OrderExtensionData::ORDER_ID
-        );
-        if (!$orderExtensionData->getPublicId()) {
-            throw new LocalizedException(__('Order public id is not set.'));
-        }
-        return $orderExtensionData->getPublicId();
     }
 }

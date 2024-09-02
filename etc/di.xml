@@ -73,7 +73,7 @@
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\FastlaneValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
-                <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\ConfigValueHandler</item>
+                <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfigValueHandler</item>
                 <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
                 <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneTitleValueHandler</item>
                 <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
@@ -90,6 +90,16 @@
             <argument name="methodCode" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE</argument>
         </arguments>
     </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_FASTLANE</argument>
+        </arguments>
+    </virtualType>
     <!-- Command Pool -->
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Command\CommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
@@ -101,4 +111,7 @@
             </argument>
         </arguments>
     </virtualType>
+    <type name="Magento\Sales\Api\CreditmemoManagementInterface">
+        <plugin name="set_refund_authority" type="Bold\CheckoutPaymentBooster\Plugin\Sales\CreditmemoManagement\SetRefundAuthorityPlugin"/>
+    </type>
 </config>

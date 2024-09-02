@@ -6,7 +6,10 @@
       "public_id": true,
       "fulfillment_status": true,
       "financial_status": true,
-      "is_delayed_capture": true
+      "is_delayed_capture": true,
+      "capture_authority": true,
+      "refund_authority": true,
+      "cancel_authority": true        
     },
     "index": {
       "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true

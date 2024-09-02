@@ -7,7 +7,6 @@ namespace Bold\CheckoutPaymentBooster\Observer\Order;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
-use Bold\CheckoutPaymentBooster\Model\Payment\ProcessPayment;
 use Bold\CheckoutPaymentBooster\Model\Payment\ValidateAuthorizationResponse;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
@@ -53,11 +52,6 @@ class BeforePlaceObserver implements ObserverInterface
     private $validateAuthorizationResponse;
 
     /**
-     * @var ProcessPayment
-     */
-    private $processPayment;
-
-    /**
      * @param Authorize $authorize
      * @param CartRepositoryInterface $cartRepository
      * @param Session $checkoutSession
@@ -70,17 +64,14 @@ class BeforePlaceObserver implements ObserverInterface
         Session                       $checkoutSession,
         HydrateOrderFromQuote         $hydrateOrderFromQuote,
         CheckPaymentMethod            $checkPaymentMethod,
-        ValidateAuthorizationResponse $validateAuthorizationResponse,
-        ProcessPayment $processPayment
-    )
-    {
+        ValidateAuthorizationResponse $validateAuthorizationResponse
+    ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
         $this->checkoutSession = $checkoutSession;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->validateAuthorizationResponse = $validateAuthorizationResponse;
-        $this->processPayment = $processPayment;
     }
 
     /**
@@ -104,8 +95,9 @@ class BeforePlaceObserver implements ObserverInterface
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
         $this->validateAuthorizationResponse->validate($transactionData);
-
-        $this->processPayment->process($order, $transactionData);
-
+        $payment = $order->getPayment();
+        $payment->setTransactionId($transactionData['data']['transactions'][0]['transaction_id']);
+        $payment->setIsTransactionClosed(false);
+        $payment->addTransaction(TransactionInterface::TYPE_AUTH);
     }
 }

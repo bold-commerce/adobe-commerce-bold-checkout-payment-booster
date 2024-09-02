@@ -5,6 +5,9 @@
         <column xsi:type="int" name="order_id" unsigned="true" nullable="false" identity="false" comment="Magento Order ID"/>
         <column xsi:type="varchar" name="public_id" nullable="true" length="255" comment="Bold Order Public ID"/>
         <column xsi:type="smallint" name="is_delayed_capture" nullable="false" default="0" comment="Is Order Using Delayed Payment Capture."/>
+        <column xsi:type="smallint" name="capture_authority" nullable="false" default="0" comment="Capture Authority"/>
+        <column xsi:type="smallint" name="refund_authority" nullable="false" default="0" comment="Refund Authority"/>
+        <column xsi:type="smallint" name="cancel_authority" nullable="false" default="0" comment="Cancel Authority"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>

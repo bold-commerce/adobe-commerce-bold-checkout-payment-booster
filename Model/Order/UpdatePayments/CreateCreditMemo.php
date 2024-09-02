@@ -30,14 +30,22 @@ class CreateCreditMemo
     public function __construct(
         CreditmemoFactory $creditMemoFactory,
         CreditmemoService $creditMemoService
-    )
-    {
+    ) {
         $this->creditMemoFactory = $creditMemoFactory;
         $this->creditMemoService = $creditMemoService;
     }
 
+    /**
+     * Create credit memo.
+     * TODO: test and update after the refund request from Bold is implemented.
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function execute(OrderInterface $order): void
     {
-        // TODO: implement in INTER-4601.
+        $creditMemo = $this->creditMemoFactory->createByOrder($order, $order->getData());
+        $this->creditMemoService->refund($creditMemo);
     }
 }

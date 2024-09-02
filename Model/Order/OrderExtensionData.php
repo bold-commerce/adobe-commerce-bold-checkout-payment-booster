@@ -12,6 +12,10 @@ use Magento\Framework\Model\AbstractModel;
  */
 class OrderExtensionData extends AbstractModel
 {
+    public const AUTHORITY_NOT_SET = 0;
+    public const AUTHORITY_LOCAL = 1;
+    public const AUTHORITY_REMOTE = 2;
+
     /**
      * @inheritDoc
      */
@@ -83,5 +87,68 @@ class OrderExtensionData extends AbstractModel
     public function getIsDelayedCapture(): int
     {
         return (int)$this->getData(OrderExtensionDataResource::IS_DELAYED_CAPTURE);
+    }
+
+    /**
+     * Get order payment capture authority.
+     *
+     * @return int
+     */
+    public function getCaptureAuthority(): int
+    {
+        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_CAPTURE);
+    }
+
+    /**
+     * Get order payment refund authority.
+     *
+     * @return int
+     */
+    public function getRefundAuthority(): int
+    {
+        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_REFUND);
+    }
+
+    /**
+     * Get order cancel authority.
+     *
+     * @return int
+     */
+    public function getCancelAuthority(): int
+    {
+        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_CANCEL);
+    }
+
+    /**
+     * Set order payment capture authority.
+     *
+     * @param int $authorityCode
+     * @return void
+     */
+    public function setCaptureAuthority(int $authorityCode): void
+    {
+        $this->setData(OrderExtensionDataResource::AUTHORITY_CAPTURE, $authorityCode);
+    }
+
+    /**
+     * Set order payment refund authority.
+     *
+     * @param int $authorityCode
+     * @return void
+     */
+    public function setRefundAuthority(int $authorityCode): void
+    {
+        $this->setData(OrderExtensionDataResource::AUTHORITY_REFUND, $authorityCode);
+    }
+
+    /**
+     * Set order cancel authority.
+     *
+     * @param int $authorityCode
+     * @return void
+     */
+    public function setCancelAuthority(int $authorityCode): void
+    {
+        $this->setData(OrderExtensionDataResource::AUTHORITY_CANCEL, $authorityCode);
     }
 }

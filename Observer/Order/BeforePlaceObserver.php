@@ -7,12 +7,14 @@ namespace Bold\CheckoutPaymentBooster\Observer\Order;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
+use Bold\CheckoutPaymentBooster\Model\Payment\ValidateAuthorizationResponse;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
 
 /**
  * Authorize Bold payments before placing order.
@@ -45,6 +47,11 @@ class BeforePlaceObserver implements ObserverInterface
     private $checkPaymentMethod;
 
     /**
+     * @var ValidateAuthorizationResponse
+     */
+    private $validateAuthorizationResponse;
+
+    /**
      * @param Authorize $authorize
      * @param CartRepositoryInterface $cartRepository
      * @param Session $checkoutSession
@@ -52,17 +59,19 @@ class BeforePlaceObserver implements ObserverInterface
      * @param CheckPaymentMethod $checkPaymentMethod
      */
     public function __construct(
-        Authorize               $authorize,
-        CartRepositoryInterface $cartRepository,
-        Session                 $checkoutSession,
-        HydrateOrderFromQuote   $hydrateOrderFromQuote,
-        CheckPaymentMethod      $checkPaymentMethod
+        Authorize                     $authorize,
+        CartRepositoryInterface       $cartRepository,
+        Session                       $checkoutSession,
+        HydrateOrderFromQuote         $hydrateOrderFromQuote,
+        CheckPaymentMethod            $checkPaymentMethod,
+        ValidateAuthorizationResponse $validateAuthorizationResponse
     ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
         $this->checkoutSession = $checkoutSession;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->checkPaymentMethod = $checkPaymentMethod;
+        $this->validateAuthorizationResponse = $validateAuthorizationResponse;
     }
 
     /**
@@ -83,10 +92,12 @@ class BeforePlaceObserver implements ObserverInterface
         $quote = $this->cartRepository->get($quoteId);
         $publicOrderId = $this->checkoutSession->getBoldCheckoutData()['data']['public_order_id'] ?? '';
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        // TODO: check if we need to hydrate order once more.
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
-
-        $authorizedPayments = $this->authorize->execute($publicOrderId, $websiteId);
-        // TODO: check / process result if needed.
+        $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
+        $this->validateAuthorizationResponse->validate($transactionData);
+        $payment = $order->getPayment();
+        $payment->setTransactionId($transactionData['data']['transactions'][0]['transaction_id']);
+        $payment->setIsTransactionClosed(false);
+        $payment->addTransaction(TransactionInterface::TYPE_AUTH);
     }
 }

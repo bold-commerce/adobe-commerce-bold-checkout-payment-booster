@@ -62,7 +62,7 @@ define([
                 }
             }
             const payload = {
-                'email': checkoutData.getValidatedEmailValue(),
+                'email': customerData.email ?? checkoutData.getValidatedEmailValue(),
                 'country_id': countryId,
                 'company': this.getFieldValue('company'),
                 'city': this.getFieldValue('city'),

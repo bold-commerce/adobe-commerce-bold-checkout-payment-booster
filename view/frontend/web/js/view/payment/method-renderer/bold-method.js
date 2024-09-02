@@ -40,8 +40,8 @@ define([
         /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
+            this.isVisible(window.checkoutConfig.bold && window.checkoutConfig.bold.paymentBooster && !fastlane.isEnabled());
             if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.paymentBooster) {
-                this.isVisible(false);
                 return;
             }
             this.subscribeToPIGI();

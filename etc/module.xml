@@ -4,6 +4,8 @@
     <module name="Bold_CheckoutPaymentBooster">
         <sequence>
             <module name="Bold_Checkout"/>
+            <module name="Magento_Quote"/>
+            <module name="Magento_Store"/>
         </sequence>
     </module>
 </config>

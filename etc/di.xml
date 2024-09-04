@@ -79,4 +79,18 @@
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_fastlane_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableFastlaneAddressValidationPlugin" />
     </type>
+
+    <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Webapi\Controller\Rest\ParamsOverrider">
+        <arguments>
+            <argument name="paramOverriders" xsi:type="array">
+                <item name="%quote_mask_id%" xsi:type="object">Magento\Quote\Model\Webapi\ParamOverriderCartId\Proxy</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

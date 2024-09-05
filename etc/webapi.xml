@@ -6,7 +6,7 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
-    <route url="/V1/express_pay/order/create/mine" method="POST">
+    <route url="/V1/express_pay/order/mine/create" method="POST">
         <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create" method="execute"/>
         <resources>
             <resource ref="self"/>

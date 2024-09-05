@@ -123,6 +123,7 @@ class QuoteConverter
             'order_data' => [
                 'shipping_address' => [],
                 'selected_shipping_option' => [
+                    'id' => $shippingAddress->getShippingMethod(),
                     'label' => $shippingAddress->getShippingDescription(),
                     'type' => 'SHIPPING',
                     'amount' => [
@@ -133,6 +134,7 @@ class QuoteConverter
                 'shipping_options' => array_map(
                     static function (Rate $rate) use ($currencyCode): array {
                         return [
+                            'id' => $rate->getCode(),
                             'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
                             'type' => 'SHIPPING',
                             'amount' => [

@@ -54,6 +54,7 @@ class QuoteConverterTest extends TestCase
                     'state' => 'Alabama'
                 ],
                 'selected_shipping_option' => [
+                    'id' => 'flatrate_flatrate',
                     'label' => 'Flat Rate - Fixed',
                     'type' => 'SHIPPING',
                     'amount' => [
@@ -63,6 +64,7 @@ class QuoteConverterTest extends TestCase
                 ],
                 'shipping_options' => [
                     [
+                        'id' => 'flatrate_flatrate',
                         'label' => 'Flat Rate - Fixed',
                         'type' => 'SHIPPING',
                         'amount' => [

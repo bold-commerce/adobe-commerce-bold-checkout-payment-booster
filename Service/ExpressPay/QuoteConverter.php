@@ -104,7 +104,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
      */
-    public function convertShippingInformation(Quote $quote): array
+    public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
     {
         if ($quote->getIsVirtual()) {
             return [];
@@ -119,16 +119,9 @@ class QuoteConverter
         /** @var Rate[] $shippingRates */
         $shippingRates = $shippingAddress->getShippingRatesCollection()->getItems();
 
-        return [
+        $convertedQuote = [
             'order_data' => [
-                'shipping_address' => [
-                    'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
-                    'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
-                    'city' => $shippingAddress->getCity() ?? '',
-                    'country_code' => $shippingAddress->getCountryId() ?? '',
-                    'postal_code' => $shippingAddress->getPostcode() ?? '',
-                    'state' => $shippingAddress->getRegion() ?? ''
-                ],
+                'shipping_address' => [],
                 'selected_shipping_option' => [
                     'label' => $shippingAddress->getShippingDescription(),
                     'type' => 'SHIPPING',
@@ -152,6 +145,19 @@ class QuoteConverter
                 )
             ]
         ];
+
+        if ($includeAddress) {
+            $convertedQuote['order_data']['shipping_address'] = [
+                'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
+                'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
+                'city' => $shippingAddress->getCity() ?? '',
+                'country_code' => $shippingAddress->getCountryId() ?? '',
+                'postal_code' => $shippingAddress->getPostcode() ?? '',
+                'state' => $shippingAddress->getRegion() ?? ''
+            ];
+        }
+
+        return $convertedQuote;
     }
 
     /**

@@ -252,7 +252,7 @@ class QuoteConverter
             );
         } else {
             $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                (float)$quote->getShippingAddress()->getTaxAmount(),
+                (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
                 2
             );
         }

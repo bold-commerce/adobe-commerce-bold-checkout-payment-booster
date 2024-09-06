@@ -100,7 +100,7 @@ class Create
             );
         }
 
-        if ($result->getStatus() !== 201) {
+        if ($result->getStatus() !== 200) {
             throw new LocalizedException(__('An unknown error occurred while creating the Express Pay order.'));
         }
     }

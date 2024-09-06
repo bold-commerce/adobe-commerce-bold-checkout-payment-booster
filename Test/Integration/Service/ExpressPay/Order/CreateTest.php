@@ -53,7 +53,7 @@ class CreateTest extends TestCase
             ->willReturn([]);
 
         $boldApiResultMock->method('getStatus')
-            ->willReturn(201);
+            ->willReturn(200);
 
         $boldClientMock->method('post')
             ->willReturn($boldApiResultMock);

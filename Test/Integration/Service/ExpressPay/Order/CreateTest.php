@@ -34,8 +34,6 @@ class CreateTest extends TestCase
      */
     public function testCreatesExpressPayOrderSuccessfully(): void
     {
-        $this->expectNotToPerformAssertions();
-
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -49,6 +47,15 @@ class CreateTest extends TestCase
         );
         $quoteMaskId = $this->getQuoteMaskId();
 
+        $boldApiResultMock->method('getBody')
+            ->willReturn(
+                [
+                    'data' => [
+                        'order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82'
+                    ]
+                ]
+            );
+
         $boldApiResultMock->method('getErrors')
             ->willReturn([]);
 
@@ -58,7 +65,15 @@ class CreateTest extends TestCase
         $boldClientMock->method('post')
             ->willReturn($boldApiResultMock);
 
-        $createExpressPayOrderService->execute($quoteMaskId, 'e4403e69-1fd2-4d8a-be28-fdbf911a20bb');
+        $expectedResultData = [
+            'paypal_order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82'
+        ];
+        $actualResultData = $createExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb'
+        );
+
+        self::assertSame($expectedResultData, $actualResultData);
     }
 
     public function testDoesNotCreateExpressPayOrderIfQuoteMaskIdIsInvalid(): void

@@ -56,10 +56,10 @@ class Create
     /**
      * @param string|int $quoteMaskId
      * @param string $gatewayId
-     * @return void
+     * @return array{paypal_order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $gatewayId): void
+    public function execute($quoteMaskId, $gatewayId): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -100,8 +100,21 @@ class Create
             );
         }
 
-        if ($result->getStatus() !== 200) {
+        /**
+         * @var array{
+         *     data: array{
+         *         order_id: string
+         *     }
+         * } $resultData
+         */
+        $resultData = $result->getBody();
+
+        if ($result->getStatus() !== 200 || count($resultData) === 0) {
             throw new LocalizedException(__('An unknown error occurred while creating the Express Pay order.'));
         }
+
+        return [
+            'paypal_order_id' => $resultData['data']['order_id']
+        ];
     }
 }

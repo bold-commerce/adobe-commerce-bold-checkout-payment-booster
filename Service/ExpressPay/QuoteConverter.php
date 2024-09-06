@@ -197,7 +197,21 @@ class QuoteConverter
                         ];
                     },
                     $quote->getItems()
-                )
+                ),
+                'item_total' => [
+                    'currency_code' => $currencyCode ?? '',
+                    'value' => number_format(
+                        array_sum(
+                            array_map(
+                                static function (CartItemInterface $cartItem) {
+                                    return $cartItem->getPrice() * $cartItem->getQty();
+                                },
+                                $quote->getItems()
+                            )
+                        ),
+                        2
+                    )
+                ]
             ]
         ];
     }

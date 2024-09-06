@@ -89,6 +89,10 @@ class QuoteConverterTest extends TestCase
                     'currency_code' => 'USD',
                     'value' => '26.50'
                 ],
+                'item_total' => [
+                    'currency_code' => 'USD',
+                    'value' => '20.00'
+                ],
                 'tax_total' => [
                     'currency_code' => 'USD',
                     'value' => '1.50'
@@ -169,6 +173,10 @@ class QuoteConverterTest extends TestCase
                 'amount' => [
                     'currency_code' => 'USD',
                     'value' => '5.50'
+                ],
+                'item_total' => [
+                    'currency_code' => 'USD',
+                    'value' => '10.00'
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',

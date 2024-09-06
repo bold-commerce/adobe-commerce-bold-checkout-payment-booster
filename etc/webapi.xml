@@ -15,4 +15,19 @@
             <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
         </data>
     </route>
+    <route url="/V1/express_pay/order/update" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/express_pay/order/mine/update" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
+        </data>
+    </route>
 </routes>

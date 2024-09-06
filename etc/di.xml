@@ -86,6 +86,12 @@
         </arguments>
     </type>
 
+    <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update">
+        <arguments>
+            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+        </arguments>
+    </type>
+
     <type name="Magento\Webapi\Controller\Rest\ParamsOverrider">
         <arguments>
             <argument name="paramOverriders" xsi:type="array">

@@ -1,0 +1,64 @@
+#bold-checkout-payment-booster-onboard {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    border-width: 1px 0;
+    border-style: solid;
+    border-color: #ccc;
+    padding: 1.5em 0 1em;
+
+    .banner-body {
+        margin-right: 1.5em;
+        flex: 1 1 auto;
+    }
+
+    h2 {
+        display: flex;
+        flex-flow: row nowrap;
+        font-weight: 600;
+        color: #303030;
+        margin-bottom: 1em;
+    }
+
+    .onboard-complete h2::before {
+        content: url('../images/enabled.svg');
+        height: 1.2em;
+        width: 1.2em;
+        margin-right: 0.5em;
+    }
+
+    a {text-decoration: underline;}
+
+    .banner-sidebar {
+        flex: 0 0 auto;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+    }
+
+    .banner-sidebar-button > * {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        background: #5A0FB9;
+        color: #fff;
+        font-size: 1.25em;
+        border: 0;
+        font-weight: normal;
+        padding: 0.6rem 1em 0.6rem;
+        text-decoration: none;
+
+        &:before {
+            content: "";
+            width: 1.75em;
+            height: 1.75em;
+            background-image: url('../images/bold-icon.svg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            margin-right: .75em;
+        }
+    }
+
+    .banner-sidebar > *:not(:first-child) {margin-top: .5em;}
+}

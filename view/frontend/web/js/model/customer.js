@@ -15,7 +15,7 @@ define([
          */
         getCustomer: function () {
           let address = checkoutData.getBillingAddressFromData() || checkoutData.getShippingAddressFromData();
-            if (!address || !address.firstname) {
+            if (!address) {
                 address = quote.billingAddress();
                 if (!address) {
                     return null;

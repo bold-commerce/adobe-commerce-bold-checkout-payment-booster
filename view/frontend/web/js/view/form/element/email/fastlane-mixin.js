@@ -71,6 +71,7 @@ define(
                         }
                         this.lookupEmail().then(() => {
                             fullScreenLoader.stopLoader();
+                            this.isPasswordVisible(false);
                         }).catch((error) => {
                             fullScreenLoader.stopLoader();
                             console.log(error);
@@ -87,7 +88,6 @@ define(
                         fullScreenLoader.startLoader();
                         const fastlaneInstance = await fastlane.getFastlaneInstance();
                         if (!fastlaneInstance) {
-                            fullScreenLoader.stopLoader();
                             return;
                         }
 
@@ -101,15 +101,14 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    fastlane.memberAuthenticated(true);
-                                    fastlane.profileData(profileData);
+                                    window.checkoutConfig.bold.fastlane.memberAuthenticated = true;
+                                    window.checkoutConfig.bold.fastlane.profileData = profileData;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
-                                    this.isPasswordVisible(false);
                                 }
                                 return;
                             }
-                            fastlane.memberAuthenticated(false);
+                            window.checkoutConfig.bold.fastlane.memberAuthenticated = false;
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);

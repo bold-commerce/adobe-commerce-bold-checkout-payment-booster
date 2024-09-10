@@ -1,10 +1,10 @@
 define(
     [
-        'Magento_Checkout/js/model/quote',
+        'Magento_Customer/js/model/address-list',
         'Bold_CheckoutPaymentBooster/js/action/show-shipping-address-form'
     ], function (
-        quote,
-        showShippingAddressForm,
+        addressList,
+        showShippingAddressForm
     ) {
         'use strict';
 
@@ -12,14 +12,7 @@ define(
          * Remove shipping address from quote and show new shipping address form action.
          */
         return function () {
-            const quoteShippingAddress = quote.shippingAddress();
-            if (quoteShippingAddress.getType() !== 'fastlane-shipping-address') {
-                return;
-            }
-            quoteShippingAddress.getType = function () {
-                return 'new-customer-address';
-            };
-            quote.shippingAddress(quoteShippingAddress);
+            addressList([]);
             showShippingAddressForm();
         };
     });

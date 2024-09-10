@@ -5,15 +5,13 @@ define(
         'Magento_Customer/js/model/address-list',
         'Bold_CheckoutPaymentBooster/js/action/show-shipping-address-form',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
-        'Magento_Checkout/js/model/quote'
     ],
     function (
         ko,
         shippingAddressList,
         customerAddressList,
         showShippingAddressFormAction,
-        fastlane,
-        quote
+        fastlane
     ) {
         'use strict';
 
@@ -40,21 +38,22 @@ define(
                     this.visible(false);
                     return;
                 }
-                quote.shippingAddress.subscribe(function (address) {
-                    if (address && address.getType() === 'fastlane-shipping-address') {
-                        this.createRendererComponent(address, 0);
-                        return;
-                    }
-                    this.visible(false);
-                    showShippingAddressFormAction();
-                }.bind(this));
+                customerAddressList.subscribe(function (changes) {
+                        let self = this;
+                        changes.forEach(function (change) {
+                            if (change.status === 'deleted' && customerAddressList().length === 0) {
+                                self.visible(false);
+                                showShippingAddressFormAction();
+                            }
+                        });
+                    },
+                    this,
+                    'arrayChange'
+                );
             },
 
             /** @inheritdoc */
             createRendererComponent: function (address, index) {
-                if (address.getType() !== 'fastlane-shipping-address') {
-                    return;
-                }
                 this._super(address, index);
                 if (!fastlane.isEnabled()) {
                     this.visible(false);

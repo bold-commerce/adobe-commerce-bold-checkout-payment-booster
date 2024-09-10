@@ -4,6 +4,7 @@ define(
         'Magento_Checkout/js/model/error-processor',
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/action/select-billing-address',
+        'Magento_Checkout/js/action/set-billing-address',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
@@ -12,13 +13,13 @@ define(
         'Magento_Checkout/js/model/full-screen-loader',
         'uiRegistry',
         'underscore',
-        'ko',
-        'mage/translate',
+        'ko'
     ], function (
         MagentoPayment,
         errorProcessor,
         selectPaymentMethodAction,
         selectBillingAddressAction,
+        setBillingAddressAction,
         boldFrontendClient,
         fastlane,
         convertFastlaneAddressAction,
@@ -27,8 +28,7 @@ define(
         loader,
         registry,
         _,
-        ko,
-        $t,
+        ko
     ) {
         'use strict';
         return MagentoPayment.extend({
@@ -37,8 +37,6 @@ define(
                 paymentContainer: '#bold-fastlane-payment-container',
                 isVisible: ko.observable(true),
                 fastlanePaymentComponent: null,
-                error: $t('An error occurred while processing your payment. Please try again.'),
-                fastlanePaymentToken: null,
             },
 
             /**
@@ -50,27 +48,16 @@ define(
                     this.isVisible(false);
                     return;
                 }
-                this.renderPaymentContainer();
-                if (fastlane.memberAuthenticated()) {
-                    this.selectPaymentMethod();
-                }
-                fastlane.memberAuthenticated.subscribe(function (authenticated) {
-                    if (authenticated === true) {
-                        this.selectPaymentMethod();
-                    }
-                    this.renderPaymentContainer();
-                }, this);
+                this.sendGuestCustomerInfo();
                 quote.shippingAddress.subscribe(function () {
-                    const shippingAddress = this.getFastlaneShippingAddress();
-                    if (shippingAddress && this.fastlanePaymentComponent) {
-                        this.fastlanePaymentComponent.updatePrefills(
-                            {
-                                phoneNumber: this.getFormattedPhoneNumber(),
-                            },
-                        );
-                        this.fastlanePaymentComponent.setShippingAddress(shippingAddress);
+                    this.sendGuestCustomerInfo();
+                    if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true
+                        && checkoutData.getSelectedPaymentMethod() === 'bold_fastlane') {
+                        selectPaymentMethodAction(null);
+                        checkoutData.setSelectedPaymentMethod(null);
                     }
                 }, this);
+                this.renderPaymentContainer();
             },
             /**
              * Wait for the payment container to be rendered before rendering the Fastlane component.
@@ -85,11 +72,14 @@ define(
                     if (addressFilled && document.querySelector(this.paymentContainer)) {
                         observer.disconnect();
                         this.renderCardComponent();
+                        if (window.checkoutConfig.bold.fastlane.memberAuthenticated === true) {
+                            this.selectPaymentMethod();
+                        }
                     }
                 }.bind(this));
                 observer.observe(document.body, {
                     childList: true,
-                    subtree: true,
+                    subtree: true
                 });
             },
             /**
@@ -104,21 +94,24 @@ define(
                         this.isVisible(false);
                         return;
                     }
+                    const quoteAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
+                    let telephone = null;
+                    if (quoteAddress) {
+                        telephone = quoteAddress.telephone;
+                    }
                     const fields = {
                         phoneNumber: {
-                            prefill: this.getFormattedPhoneNumber(),
-                        },
+                            prefill: telephone
+                        }
                     };
-                    const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
-                        ? window.checkoutConfig.bold.fastlane.styles
-                        : {};
+                    const styles = window.checkoutConfig.bold.fastlane.styles || {};
+                    const shippingAddress = this.getFastlaneShippingAddress();
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
                             styles,
-                            fields,
-                        },
+                            fields
+                        }
                     );
-                    const shippingAddress = this.getFastlaneShippingAddress();
                     if (shippingAddress) {
                         this.fastlanePaymentComponent.setShippingAddress(shippingAddress);
                     }
@@ -132,126 +125,88 @@ define(
             /**
              * @inheritDoc
              */
+            selectPaymentMethod: function () {
+                this.renderCardComponent();
+                return this._super();
+            },
+            /**
+             * @inheritDoc
+             */
             placeOrder: function (data, event) {
                 loader.startLoader();
+                window.postMessage(
+                    {
+                        responseType: 'FASTLANE_ADD_PAYMENT',
+                        paymentType: fastlane.getType()
+                    },
+                    '*'
+                );
                 const placeMagentoOrder = this._super.bind(this);
-                this.processBoldOrder().then(() => {
-                    const orderPlacementResult = placeMagentoOrder(data, event);
-                    loader.stopLoader();
-                    return orderPlacementResult;
-                }).catch((error) => {
-                    let errorMessage;
-                    try {
-                        errorMessage = error.responseJSON && error.responseJSON.errors
+                this.fastlanePaymentComponent.getPaymentToken().then((tokenResponse) => {
+                    this.processBoldOrder(tokenResponse).then(() => {
+                        const orderPlacementResult = placeMagentoOrder(data, event);
+                        loader.stopLoader()
+                        return orderPlacementResult;
+                    }).catch((error) => {
+                        const errorMessage = error.responseJSON && error.responseJSON.errors
                             ? error.responseJSON.errors[0].message
                             : error.message;
-                    } catch (e) {
-                        errorMessage = this.error;
-                    }
+                        loader.stopLoader();
+                        errorProcessor.process(errorMessage, this.messageContainer);
+                        return false;
+                    });
+                }).catch(() => {
                     loader.stopLoader();
-                    errorProcessor.process({ responseText: JSON.stringify({ message: errorMessage }) }, this.messageContainer);
                     return false;
                 });
-
             },
             /**
              * Process order on Bold side before Magento order placement.
              *
+             * @param {{paymentSource: {card: {billingAddress}}} }tokenResponse
              * @return {Promise<*>}
              */
-            processBoldOrder: async function () {
+            processBoldOrder: async function (tokenResponse) {
                 try {
-                    if (fastlane.getType() === 'braintree') {
-                        await this.processBraintreeOrder();
-                        return;
+                    this.updateQuoteBillingAddress(tokenResponse);
+                    const refreshResult = await boldFrontendClient.get('refresh');
+                    const taxesResult = await boldFrontendClient.post('taxes');
+                    if (fastlane.getType() === 'ppcp') {
+                        const walletPayResult = await boldFrontendClient.post(
+                            'wallet_pay/create_order',
+                            {
+                                gateway_type: 'paypal',
+                                payment_data: {
+                                    locale: navigator.language,
+                                    payment_type: 'fastlane',
+                                    token: tokenResponse.id,
+                                }
+                            }
+                        );
+                        if (walletPayResult.errors) {
+                            return Promise.reject('An error occurred while processing your payment. Please try again.');
+                        }
+                        tokenResponse.id = walletPayResult.data?.payment_data?.id;
                     }
-                    await this.processPPCPOrder();
-                } catch (e) {
-                    return Promise.reject(e);
-                }
-            },
-            /**
-             * Process Bold order for the Braintree gateway.
-             *
-             * @return {Promise<never>}
-             */
-            processBraintreeOrder: async function () {
-                const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                this.updateQuoteBillingAddress(tokenResponse);
-                await this.sendGuestCustomerInfo();
-                await boldFrontendClient.get('refresh');
-                await boldFrontendClient.post('taxes');
-                if (this.fastlanePaymentToken) {
                     const paymentPayload = {
                         'gateway_public_id': fastlane.getGatewayPublicId(),
-                        'token': 'nonce:' + this.fastlanePaymentToken,
-                    };
-                    try {
-                        await boldFrontendClient.delete('payments', paymentPayload);
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
-                await boldFrontendClient.post(
-                    'payments',
-                    {
-                        'gateway_public_id': fastlane.getGatewayPublicId(),
                         'currency': quote.totals().quote_currency_code,
-                        'token': tokenResponse.id,
-                        'type': 'fastlane',
-                    },
-                );
-                this.fastlanePaymentToken = tokenResponse.id;
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
-                    return Promise.reject('An error occurred while processing your payment. Please try again.');
-                }
-            },
-            /**
-             * Process Bold order for the PPCP gateway.
-             *
-             * @return {Promise<never>}
-             */
-            processPPCPOrder: async function () {
-                let tokenResponse = null;
-                if (!this.fastlanePaymentToken) {
-                    tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                    this.updateQuoteBillingAddress(tokenResponse);
-                }
-                await this.sendGuestCustomerInfo();
-                await boldFrontendClient.get('refresh');
-                await boldFrontendClient.post('taxes');
-                if (!this.fastlanePaymentToken) {
-                    if (!tokenResponse) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
+                        'amount': quote.totals().grand_total * 100,
+                        'token': tokenResponse.id
                     }
-                    const walletPayResult = await boldFrontendClient.post(
-                        'wallet_pay/create_order',
-                        {
-                            gateway_type: 'paypal',
-                            payment_data: {
-                                locale: navigator.language,
-                                payment_type: 'fastlane',
-                                token: tokenResponse.id,
-                            },
-                        },
-                    );
-                    if (walletPayResult.errors) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
+                    if (fastlane.getType() === 'braintree') {
+                        paymentPayload.type = 'fastlane'
                     }
-                    await boldFrontendClient.post(
+                    const paymentResult = await boldFrontendClient.post(
                         'payments',
-                        {
-                            'gateway_public_id': fastlane.getGatewayPublicId(),
-                            'currency': quote.totals().quote_currency_code,
-                            'token': walletPayResult.data?.payment_data?.id,
-                        },
+                        paymentPayload
                     );
-                    this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
-                }
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
-                    return Promise.reject('An error occurred while processing your payment. Please try again.');
+                    const orderPlacementResult = await boldFrontendClient.post('process_order');
+                    if (refreshResult.errors || taxesResult.errors || paymentResult.errors || orderPlacementResult.errors) {
+                        return Promise.reject('An error occurred while processing your payment. Please try again.');
+                    }
+                } catch (e) {
+                    return Promise.reject(e);
                 }
             },
             /**
@@ -259,25 +214,25 @@ define(
              *
              * @param {{paymentSource: {card: {billingAddress}}}}tokenResponse
              */
-            updateQuoteBillingAddress: function (tokenResponse) {
+            updateQuoteBillingAddress(tokenResponse) {
                 const fastlaneBillingAddress = tokenResponse.paymentSource && tokenResponse.paymentSource.card && tokenResponse.paymentSource.card.billingAddress
                     ? tokenResponse.paymentSource.card.billingAddress
                     : null;
                 if (!fastlaneBillingAddress) {
-                    return;
+                    throw new Error('Billing address is missing in the payment token response.');
                 }
                 let quoteAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
                 if (!quoteAddress) {
                     quoteAddress = {
                         firstname: null,
                         lastname: null,
-                        telephone: null,
+                        telephone: null
                     };
                 }
                 let fastlaneFirstName;
                 try {
-                    fastlaneFirstName = fastlane.profileData() && fastlane.profileData().name.firstName
-                        ? fastlane.profileData().name.firstName
+                    fastlaneFirstName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.firstName
+                        ? window.checkoutConfig.bold.fastlane.profileData.name.firstName
                         : tokenResponse.paymentSource.card.name.split(' ')[0];
                 } catch (e) {
                     fastlaneFirstName = quoteAddress.firstname;
@@ -287,8 +242,8 @@ define(
                 }
                 let fastlaneLastName;
                 try {
-                    fastlaneLastName = fastlane.profileData() && fastlane.profileData().name.lastName
-                        ? fastlane.profileData().name.lastName
+                    fastlaneLastName = window.checkoutConfig.bold.fastlane.profileData && window.checkoutConfig.bold.fastlane.profileData.name.lastName
+                        ? window.checkoutConfig.bold.fastlane.profileData.name.lastName
                         : tokenResponse.paymentSource.card.name.split(' ')[1];
                 } catch (e) {
                     fastlaneLastName = quoteAddress.lastname;
@@ -303,6 +258,7 @@ define(
                 }
                 const billingAddress = convertFastlaneAddressAction(fastlaneBillingAddress, 'braintree');
                 selectBillingAddressAction(billingAddress);
+                setBillingAddressAction(this.messageContainer);
             },
             /**
              * Get Fastlane shipping address for the payment component.
@@ -327,7 +283,7 @@ define(
                     region: quoteAddress.regionCode,
                     postalCode: quoteAddress.postcode,
                     countryCodeAlpha2: quoteAddress.countryId,
-                    phoneNumber: quoteAddress.telephone,
+                    phoneNumber: quoteAddress.telephone
                 };
             },
             /**
@@ -336,41 +292,17 @@ define(
              * @private
              */
             sendGuestCustomerInfo: async function () {
+                if (window.checkoutConfig.bold.fastlane.memberAuthenticated !== true) {
+                    return;
+                }
                 try {
                     await boldFrontendClient.post('customer/guest');
                 } catch (error) {
-                    let errorMessage;
-                    try {
-                        errorMessage = error.responseJSON && error.responseJSON.errors
-                            ? error.responseJSON.errors[0].message
-                            : error.message;
-                    } catch (e) {
-                        errorMessage = this.error;
-                    }
+                    const errorMessage = error.responseJSON && error.responseJSON.errors
+                        ? error.responseJSON.errors[0].message
+                        : error.message;
                     errorProcessor.process(errorMessage, this.messageContainer);
                 }
-            },
-            /**
-             * Remove country code from the Fastlane phone number.
-             *
-             * @return {string}
-             */
-            getFormattedPhoneNumber: function () {
-                let phoneNumber = '';
-                if (quote.isVirtual() && quote.billingAddress()) {
-                    phoneNumber = quote.billingAddress().telephone || '';
-                }
-                if (!phoneNumber && quote.shippingAddress()) {
-                    phoneNumber = quote.shippingAddress().telephone || '';
-                }
-                phoneNumber = phoneNumber.replace(/\D/g, '');
-                if (!phoneNumber) {
-                    return '';
-                }
-                if (phoneNumber.length === 11 && phoneNumber.startsWith('1')) {
-                    return phoneNumber.substring(1);
-                }
-                return phoneNumber;
-            },
+            }
         });
     });

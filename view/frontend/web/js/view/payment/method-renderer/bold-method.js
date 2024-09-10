@@ -261,10 +261,7 @@ define([
          * @returns {void}
          */
         subscribeToPIGI() {
-            window.addEventListener('message', ({ origin, data }) => {
-                if (origin !== window.checkoutConfig.bold.origin) {
-                    return;
-                }
+            window.addEventListener('message', ({data}) => {
                 const responseType = data.responseType;
                 const iframeElement = document.getElementById('PIGI');
                 const addPaymentAction = {actionType: 'PIGI_ADD_PAYMENT'};
@@ -275,12 +272,12 @@ define([
                                 return;
                             }
                             iframeElement.height = Math.round(data.payload.height) + 'px';
-                            if (fastlane.isEnabled()) {
-                                this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
-                            }
                             break;
                         case 'PIGI_INITIALIZED':
                             this.iframeWindow = iframeElement.contentWindow;
+                            if (fastlane.isEnabled()) {
+                                this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
+                            }
                             if (data.payload && data.payload.height && iframeElement) {
                                 iframeElement.height = Math.round(data.payload.height) + 'px';
                             }

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 
-use Bold\Checkout\Api\Data\Http\Client\ResultInterface;
-use Bold\Checkout\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;

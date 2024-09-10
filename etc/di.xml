@@ -122,19 +122,19 @@
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
-use Bold\Checkout\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;

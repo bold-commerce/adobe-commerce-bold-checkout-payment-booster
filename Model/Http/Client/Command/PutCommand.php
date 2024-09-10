@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client\Curl;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
@@ -15,7 +15,7 @@ use Magento\Framework\Serialize\Serializer\Json;
 class PutCommand
 {
     /**
-     * @var ResultFactory
+     * @var ResultInterfaceFactory
      */
     private $resultFactory;
 
@@ -35,13 +35,13 @@ class PutCommand
     private $json;
 
     /**
-     * @param ResultFactory $resultFactory
+     * @param ResultInterfaceFactory $resultFactory
      * @param Curl $client
      * @param Json $json
      * @param RequestsLogger $logger
      */
     public function __construct(
-        ResultFactory $resultFactory,
+        ResultInterfaceFactory $resultFactory,
         Curl $client,
         Json $json,
         RequestsLogger $logger
@@ -59,9 +59,9 @@ class PutCommand
      * @param string $url
      * @param array $headers
      * @param array $data
-     * @return Result
+     * @return ResultInterface
      */
-    public function execute(int $websiteId, string $url, array $headers, array $data): Result
+    public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
         $this->logger->logRequest($websiteId, $url, 'POST', $data);
         $this->client->setHeaders($headers);

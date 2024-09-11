@@ -188,7 +188,7 @@ define([
                 return false;
             }
             const defaultPlaceOrder = this._super;
-            this.processBoldOrder().then(() => {
+            this.updateBoldOrder().then(() => {
                 const orderPlacementResult = defaultPlaceOrder.call(this, data, event);//call Magento_Checkout/js/view/payment/default::placeOrder()
                 if (!orderPlacementResult) {
                     loader.stopLoader()
@@ -206,12 +206,11 @@ define([
          *
          * @return {Promise<void>}
          */
-        processBoldOrder: async function () {
+        updateBoldOrder: async function () {
             try {
                 await boldClient.get('refresh');
-                await boldClient.post('taxes');
-                const processOrderResult = await boldClient.post('process_order');
-                this.updateCart(processOrderResult.data);
+                const taxesResult = await boldClient.post('taxes');
+                this.updateCart(taxesResult.data);
             } catch (e) {
                 console.error('Error processing order', e);
                 throw new Error(this.error);

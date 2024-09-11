@@ -7,7 +7,7 @@ use Bold\Checkout\Api\Http\ClientInterface;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
- * Fully authorize payments.
+ * Fully authorize payment on Bold side.
  */
 class Authorize
 {
@@ -27,7 +27,7 @@ class Authorize
     }
 
     /**
-     * Fully authorize payments.
+     * Authorize payment on Bold side for the given public order ID.
      *
      * @param string $publicOrderId
      * @param int $websiteId

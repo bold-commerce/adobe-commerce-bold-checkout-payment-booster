@@ -38,7 +38,6 @@ define(
                 isVisible: ko.observable(true),
                 fastlanePaymentComponent: null,
                 error: $t('An error occurred while processing your payment. Please try again.'),
-                fastlanePaymentToken: null,
             },
 
             /**
@@ -149,7 +148,7 @@ define(
                         errorMessage = this.error;
                     }
                     loader.stopLoader();
-                    errorProcessor.process({ responseText: JSON.stringify({ message: errorMessage }) }, this.messageContainer);
+                    errorProcessor.process({responseText: JSON.stringify({message: errorMessage})}, this.messageContainer);
                     return false;
                 });
 
@@ -162,37 +161,26 @@ define(
             processBoldOrder: async function () {
                 try {
                     if (fastlane.getType() === 'braintree') {
-                        await this.processBraintreeOrder();
+                        await this.processBraintreePayment();
                         return;
                     }
-                    await this.processPPCPOrder();
+                    await this.processPPCPPayment();
                 } catch (e) {
                     return Promise.reject(e);
                 }
             },
             /**
-             * Process Bold order for the Braintree gateway.
+             * Process payment for the Braintree gateway.
              *
              * @return {Promise<never>}
              */
-            processBraintreeOrder: async function () {
+            processBraintreePayment: async function () {
                 const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
                 this.updateQuoteBillingAddress(tokenResponse);
                 await this.sendGuestCustomerInfo();
                 await boldFrontendClient.get('refresh');
                 await boldFrontendClient.post('taxes');
-                if (this.fastlanePaymentToken) {
-                    const paymentPayload = {
-                        'gateway_public_id': fastlane.getGatewayPublicId(),
-                        'token': 'nonce:' + this.fastlanePaymentToken,
-                    };
-                    try {
-                        await boldFrontendClient.delete('payments', paymentPayload);
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
-                await boldFrontendClient.post(
+                const addPaymentsResult = await boldFrontendClient.post(
                     'payments',
                     {
                         'gateway_public_id': fastlane.getGatewayPublicId(),
@@ -201,56 +189,44 @@ define(
                         'type': 'fastlane',
                     },
                 );
-                this.fastlanePaymentToken = tokenResponse.id;
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
+                if (addPaymentsResult.errors) {
                     return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },
             /**
-             * Process Bold order for the PPCP gateway.
+             * Process payment for the PPCP gateway.
              *
              * @return {Promise<never>}
              */
-            processPPCPOrder: async function () {
-                let tokenResponse = null;
-                if (!this.fastlanePaymentToken) {
-                    tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                    this.updateQuoteBillingAddress(tokenResponse);
-                }
+            processPPCPPayment: async function () {
+                const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
+                this.updateQuoteBillingAddress(tokenResponse);
                 await this.sendGuestCustomerInfo();
                 await boldFrontendClient.get('refresh');
                 await boldFrontendClient.post('taxes');
-                if (!this.fastlanePaymentToken) {
-                    if (!tokenResponse) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
-                    }
-                    const walletPayResult = await boldFrontendClient.post(
-                        'wallet_pay/create_order',
-                        {
-                            gateway_type: 'paypal',
-                            payment_data: {
-                                locale: navigator.language,
-                                payment_type: 'fastlane',
-                                token: tokenResponse.id,
-                            },
+                const walletPayResult = await boldFrontendClient.post(
+                    'wallet_pay/create_order',
+                    {
+                        gateway_type: 'paypal',
+                        payment_data: {
+                            locale: navigator.language,
+                            payment_type: 'fastlane',
+                            token: tokenResponse.id,
                         },
-                    );
-                    if (walletPayResult.errors) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
-                    }
-                    await boldFrontendClient.post(
-                        'payments',
-                        {
-                            'gateway_public_id': fastlane.getGatewayPublicId(),
-                            'currency': quote.totals().quote_currency_code,
-                            'token': walletPayResult.data?.payment_data?.id,
-                        },
-                    );
-                    this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
+                    },
+                );
+                if (walletPayResult.errors) {
+                    return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
-                const orderPlacementResult = await boldFrontendClient.post('process_order');
-                if (orderPlacementResult.errors) {
+                const addPaymentResult = await boldFrontendClient.post(
+                    'payments',
+                    {
+                        'gateway_public_id': fastlane.getGatewayPublicId(),
+                        'currency': quote.totals().quote_currency_code,
+                        'token': walletPayResult.data?.payment_data?.id,
+                    },
+                );
+                if (addPaymentResult.errors) {
                     return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },

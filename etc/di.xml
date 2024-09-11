@@ -9,6 +9,25 @@
         </arguments>
     </type>
 
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\Payment\CheckPaymentMethod">
+        <arguments>
+            <argument name="boldPaymentMethods" xsi:type="array">
+                <item name="bold" xsi:type="string">bold</item>
+                <item name="bold_fastlane" xsi:type="string">bold_fastlane</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\Payment\Authorize">
+        <arguments>
+            <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState">
+        <arguments>
+            <argument name="client" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+        </arguments>
+    </type>
+
     <type name="Bold\Checkout\Observer\Order\CheckoutSubmitAllAfterObserver">
         <arguments>
             <argument name="boldPaymentMethods" xsi:type="array">

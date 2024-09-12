@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Api\Data\Http\Client;
 
-use Bold\CheckouPaymentBoostert\Api\Data\Http\Client\ResultExtensionInterface;
 use Magento\Framework\Api\ExtensibleDataInterface;
 
 /**

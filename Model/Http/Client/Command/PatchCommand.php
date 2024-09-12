@@ -7,7 +7,6 @@ use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client\Curl;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 

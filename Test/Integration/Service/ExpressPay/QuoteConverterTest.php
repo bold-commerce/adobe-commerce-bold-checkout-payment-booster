@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
@@ -196,5 +197,17 @@ class QuoteConverterTest extends TestCase
         );
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+    }
+
+    public function testDoesNotConvertShippingInformationIfAddressIsNotSet(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class);
+
+        self::assertEmpty($quoteConverter->convertShippingInformation($quote));
     }
 }

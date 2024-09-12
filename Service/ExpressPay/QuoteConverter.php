@@ -106,12 +106,13 @@ class QuoteConverter
      */
     public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
     {
-        if ($quote->getIsVirtual()) {
+        $shippingAddress = $quote->getShippingAddress();
+
+        if ($quote->getIsVirtual() || $shippingAddress->getId() === null) {
             return [];
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-        $shippingAddress = $quote->getShippingAddress();
 
         $shippingAddress->setCollectShippingRates(true);
         $shippingAddress->collectShippingRates();

@@ -210,4 +210,16 @@ class QuoteConverterTest extends TestCase
 
         self::assertEmpty($quoteConverter->convertShippingInformation($quote));
     }
+
+    public function testDoesNotConvertCustomerIfBillingAddressIsNotSet(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class);
+
+        self::assertEmpty($quoteConverter->convertCustomer($quote));
+    }
 }

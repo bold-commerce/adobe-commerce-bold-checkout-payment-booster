@@ -90,6 +90,10 @@ class QuoteConverter
     {
         $billingAddress = $quote->getBillingAddress();
 
+        if ($billingAddress->getId() === null) {
+            return [];
+        }
+
         return [
             'order_data' => [
                 'customer' => [

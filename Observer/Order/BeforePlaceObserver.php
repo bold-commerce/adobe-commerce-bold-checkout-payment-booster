@@ -91,12 +91,9 @@ class BeforePlaceObserver implements ObserverInterface
         $lastFour = $cardDetails['last_four'] ?? '';
         if (!$lastFour && isset($cardDetails['line_text'])) {
             preg_match('/\b(\d{4})\b(?=\s*\(Transaction ID)/', $cardDetails['line_text'], $matches);
-            $lastFour = $matches[1] ?? '';
+            $lastFour = $matches[1] ?? $cardDetails['line_text'];
         }
         $order->getPayment()->setCcType($brand);
         $order->getPayment()->setCcLast4($lastFour);
-        if (!$lastFour && isset($cardDetails['line_text'])) {
-            $order->getPayment()->setAdditionalInformation('tender_details', $cardDetails['line_text']);
-        }
     }
 }

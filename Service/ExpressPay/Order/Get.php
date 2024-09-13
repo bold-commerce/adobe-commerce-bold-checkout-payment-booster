@@ -10,6 +10,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 
 use function __;
+use function array_column;
 use function implode;
 
 /**
@@ -78,7 +79,7 @@ class Get
 
         if (count($errors) > 0) {
             throw new LocalizedException(
-                __('Could not get Express Pay order. Errors: "%1"', implode(', ', $errors))
+                __('Could not get Express Pay order. Errors: "%1"', implode(', ', array_column($errors, 'message')))
             );
         }
 

@@ -134,4 +134,46 @@ class GetTest extends TestCase
             '582e95b1-1a45-4b85-8d0c-b71850e986cd'
         );
     }
+
+    public function testThrowsExceptionIfApiCallReturnsErrors(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage(
+            'Could not get Express Pay order. Errors: "Order retrieval failed. Please check your payment gateway '
+            . 'configuration."'
+        );
+
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Get $getExpressPayOrderService */
+        $getExpressPayOrderService = $objectManager->create(
+            Get::class,
+            [
+                'httpClient' => $boldClientMock
+            ]
+        );
+
+        $boldApiResultMock->method('getErrors')
+            ->willReturn(
+                [
+                    [
+                        'message' => 'Order retrieval failed. Please check your payment gateway configuration.',
+                        'type' => 'order',
+                        'field' => 'order_retrieval',
+                        'severity' => 'critical',
+                        'sub_type' => 'wallet_pay'
+                    ]
+                ]
+            );
+
+        $boldClientMock->method('get')
+            ->willReturn($boldApiResultMock);
+
+        $getExpressPayOrderService->execute(
+            'ae3325ee-ef75-4a76-90f0-5ffe416c2b1c',
+            '9fcc385c-de1a-4262-9e68-5e204224f552'
+        );
+    }
 }

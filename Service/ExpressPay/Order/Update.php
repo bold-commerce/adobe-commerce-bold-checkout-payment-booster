@@ -85,6 +85,7 @@ class Update
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
         $expressPayData = array_merge_recursive(
+            $this->quoteConverter->convertCustomer($quote),
             $this->quoteConverter->convertShippingInformation($quote),
             $this->quoteConverter->convertQuoteItems($quote),
             $this->quoteConverter->convertTotal($quote),

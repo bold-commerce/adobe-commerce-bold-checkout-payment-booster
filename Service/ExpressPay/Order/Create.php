@@ -14,6 +14,7 @@ use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
 
 use function __;
+use function array_column;
 use function count;
 use function implode;
 use function is_numeric;
@@ -97,7 +98,7 @@ class Create
 
         if (count($errors) > 0) {
             throw new LocalizedException(
-                __('Could not create Express Pay order. Errors: "%1"', implode(', ', $errors))
+                __('Could not create Express Pay order. Errors: "%1"', implode(', ', array_column($errors, 'message')))
             );
         }
 

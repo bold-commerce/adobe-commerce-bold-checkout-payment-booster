@@ -166,6 +166,68 @@ class CreateTest extends TestCase
         $createExpressPayOrderService->execute($quoteMaskId, 'ae066eda-f88a-4c13-938f-e8bd4e496144');
     }
 
+    /**
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testThrowsExceptionIfApiCallReturnsErrors(): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage(
+            'Could not create Express Pay order. Errors: "'
+            . 'The order data.selected shipping option.id field is required with order data.selected shipping option., '
+            . 'The order data.selected shipping option.label field must be a string., '
+            . 'The order data.selected shipping option.label field is required with order data.selected shipping '
+            . 'option."'
+        );
+
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Create $createExpressPayOrderService */
+        $createExpressPayOrderService = $objectManager->create(
+            Create::class,
+            [
+                'httpClient' => $boldClientMock
+            ]
+        );
+        $quoteMaskId = $this->getQuoteMaskId();
+
+        $boldApiResultMock->method('getErrors')
+            ->willReturn(
+                [
+                    [
+                        'message' => 'The order data.selected shipping option.id field is required with order '
+                            . 'data.selected shipping option.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.id',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ],
+                    [
+                        'message' => 'The order data.selected shipping option.label field must be a string.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.label',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ],
+                    [
+                        'message' => 'The order data.selected shipping option.label field is required with order '
+                            . 'data.selected shipping option.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.label',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ]
+                ]
+            );
+
+        $boldClientMock->method('post')
+            ->willReturn($boldApiResultMock);
+
+        $createExpressPayOrderService->execute($quoteMaskId, '182011ba-9d43-47b7-9b74-8c234531ce20');
+    }
+
     private function getQuote(): Quote
     {
         if ($this->quote !== null) {

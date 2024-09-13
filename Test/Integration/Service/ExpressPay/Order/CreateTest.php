@@ -66,7 +66,7 @@ class CreateTest extends TestCase
             ->willReturn($boldApiResultMock);
 
         $expectedResultData = [
-            'paypal_order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82'
+            'order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82'
         ];
         $actualResultData = $createExpressPayOrderService->execute(
             $quoteMaskId,

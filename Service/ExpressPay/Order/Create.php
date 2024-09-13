@@ -58,7 +58,7 @@ class Create
      * @param string|int $quoteMaskId
      * @param string $gatewayId
      * @return array
-     * @phpstan-return array{paypal_order_id: string}
+     * @phpstan-return array{order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function execute($quoteMaskId, $gatewayId): array
@@ -116,7 +116,7 @@ class Create
         }
 
         return [
-            'paypal_order_id' => $resultData['data']['order_id']
+            'order_id' => $resultData['data']['order_id']
         ];
     }
 }

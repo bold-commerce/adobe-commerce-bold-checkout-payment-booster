@@ -6,6 +6,7 @@
             <values>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+                <value id="bold_commerce_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
                 <value id="cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_braintree_sandbox" type="host">*.sandbox.braintree-api.com</value>
                 <value id="bold_braintree" type="host">*.braintree-api.com</value>
@@ -19,6 +20,7 @@
                 <value id="allow_inline_resource" type="host">unsafe-inline</value>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
+                <value id="bold_commerce_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
                 <value id="cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_paypal" type="host">*.paypal.com</value>
             </values>

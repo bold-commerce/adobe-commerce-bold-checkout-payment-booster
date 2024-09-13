@@ -22,6 +22,7 @@ class Config
     private const PATH_IS_PAYMENT_BOOSTER_ENABLED = 'checkout/bold_checkout_payment_booster/is_payment_booster_enabled';
     private const PATH_IS_FASTLANE_ENABLED = 'checkout/bold_checkout_payment_booster/is_fastlane_enabled';
     private const PATH_INTEGRATION_API_URL = 'checkout/bold_checkout_payment_booster_advanced/api_url';
+    private const PATH_INTEGRATION_EPS_URL = 'checkout/bold_checkout_payment_booster_advanced/eps_url';
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
 
@@ -71,6 +72,19 @@ class Config
     {
         return $this->scopeConfig->getValue(
             self::PATH_INTEGRATION_API_URL,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * @param int $websiteId
+     * @return string|null
+     */
+    public function getEpsUrl(int $websiteId): ?string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_INTEGRATION_EPS_URL,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

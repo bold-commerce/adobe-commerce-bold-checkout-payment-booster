@@ -6,6 +6,7 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\HydrateOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>
@@ -122,19 +123,19 @@
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get">
         <arguments>
-            <argument name="httpClient" xsi:type="object">Bold\Checkout\Model\Http\BoldClient</argument>
+            <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
         </arguments>
     </type>
 

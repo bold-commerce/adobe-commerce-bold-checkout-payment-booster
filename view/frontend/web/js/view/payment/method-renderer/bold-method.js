@@ -60,6 +60,10 @@ define([
                 this.isVisible(false);
                 return;
             }
+            if (window.checkoutConfig.bold.scaRedirect) {
+                this.placeOrder({}, null);
+                return;
+            }
             this.subscribeToPIGI();
             this.customerSynced.subscribe(function (synced) {
                 if (synced && this.billingAddressSynced() && this.pigiInitialized()) {
@@ -118,7 +122,6 @@ define([
                 });
         },
 
-
         /**
          * Observe email change event and synchronize address.
          *
@@ -176,16 +179,18 @@ define([
         /** @inheritdoc */
         placeOrder: function (data, event) {
             loader.startLoader();
-            if (!this.iframeWindow) {
-                return false;
-            }
+            if(!window.checkoutConfig.bold.scaRedirect){
+                if (!this.iframeWindow) {
+                    return false;
+                }
 
-            const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
-            this.iframeWindow.postMessage(clearAction, '*');
+                const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
+                this.iframeWindow.postMessage(clearAction, '*');
 
-            if (!this.paymentType) {
-                this.refreshAndAddPayment();
-                return false;
+                if (!this.paymentType) {
+                    this.refreshAndAddPayment();
+                    return false;
+                }
             }
             const defaultPlaceOrder = this._super;
             this.updateBoldOrder().then(() => {
@@ -317,6 +322,16 @@ define([
                             }
                             this.paymentType = data.payload.paymentType;
                             this.placeOrder({}, null);
+                            break;
+                        case 'PIGI_HANDLE_SCA': 
+                            this.handleSca(iframeElement, data.payload);
+                            break;
+                        case 'PIGI_DISPLAY_IN_FULL_PAGE':
+                            this.displayScaFullScreen(iframeElement);
+                            break;
+                        case 'PIGI_DISPLAY_IN_FULL_PAGE_DONE': 
+                            this.hideScaFullScreen(iframeElement)
+                            break;
                     }
                 }
             });
@@ -365,6 +380,35 @@ define([
             } catch (error) {
                 this.displayErrorMessage(error);
             }
+        },
+
+        handleSca: async function (iframeElement, payload) {
+            switch (payload.step) {
+                case 'REDIRECT':
+                    const redirectUrl = window.location.href
+                    const scaUrl = payload.data.url;
+                    window.checkoutConfig.bold.scaRedirect = true;
+                    window.location.href = scaUrl + '&redirect_uri=' + encodeURIComponent(redirectUrl);
+                    break;
+                case 'DISPLAYED': 
+                    this.displayScaFullScreen(iframeElement);
+                    break;
+                case 'COMPLETED':
+                    loader.startLoader();
+                    break;
+                case 'FAILED':
+                    this.hideScaFullScreen(iframeElement);
+                    break;
+            }
+        },
+
+        displayScaFullScreen: function(iframeElement){
+            loader.stopLoader(true);
+            iframeElement.classList.add('payment__iframe--display-sca');
+        },
+
+        hideScaFullScreen: function(iframeElement){
+            iframeElement.classList.remove('payment__iframe--display-sca');
         },
     });
 });

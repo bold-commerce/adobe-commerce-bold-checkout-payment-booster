@@ -49,6 +49,11 @@
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold API URL. Do not change.]]></comment>
                 </field>
+                <field id="eps_url" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1">
+                    <label>EPS URL</label>
+                    <validate>required-url</validate>
+                    <comment><![CDATA[Bold EPS URL. Do not change.]]></comment>
+                </field>
                 <field id="log_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1">
                     <label>Enable Bold Checkout Requests Log</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

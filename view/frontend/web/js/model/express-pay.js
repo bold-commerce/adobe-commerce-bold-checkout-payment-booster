@@ -1,4 +1,6 @@
-define([], function () {
+define([
+    'jquery',
+], function ($) {
     'use strict';
 
     /**
@@ -7,28 +9,16 @@ define([], function () {
      * @type {object}
      */
     return {
+        expressGatewayData: null,
+        expressGatewayId: null,
+
         /**
          * Check if PPCP is configured.
          *
          * @return {Boolean}
          */
         isEnabled: function () {
-            // partner_id only exists when PPCP is configured
-            return Boolean(this._getPpcpPaymentMethod()?.partner_id);
-        },
-
-        /**
-         * Retrieve button styles.
-         *
-         * @returns {string}
-         */
-        getStyles: function () {
-            const style = this._getPpcpPaymentMethod()?.style;
-
-            if (!style) {
-                throw new Error('PayPal Express Pay is not configured');
-            }
-            return style;
+            return Boolean(this.expressGatewayData && this.expressGatewayId);
         },
 
         /**
@@ -37,17 +27,23 @@ define([], function () {
          * @returns {Promise<void>}
          */
         loadPPCPSdk: async function() {
-            const ppcpPaymentMethod = this._getPpcpPaymentMethod();
-            const partnerId = ppcpPaymentMethod?.partner_id;
-            const testMode = ppcpPaymentMethod?.is_dev;
+            await this.loadExpressGatewayData();
+
+            if (!this.isEnabled()) {
+                return;
+            }
+
+            const clientId = this.expressGatewayData.client_id;
+            const testMode = this.expressGatewayData.is_test_mode;
             let parameters = '';
+
             if (testMode) {
                 parameters = '&debug=true';
             }
             if (!require.defined('bold_paypal_sdk')){
                 require.config({
                     paths: {
-                        bold_paypal_sdk: 'https://www.paypal.com/sdk/js?client-id=' + partnerId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
+                        bold_paypal_sdk: 'https://www.paypal.com/sdk/js?client-id=' + clientId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
                     },
                 });
                 await new Promise((resolve, reject) => {
@@ -57,15 +53,24 @@ define([], function () {
         },
 
         /**
-         * Retrieve data for PPCP payment method
+         * Fetch and store Express Gateway Data
          *
-         * @returns {Object|null}
-         * @private
+         * @returns {Promise<void>}
          */
-        _getPpcpPaymentMethod: function () {
-            return window.checkoutConfig?.bold?.alternativePaymentMethods?.find(
-                (paymentMethod) => paymentMethod.type === 'paypal_commerce_platform'
-            ) ?? null;
-        },
+        loadExpressGatewayData: async function () {
+            // Data already loaded
+            if (this.isEnabled()) {
+                return;
+            }
+
+            const storeUrl = new URL(window.checkoutConfig.bold.shopUrl);
+            const clientDataUrl = window.checkoutConfig.bold.epsUrl + `/${storeUrl.hostname}/client_init`;
+            const gatewayData = await $.ajax({
+                url: clientDataUrl,
+                type: 'GET',
+            });
+            this.expressGatewayId = Object.keys(gatewayData).find((gateway) => gatewayData[gateway].type === 'ppcp') ?? null;
+            this.expressGatewayData = this.expressGatewayId ? gatewayData[this.expressGatewayId] : null;
+        }
     };
 });

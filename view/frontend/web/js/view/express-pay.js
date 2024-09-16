@@ -1,12 +1,10 @@
 define([
     'uiComponent',
     'Bold_CheckoutPaymentBooster/js/model/express-pay',
-    'Magento_Customer/js/model/customer',
     'ko'
 ], function (
     Component,
     expressPay,
-    customer,
     ko
 ) {
     'use strict';
@@ -19,14 +17,16 @@ define([
             template: 'Bold_CheckoutPaymentBooster/express-pay'
         },
         isVisible: ko.observable(false),
-        initialize: function () {
+        initialize: async function () {
             this._super();
-            this._setVisibility();
 
+            await expressPay.loadExpressGatewayData();
+            this._setVisibility();
             window.addEventListener('hashchange', this._setVisibility.bind(this));
 
             expressPay.loadPPCPSdk().then(() => {
-                let buttonStyles = expressPay.getStyles();
+                // Button rendering & styles will be taken over by SPI SDK
+                let buttonStyles = {};
                 buttonStyles['layout'] = 'horizontal';
                 buttonStyles['tagline'] = false;
 

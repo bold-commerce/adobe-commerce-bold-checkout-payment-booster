@@ -18,6 +18,7 @@ use function array_column;
 use function array_merge_recursive;
 use function count;
 use function implode;
+use function is_array;
 use function is_numeric;
 use function strlen;
 
@@ -104,9 +105,16 @@ class Update
         $errors = $result->getErrors();
 
         if (count($errors) > 0) {
-            throw new LocalizedException(
-                __('Could not update Express Pay order. Errors: "%1"', implode(', ', array_column($errors, 'message')))
-            );
+            if (is_array($errors[0])) {
+                $exceptionMessage = __(
+                    'Could not update Express Pay order. Errors: "%1"',
+                    implode(', ', array_column($errors, 'message'))
+                );
+            } else {
+                $exceptionMessage = __('Could not update Express Pay order. Error: "%1"', $errors[0]);
+            }
+
+            throw new LocalizedException($exceptionMessage);
         }
 
         if ($result->getStatus() !== 204) {

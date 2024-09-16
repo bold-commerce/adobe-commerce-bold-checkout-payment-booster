@@ -12,6 +12,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use function __;
 use function array_column;
 use function implode;
+use function is_array;
 
 /**
  * @api
@@ -78,9 +79,16 @@ class Get
         $errors = $result->getErrors();
 
         if (count($errors) > 0) {
-            throw new LocalizedException(
-                __('Could not get Express Pay order. Errors: "%1"', implode(', ', array_column($errors, 'message')))
-            );
+            if (is_array($errors[0])) {
+                $exceptionMessage = __(
+                    'Could not get Express Pay order. Errors: "%1"',
+                    implode(', ', array_column($errors, 'message'))
+                );
+            } else {
+                $exceptionMessage = __('Could not get Express Pay order. Error: "%1"', $errors[0]);
+            }
+
+            throw new LocalizedException($exceptionMessage);
         }
 
         if ($result->getStatus() !== 200) {

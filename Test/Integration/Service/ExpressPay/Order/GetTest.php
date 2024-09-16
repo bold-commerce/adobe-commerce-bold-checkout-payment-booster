@@ -135,13 +135,14 @@ class GetTest extends TestCase
         );
     }
 
-    public function testThrowsExceptionIfApiCallReturnsErrors(): void
+    /**
+     * @dataProvider apiErrorsDataProvider
+     * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
+     */
+    public function testThrowsExceptionIfApiCallReturnsErrors(string $expectedExceptionMessage, array $apiErrors): void
     {
         $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessage(
-            'Could not get Express Pay order. Errors: "Order retrieval failed. Please check your payment gateway '
-            . 'configuration."'
-        );
+        $this->expectExceptionMessage($expectedExceptionMessage);
 
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
@@ -156,17 +157,7 @@ class GetTest extends TestCase
         );
 
         $boldApiResultMock->method('getErrors')
-            ->willReturn(
-                [
-                    [
-                        'message' => 'Order retrieval failed. Please check your payment gateway configuration.',
-                        'type' => 'order',
-                        'field' => 'order_retrieval',
-                        'severity' => 'critical',
-                        'sub_type' => 'wallet_pay'
-                    ]
-                ]
-            );
+            ->willReturn($apiErrors);
 
         $boldClientMock->method('get')
             ->willReturn($boldApiResultMock);
@@ -175,5 +166,34 @@ class GetTest extends TestCase
             'ae3325ee-ef75-4a76-90f0-5ffe416c2b1c',
             '9fcc385c-de1a-4262-9e68-5e204224f552'
         );
+    }
+
+    /**
+     * @return array<string, array<string, array<int, array<string, string>|string>|string>>
+     */
+    public function apiErrorsDataProvider(): array
+    {
+        return [
+            'full API error payload' => [
+                'expectedExceptionMessage' => 'Could not get Express Pay order. Errors: "Order retrieval failed. '
+                    . 'Please check your payment gateway configuration."',
+                'apiErrors' => [
+                    [
+                        'message' => 'Order retrieval failed. Please check your payment gateway configuration.',
+                        'type' => 'order',
+                        'field' => 'order_retrieval',
+                        'severity' => 'critical',
+                        'sub_type' => 'wallet_pay'
+                    ]
+                ]
+            ],
+            'basic API error payload' => [
+                'expectedExceptionMessage' => 'Could not get Express Pay order. Error: "The access token is invalid '
+                    . 'or has expired"',
+                'apiErrors' => [
+                    'The access token is invalid or has expired'
+                ]
+            ]
+        ];
     }
 }

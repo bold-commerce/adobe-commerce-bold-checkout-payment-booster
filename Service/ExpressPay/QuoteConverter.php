@@ -11,6 +11,7 @@ use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
 
+use function array_filter;
 use function array_map;
 use function array_merge_recursive;
 use function array_sum;
@@ -121,8 +122,21 @@ class QuoteConverter
         $shippingAddress->setCollectShippingRates(true);
         $shippingAddress->collectShippingRates();
 
+        $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
-        $shippingRates = $shippingAddress->getShippingRatesCollection()->getItems();
+        $shippingRates = array_filter(
+            $shippingAddress->getShippingRatesCollection()->getItems(),
+            // @phpstan-ignore argument.type
+            static function (Rate $rate) use (&$usedRateCodes): bool {
+                if (in_array($rate->getCode(), $usedRateCodes)) {
+                    return false;
+                }
+
+                $usedRateCodes[] = $rate->getCode();
+
+                return true;
+            }
+        ); // Work-around for Magento bug causing duplicated shipping rates
 
         $convertedQuote = [
             'order_data' => [

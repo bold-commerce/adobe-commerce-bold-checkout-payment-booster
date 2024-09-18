@@ -127,15 +127,7 @@ class QuoteConverter
         $convertedQuote = [
             'order_data' => [
                 'shipping_address' => [],
-                'selected_shipping_option' => [
-                    'id' => $shippingAddress->getShippingMethod(),
-                    'label' => $shippingAddress->getShippingDescription(),
-                    'type' => 'SHIPPING',
-                    'amount' => [
-                        'currency_code' => $currencyCode ?? '',
-                        'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
-                    ],
-                ],
+                'selected_shipping_option' => [],
                 'shipping_options' => array_map(
                     static function (Rate $rate) use ($currencyCode): array {
                         return [
@@ -161,6 +153,18 @@ class QuoteConverter
                 'country_code' => $shippingAddress->getCountryId() ?? '',
                 'postal_code' => $shippingAddress->getPostcode() ?? '',
                 'state' => $shippingAddress->getRegion() ?? ''
+            ];
+        }
+
+        if ($shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
+            $convertedQuote['order_data']['selected_shipping_option'] = [
+                'id' => $shippingAddress->getShippingMethod(),
+                'label' => $shippingAddress->getShippingDescription(),
+                'type' => 'SHIPPING',
+                'amount' => [
+                    'currency_code' => $currencyCode ?? '',
+                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
+                ],
             ];
         }
 

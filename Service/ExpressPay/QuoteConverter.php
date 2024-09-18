@@ -186,7 +186,7 @@ class QuoteConverter
     }
 
     /**
-     * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>>>>
+     * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>>
      */
     public function convertQuoteItems(Quote $quote): array
     {

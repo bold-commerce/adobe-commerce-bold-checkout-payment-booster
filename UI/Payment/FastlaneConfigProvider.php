@@ -74,7 +74,6 @@ class FastlaneConfigProvider implements ConfigProviderInterface
             if (!$publicOrderId) {
                 return [];
             }
-            $gatewayData = $this->getGatewayData($websiteId, $publicOrderId);
             $styles = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'][0]['fastlane_styles']
                 ?? [];
         } catch (Exception $e) {
@@ -83,7 +82,6 @@ class FastlaneConfigProvider implements ConfigProviderInterface
         return [
             'bold' => [
                 'fastlane' => [
-                    'gatewayData' => $gatewayData,
                     'payment' => [
                         'method' => 'bold_fastlane',
                     ],
@@ -91,33 +89,5 @@ class FastlaneConfigProvider implements ConfigProviderInterface
                 ],
             ],
         ];
-    }
-
-    /**
-     * Retrieve gateway data.
-     *
-     * @param int $websiteId
-     * @param string $publicOrderId
-     * @return array
-     * @throws Exception
-     */
-    private function getGatewayData(int $websiteId, string $publicOrderId): array
-    {
-        $apiUrl = sprintf(self::PAYPAL_FASTLANE_CLIENT_TOKEN_URL, $publicOrderId);
-        $baseUrl = $this->storeManagement->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
-        $domain = preg_replace('#^https?://|/$#', '', $baseUrl);
-        $response = $this->client->post(
-            $websiteId,
-            $apiUrl,
-            [
-                "domains" => [
-                    $domain,
-                ],
-            ]
-        );
-        if ($response->getErrors()) {
-            throw new Exception('Something went wrong while fetching the Fastlane gateway data.');
-        }
-        return $response->getBody()['data'];
     }
 }

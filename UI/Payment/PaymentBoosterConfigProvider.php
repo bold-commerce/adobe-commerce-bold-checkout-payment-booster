@@ -78,12 +78,18 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
         $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
+        $epsAuthToken = $boldCheckoutData['data']['flow_settings']['eps_auth_token'] ?? null;
+        $epsGatewayId = $boldCheckoutData['data']['flow_settings']['eps_gateway_id'] ?? null;
         if ($publicOrderId === null || $jwtToken === null) {
             return [];
         }
         $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
         return [
             'bold' => [
+                'epsAuthToken' => $epsAuthToken,
+                'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
+                'epsUrl' => $this->config->getEpsUrl($websiteId),
+                'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
                 'shopId' => $shopId,

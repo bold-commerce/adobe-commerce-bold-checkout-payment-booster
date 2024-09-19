@@ -14,6 +14,7 @@ define(
         'underscore',
         'ko',
         'mage/translate',
+        'Bold_CheckoutPaymentBooster/js/action/eps-tokenize-action',
     ], function (
         MagentoPayment,
         errorProcessor,
@@ -29,6 +30,7 @@ define(
         _,
         ko,
         $t,
+        tokenizeAction,
     ) {
         'use strict';
         return MagentoPayment.extend({
@@ -212,35 +214,13 @@ define(
                 let tokenResponse = null;
                 if (!this.fastlanePaymentToken) {
                     tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
+                    await tokenizeAction(tokenResponse.id);
                     this.updateQuoteBillingAddress(tokenResponse);
                 }
                 if (!this.fastlanePaymentToken) {
                     if (!tokenResponse) {
                         return Promise.reject('An error occurred while processing your payment. Please try again.');
                     }
-                    const walletPayResult = await boldFrontendClient.post(
-                        'wallet_pay/create_order',
-                        {
-                            gateway_type: 'paypal',
-                            payment_data: {
-                                locale: navigator.language,
-                                payment_type: 'fastlane',
-                                token: tokenResponse.id,
-                            },
-                        },
-                    );
-                    if (walletPayResult.errors) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
-                    }
-                    await boldFrontendClient.post(
-                        'payments',
-                        {
-                            'gateway_public_id': fastlane.getGatewayPublicId(),
-                            'currency': quote.totals().quote_currency_code,
-                            'token': walletPayResult.data?.payment_data?.id,
-                        },
-                    );
-                    this.fastlanePaymentToken = walletPayResult.data?.payment_data?.id;
                 }
             },
             /**

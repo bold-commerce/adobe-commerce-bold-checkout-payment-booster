@@ -14,9 +14,11 @@ use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
 
 use function __;
+use function array_column;
 use function array_merge_recursive;
 use function count;
 use function implode;
+use function is_array;
 use function is_numeric;
 use function strlen;
 
@@ -84,6 +86,7 @@ class Update
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
         $expressPayData = array_merge_recursive(
+            $this->quoteConverter->convertCustomer($quote),
             $this->quoteConverter->convertShippingInformation($quote),
             $this->quoteConverter->convertQuoteItems($quote),
             $this->quoteConverter->convertTotal($quote),
@@ -102,9 +105,16 @@ class Update
         $errors = $result->getErrors();
 
         if (count($errors) > 0) {
-            throw new LocalizedException(
-                __('Could not update Express Pay order. Errors: "%1"', implode(', ', $errors))
-            );
+            if (is_array($errors[0])) {
+                $exceptionMessage = __(
+                    'Could not update Express Pay order. Errors: "%1"',
+                    implode(', ', array_column($errors, 'message'))
+                );
+            } else {
+                $exceptionMessage = __('Could not update Express Pay order. Error: "%1"', $errors[0]);
+            }
+
+            throw new LocalizedException($exceptionMessage);
         }
 
         if ($result->getStatus() !== 204) {

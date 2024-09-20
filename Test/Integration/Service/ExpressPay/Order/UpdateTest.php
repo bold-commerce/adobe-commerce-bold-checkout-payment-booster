@@ -148,6 +148,85 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute($quoteMaskId, '6622461eb1174b57b688277efc3ffb5b');
     }
 
+    /**
+     * @dataProvider apiErrorsDataProvider
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
+     */
+    public function testThrowsExceptionIfApiCallReturnsErrors(string $expectedExceptionMessage, array $apiErrors): void
+    {
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessage($expectedExceptionMessage);
+
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Update $updateExpressPayOrderService */
+        $updateExpressPayOrderService = $objectManager->create(
+            Update::class,
+            [
+                'httpClient' => $boldClientMock
+            ]
+        );
+        $quoteMaskId = $this->getQuoteMaskId();
+
+        $boldApiResultMock->method('getErrors')
+            ->willReturn($apiErrors);
+
+        $boldClientMock->method('patch')
+            ->willReturn($boldApiResultMock);
+
+        $updateExpressPayOrderService->execute($quoteMaskId, 'cd389ccd-08a0-4651-aa33-cb7db6327b95');
+    }
+
+    /**
+     * @return array<string, array<string, array<int, array<string, string>|string>|string>>
+     */
+    public function apiErrorsDataProvider(): array
+    {
+        return [
+            'full API error payload' => [
+                'expectedExceptionMessage' => 'Could not update Express Pay order. Errors: "The order data.selected '
+                    . 'shipping option.id field is required with order data.selected shipping option., The order '
+                    . 'data.selected shipping option.label field must be a string., The order data.selected shipping '
+                    . 'option.label field is required with order data.selected shipping option."',
+                'apiErrors' => [
+                    [
+                        'message' => 'The order data.selected shipping option.id field is required with order '
+                            . 'data.selected shipping option.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.id',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ],
+                    [
+                        'message' => 'The order data.selected shipping option.label field must be a string.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.label',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ],
+                    [
+                        'message' => 'The order data.selected shipping option.label field is required with order '
+                            . 'data.selected shipping option.',
+                        'type' => 'order',
+                        'field' => 'order_data.selected_shipping_option.label',
+                        'severity' => 'validation',
+                        'sub_type' => 'wallet_pay'
+                    ]
+                ]
+            ],
+            'basic API error payload' => [
+                'expectedExceptionMessage' => 'Could not update Express Pay order. Error: "The access token is invalid '
+                    . 'or has expired"',
+                'apiErrors' => [
+                    'The access token is invalid or has expired'
+                ]
+            ]
+        ];
+    }
+
     private function getQuote(): Quote
     {
         if ($this->quote !== null) {

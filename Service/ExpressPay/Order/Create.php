@@ -14,8 +14,10 @@ use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
 
 use function __;
+use function array_column;
 use function count;
 use function implode;
+use function is_array;
 use function is_numeric;
 use function strlen;
 
@@ -57,7 +59,7 @@ class Create
      * @param string|int $quoteMaskId
      * @param string $gatewayId
      * @return array
-     * @phpstan-return array{paypal_order_id: string}
+     * @phpstan-return array{order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function execute($quoteMaskId, $gatewayId): array
@@ -96,9 +98,16 @@ class Create
         $errors = $result->getErrors();
 
         if (count($errors) > 0) {
-            throw new LocalizedException(
-                __('Could not create Express Pay order. Errors: "%1"', implode(', ', $errors))
-            );
+            if (is_array($errors[0])) {
+                $exceptionMessage = __(
+                    'Could not create Express Pay order. Errors: "%1"',
+                    implode(', ', array_column($errors, 'message'))
+                );
+            } else {
+                $exceptionMessage = __('Could not create Express Pay order. Error: "%1"', $errors[0]);
+            }
+
+            throw new LocalizedException($exceptionMessage);
         }
 
         /**
@@ -115,7 +124,7 @@ class Create
         }
 
         return [
-            'paypal_order_id' => $resultData['data']['order_id']
+            'order_id' => $resultData['data']['order_id']
         ];
     }
 }

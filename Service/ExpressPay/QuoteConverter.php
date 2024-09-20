@@ -11,6 +11,7 @@ use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
 
+use function array_filter;
 use function array_map;
 use function array_merge_recursive;
 use function array_sum;
@@ -90,6 +91,10 @@ class QuoteConverter
     {
         $billingAddress = $quote->getBillingAddress();
 
+        if ($billingAddress->getId() === null) {
+            return [];
+        }
+
         return [
             'order_data' => [
                 'customer' => [
@@ -106,31 +111,35 @@ class QuoteConverter
      */
     public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
     {
-        if ($quote->getIsVirtual()) {
+        $shippingAddress = $quote->getShippingAddress();
+
+        if ($quote->getIsVirtual() || $shippingAddress->getId() === null) {
             return [];
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-        $shippingAddress = $quote->getShippingAddress();
 
         $shippingAddress->setCollectShippingRates(true);
         $shippingAddress->collectShippingRates();
 
+        $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
-        $shippingRates = $shippingAddress->getShippingRatesCollection()->getItems();
+        $shippingRates = array_filter(
+            $shippingAddress->getShippingRatesCollection()->getItems(),
+            // @phpstan-ignore argument.type
+            static function (Rate $rate) use (&$usedRateCodes): bool {
+                if (in_array($rate->getCode(), $usedRateCodes)) {
+                    return false;
+                }
+
+                $usedRateCodes[] = $rate->getCode();
+
+                return true;
+            }
+        ); // Work-around for Magento bug causing duplicated shipping rates
 
         $convertedQuote = [
             'order_data' => [
-                'shipping_address' => [],
-                'selected_shipping_option' => [
-                    'id' => $shippingAddress->getShippingMethod(),
-                    'label' => $shippingAddress->getShippingDescription(),
-                    'type' => 'SHIPPING',
-                    'amount' => [
-                        'currency_code' => $currencyCode ?? '',
-                        'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
-                    ],
-                ],
                 'shipping_options' => array_map(
                     static function (Rate $rate) use ($currencyCode): array {
                         return [
@@ -148,7 +157,9 @@ class QuoteConverter
             ]
         ];
 
-        if ($includeAddress) {
+        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getPostcode() && $shippingAddress->getCountryId());
+
+        if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [
                 'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
                 'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
@@ -159,11 +170,23 @@ class QuoteConverter
             ];
         }
 
+        if ($shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
+            $convertedQuote['order_data']['selected_shipping_option'] = [
+                'id' => $shippingAddress->getShippingMethod(),
+                'label' => $shippingAddress->getShippingDescription(),
+                'type' => 'SHIPPING',
+                'amount' => [
+                    'currency_code' => $currencyCode ?? '',
+                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
+                ],
+            ];
+        }
+
         return $convertedQuote;
     }
 
     /**
-     * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>>>>
+     * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>>
      */
     public function convertQuoteItems(Quote $quote): array
     {

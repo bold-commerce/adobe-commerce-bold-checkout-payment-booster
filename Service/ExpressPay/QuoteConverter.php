@@ -140,8 +140,6 @@ class QuoteConverter
 
         $convertedQuote = [
             'order_data' => [
-                'shipping_address' => [],
-                'selected_shipping_option' => [],
                 'shipping_options' => array_map(
                     static function (Rate $rate) use ($currencyCode): array {
                         return [
@@ -159,7 +157,9 @@ class QuoteConverter
             ]
         ];
 
-        if ($includeAddress) {
+        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getPostcode() && $shippingAddress->getCountryId());
+
+        if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [
                 'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
                 'address_line_2' => $shippingAddress->getStreet()[1] ?? '',

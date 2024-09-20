@@ -211,16 +211,13 @@ define(
              * @return {Promise<never>}
              */
             processPPCPOrder: async function () {
-                let tokenResponse = null;
                 if (!this.fastlanePaymentToken) {
-                    tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                    await tokenizeAction(tokenResponse.id);
-                    this.updateQuoteBillingAddress(tokenResponse);
-                }
-                if (!this.fastlanePaymentToken) {
+                    const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
                     if (!tokenResponse) {
                         return Promise.reject('An error occurred while processing your payment. Please try again.');
                     }
+                    this.fastlanePaymentToken = (await tokenizeAction(tokenResponse.id))?.data?.payment_id;
+                    this.updateQuoteBillingAddress(tokenResponse);
                 }
             },
             /**

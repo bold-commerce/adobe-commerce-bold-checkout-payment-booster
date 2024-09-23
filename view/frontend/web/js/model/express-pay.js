@@ -1,6 +1,10 @@
 define([
     'jquery',
-], function ($) {
+    'Bold_CheckoutPaymentBooster/js/model/platform-client'
+], function (
+    $,
+    platformClient
+) {
     'use strict';
 
     /**
@@ -71,6 +75,32 @@ define([
             });
             this.expressGatewayId = Object.keys(gatewayData).find((gateway) => gatewayData[gateway].type === 'ppcp') ?? null;
             this.expressGatewayData = this.expressGatewayId ? gatewayData[this.expressGatewayId] : null;
+        },
+
+        /**
+         * Create an express pay order
+         *
+         * @returns {Promise<*>}
+         */
+        createOrder: async function () {
+            let url = 'rest/V1/express_pay/order/create';
+            const gatewayId = this.expressGatewayId;
+
+            if (!gatewayId) {
+                return;
+            }
+
+            try {
+                return await platformClient.post(
+                    url,
+                    {
+                        quoteMaskId: window.checkoutConfig.quoteData.entity_id,
+                        gatewayId: gatewayId,
+                    }
+                );
+            } catch (e) {
+                console.error(e);
+            }
         }
     };
 });

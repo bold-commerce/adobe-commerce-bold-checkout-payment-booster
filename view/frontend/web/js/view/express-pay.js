@@ -1,11 +1,15 @@
 define([
     'uiComponent',
     'Bold_CheckoutPaymentBooster/js/model/express-pay',
-    'ko'
+    'Magento_Ui/js/model/messageList',
+    'ko',
+    'mage/translate'
 ], function (
     Component,
     expressPay,
-    ko
+    messageList,
+    ko,
+    $t
 ) {
     'use strict';
 
@@ -35,7 +39,16 @@ define([
                     if (element) {
                         observer.disconnect();
                         window.paypal.Buttons({
-                            style: buttonStyles
+                            style: buttonStyles,
+                            async createOrder() {
+                                const response = await expressPay.createOrder();
+
+                                if (response !== undefined) {
+                                    return response[0];
+                                } else {
+                                    messageList.addErrorMessage({ message: $t('An error occurred while processing your payment. Please try again.') });
+                                }
+                            }
                         }).render(element);
                     }
                 });

@@ -82,7 +82,7 @@ define([
          *
          * @returns {Promise<*>}
          */
-        createOrder: function () {
+        createOrder: async function () {
             let url = 'rest/V1/express_pay/order/create';
             const gatewayId = this.expressGatewayId;
 
@@ -91,7 +91,7 @@ define([
             }
 
             try {
-                return platformClient.post(
+                return await platformClient.post(
                     url,
                     {
                         quoteMaskId: window.checkoutConfig.quoteData.entity_id,

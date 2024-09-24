@@ -89,6 +89,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'epsAuthToken' => $epsAuthToken,
                 'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
                 'epsUrl' => $this->config->getEpsUrl($websiteId),
+                'epsStaticUrl' => 'https://static-eps.secure.staging.boldcommerce.com',
                 'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
@@ -99,34 +100,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'paymentBooster' => [
                     'payment' => [
-                        'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
                         'method' => 'bold',
                     ],
                 ],
             ],
         ];
-    }
-
-    /**
-     * Get iframe src.
-     *
-     * @param string|null $publicOrderId
-     * @param string|null $jwtToken
-     * @param int $websiteId
-     * @return string|null
-     */
-    private function getIframeSrc(
-        ?string $publicOrderId,
-        ?string $jwtToken,
-        int $websiteId
-    ): ?string {
-        if (!$publicOrderId || !$jwtToken) {
-            return null;
-        }
-        return $this->getBoldStorefrontUrl(
-                $websiteId,
-                $publicOrderId
-            ) . 'payments/iframe?token=' . $jwtToken;
     }
 
     /**

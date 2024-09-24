@@ -58,11 +58,12 @@ class Update
 
     /**
      * @param string|int $quoteMaskId
+     * @param string $gatewayId
      * @param string $paypalOrderId
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $paypalOrderId): void
+    public function execute($quoteMaskId, $gatewayId, $paypalOrderId): void
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -85,14 +86,7 @@ class Update
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
-        $expressPayData = array_merge_recursive(
-            $this->quoteConverter->convertCustomer($quote),
-            $this->quoteConverter->convertShippingInformation($quote),
-            $this->quoteConverter->convertQuoteItems($quote),
-            $this->quoteConverter->convertTotal($quote),
-            $this->quoteConverter->convertTaxes($quote),
-            $this->quoteConverter->convertDiscount($quote)
-        );
+        $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
 
         try {
             $result = $this->httpClient->patch($websiteId, $uri, $expressPayData);

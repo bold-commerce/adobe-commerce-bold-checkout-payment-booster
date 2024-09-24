@@ -48,7 +48,17 @@ define([
                                 } else {
                                     messageList.addErrorMessage({ message: $t('An error occurred while processing your payment. Please try again.') });
                                 }
-                            }
+                            },
+                            async onShippingAddressChange(data, actions) {
+                                expressPay.updateQuoteShippingAddress(data['shippingAddress']);
+
+                                try {
+                                    await expressPay.updateOrder(data['orderID']);
+                                    return actions.resolve();
+                                } catch (e) {
+                                    return action.reject(data.errors.ADDRESS_ERROR);
+                                }
+                            },
                         }).render(element);
                     }
                 });

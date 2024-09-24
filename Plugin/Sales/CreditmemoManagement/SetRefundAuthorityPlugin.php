@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Plugin\Sales\CreditmemoManagement;
 
+use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionData;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -25,13 +26,20 @@ class SetRefundAuthorityPlugin
     private $orderExtensionDataRepository;
 
     /**
+     * @var CheckPaymentMethod
+     */
+    private $checkPaymentMethod;
+
+    /**
      * @param OrderExtensionDataRepository $orderExtensionDataRepository
+     * @param CheckPaymentMethod $checkPaymentMethod
      */
     public function __construct(
-        OrderExtensionDataRepository $orderExtensionDataRepository
+        OrderExtensionDataRepository $orderExtensionDataRepository,
+        CheckPaymentMethod           $checkPaymentMethod
     ) {
-
         $this->orderExtensionDataRepository = $orderExtensionDataRepository;
+        $this->checkPaymentMethod = $checkPaymentMethod;
     }
 
     /**
@@ -49,6 +57,10 @@ class SetRefundAuthorityPlugin
         CreditmemoInterface           $creditmemo,
                                       $offlineRequested = false
     ): void {
+        $order = $creditmemo->getOrder();
+        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            return;
+        }
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$creditmemo->getOrderId());
         if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Order public id is not set.'));

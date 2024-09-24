@@ -54,9 +54,8 @@ define([
 
                                 try {
                                     await expressPay.updateOrder(data['orderID']);
-                                    return actions.resolve();
                                 } catch (e) {
-                                    return action.reject(data.errors.ADDRESS_ERROR);
+                                    return actions.reject(data.errors.ADDRESS_ERROR);
                                 }
                             },
                         }).render(element);

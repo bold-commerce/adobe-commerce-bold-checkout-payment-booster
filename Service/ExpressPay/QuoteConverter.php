@@ -124,7 +124,7 @@ class QuoteConverter
 
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
-        $shippingRates = array_filter(
+        $shippingRates = array_values(array_filter(
             $shippingAddress->getShippingRatesCollection()->getItems(),
             // @phpstan-ignore argument.type
             static function (Rate $rate) use (&$usedRateCodes): bool {
@@ -136,7 +136,7 @@ class QuoteConverter
 
                 return true;
             }
-        ); // Work-around for Magento bug causing duplicated shipping rates
+        )); // Work-around for Magento bug causing duplicated shipping rates
 
         $convertedQuote = [
             'order_data' => [

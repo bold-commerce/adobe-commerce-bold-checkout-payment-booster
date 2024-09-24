@@ -1,9 +1,15 @@
 define([
     'jquery',
-    'Bold_CheckoutPaymentBooster/js/model/platform-client'
+    'Bold_CheckoutPaymentBooster/js/model/platform-client',
+    'Magento_Checkout/js/model/address-converter',
+    'Magento_Checkout/js/model/quote',
+    'Magento_Customer/js/customer-data'
 ], function (
     $,
-    platformClient
+    platformClient,
+    addressConverter,
+    quote,
+    customerData
 ) {
     'use strict';
 
@@ -101,6 +107,70 @@ define([
             } catch (e) {
                 console.error(e);
             }
+        },
+
+        /**
+         * Update express pay order
+         *
+         * @returns {Promise<*>}
+         */
+        updateOrder: async function (orderId) {
+            let url = 'rest/V1/express_pay/order/update';
+
+            return new Promise ((resolve, reject) => {
+                platformClient.post(
+                    url,
+                    {
+                        quoteMaskId: window.checkoutConfig.quoteData.entity_id,
+                        gatewayId: this.expressGatewayId,
+                        paypalOrderId: orderId
+                    }
+                ).done(() => resolve()).fail(() => reject());
+            });
+        },
+
+        /**
+         * Update quote shipping address
+         *
+         * @param addressData
+         */
+        updateQuoteShippingAddress: function(addressData) {
+            const directoryData = customerData.get('directory-data');
+            let regions;
+
+            try {
+                regions = directoryData()[addressData['countryCode']].regions;
+            } catch (e) {
+                regions = null;
+            }
+
+            let regionId = null;
+            let regionName = null;
+            if (regions !== null) {
+                Object.entries(regions).forEach(([key, value]) => {
+                    if (value.code === addressData['state']) {
+                        regionId = key;
+                        regionName = value.name;
+                    }
+                });
+            }
+
+            let newAddress = addressConverter.formAddressDataToQuoteAddress({
+                address_type: 'shipping',
+                city: addressData['city'],
+                region: {
+                    region: regionName,
+                    region_code: addressData['postalCode'],
+                    region_id: regionId
+                },
+                region_id: regionId,
+                postcode: addressData['postalCode'],
+                country_id: addressData['countryCode'],
+                customerAddressId: null,
+                saveInAddressBook: false
+            });
+
+            quote.shippingAddress(newAddress);
         }
     };
 });

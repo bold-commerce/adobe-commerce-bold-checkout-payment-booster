@@ -13,15 +13,20 @@ use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\CreateCreditMemo;
 use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\CreateInvoice;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
+/**
+ * Update payments.
+ */
 class UpdatePayments implements UpdatePaymentsInterface
 {
     private const FINANCIAL_STATUS_PAID = 'paid';
     private const FINANCIAL_STATUS_REFUNDED = 'refunded';
+    private const FINANCIAL_STATUS_PARTIALLY_REFUNDED = 'partially_refunded';
     private const FINANCIAL_STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -132,12 +137,14 @@ class UpdatePayments implements UpdatePaymentsInterface
     }
 
     /**
-     * TODO
+     * Process update based on financial status.
      *
      * @param OrderInterface $order
+     * @param OrderExtensionData $orderExtensionData
      * @param string $financialStatus
      * @return void
      * @throws LocalizedException
+     * @throws AlreadyExistsException
      */
     private function processUpdate(OrderInterface $order, OrderExtensionData $orderExtensionData, string $financialStatus): void
     {
@@ -149,6 +156,7 @@ class UpdatePayments implements UpdatePaymentsInterface
                 }
                 break;
             case self::FINANCIAL_STATUS_REFUNDED:
+            case self::FINANCIAL_STATUS_PARTIALLY_REFUNDED:
                 if ($orderExtensionData->getRefundAuthority() !== OrderExtensionData::AUTHORITY_LOCAL) {
                     $this->createCreditMemo->execute($order);
                     $orderExtensionData->setRefundAuthority(OrderExtensionData::AUTHORITY_REMOTE);

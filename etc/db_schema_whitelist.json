@@ -34,6 +34,8 @@
     "column": {
       "id": true,
       "quote_id": true,
+      "public_id": true,
+      "flow_settings": true,
       "order_created": true
     },
     "constraint": {

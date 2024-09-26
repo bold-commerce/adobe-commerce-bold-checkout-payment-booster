@@ -11,8 +11,8 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
     'Bold_CheckoutPaymentBooster/js/action/reload-cart-action',
+    'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
     'Bold_CheckoutPaymentBooster/js/model/address',
-    'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client'
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -26,8 +26,8 @@ define([
     fastlane,
     hydrateOrderAction,
     reloadCartAction,
+    createOrderAction,
     addressModel,
-    boldFrontendClient
 ) {
     'use strict';
     return DefaultPaymentComponent.extend({
@@ -91,8 +91,7 @@ define([
                     {
                         'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
                         'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        // TODO
-                        'currency': 'USD',
+                        'currency': quote.totals()['base_currency_code'],
                     }
                 ],
                 'callbacks': {
@@ -100,10 +99,7 @@ define([
                         if (paymentType !== 'ppcp') {
                             return;
                         }
-                        const walletPayResult = await boldFrontendClient.post(
-                            'wallet_pay/create_order',
-                            paymentPayload
-                        );
+                        const walletPayResult = await createOrderAction(paymentPayload);
                         if (walletPayResult.errors) {
                             return Promise.reject('An error occurred while processing your payment. Please try again.');
                         }

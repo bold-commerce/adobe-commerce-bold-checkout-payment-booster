@@ -19,6 +19,7 @@
     <type name="Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote">
         <arguments>
             <argument name="orderDataProcessors" xsi:type="array">
+                <item name="quote_extension_data" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\SaveQuoteExtensionData</item>
                 <item name="payment_booster" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsPaymentBooster</item>
                 <item name="fastlane" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsFastlane</item>
             </argument>

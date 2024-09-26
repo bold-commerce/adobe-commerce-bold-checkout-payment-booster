@@ -5,7 +5,7 @@ namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
 use Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\IsPaymentBoosterAvailable;
-use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler;
+use Bold\CheckoutPaymentBooster\Model\ResumeOrderFromQuote;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Event\Observer;
@@ -28,6 +28,11 @@ class InitializeBoldOrderObserver implements ObserverInterface
     private $initOrderFromQuote;
 
     /**
+     * @var ResumeOrderFromQuote
+     */
+    private $resumeOrderFromQuote;
+
+    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -40,17 +45,20 @@ class InitializeBoldOrderObserver implements ObserverInterface
     /**
      * @param Session $session
      * @param InitOrderFromQuote $initOrderFromQuote
+     * @param ResumeOrderFromQuote $resumeOrderFromQuote
      * @param LoggerInterface $logger
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      */
     public function __construct(
-        Session $session,
-        InitOrderFromQuote $initOrderFromQuote,
-        LoggerInterface $logger,
+        Session                   $session,
+        InitOrderFromQuote        $initOrderFromQuote,
+        ResumeOrderFromQuote      $resumeOrderFromQuote,
+        LoggerInterface           $logger,
         IsPaymentBoosterAvailable $isPaymentBoosterAvailable
     ) {
         $this->session = $session;
         $this->initOrderFromQuote = $initOrderFromQuote;
+        $this->resumeOrderFromQuote = $resumeOrderFromQuote;
         $this->logger = $logger;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
     }
@@ -66,7 +74,10 @@ class InitializeBoldOrderObserver implements ObserverInterface
             if (!$this->isPaymentBoosterAvailable->isAvailable()) {
                 return;
             }
-            $checkoutData = $this->initOrderFromQuote->init($quote);
+            $checkoutData = $this->resumeOrderFromQuote->resume($quote);
+            if (!$checkoutData) {
+                $checkoutData = $this->initOrderFromQuote->init($quote);
+            }
             $this->session->setBoldCheckoutData($checkoutData);
         } catch (Exception $exception) {
             $this->logger->critical($exception);

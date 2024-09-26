@@ -22,7 +22,6 @@ use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowManager;
  */
 class SaveShopDataObserver implements ObserverInterface
 {
-    private const FLOW_CREATE_URL = 'checkout/shop/{shop_identifier}/flows';
     /**
      * @var Config
      */

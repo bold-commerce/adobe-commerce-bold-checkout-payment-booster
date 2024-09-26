@@ -137,8 +137,13 @@ class SaveShopDataObserver implements ObserverInterface
         if (!$defaultFlowId) {
             try {
                 $this->flowManager->createAndSetDefaultFlowID($websiteId);
+            } catch (LocalizedException $e) {
+                throw $e;
             } catch (Exception $e) {
-                throw new LocalizedException($e->getMessage());
+                throw new LocalizedException(
+                    __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.'),
+                    $e
+                );
             }
         }
     }

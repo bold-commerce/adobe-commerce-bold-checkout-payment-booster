@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model\PaymentBooster;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Exception;
 
 class FlowManager {
     private const FLOW_CREATE_URL = 'checkout/shop/{shop_identifier}/flows';
@@ -51,6 +52,7 @@ class FlowManager {
             'flow_type' => self::DEFAULT_FLOW_TYPE,
         ];
         $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
+
         if ($result->getErrors()) {
             $message = isset(current($result->getErrors())['message'])
                 ? __(current($result->getErrors())['message'])

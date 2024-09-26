@@ -6,9 +6,13 @@ namespace Bold\CheckoutPaymentBooster\Model\Payment;
 
 use Magento\Framework\Exception\LocalizedException;
 
+/**
+ * Validate authorization response.
+ */
 class ValidateAuthorizationResponse
 {
     /**
+     * Validate authorization response.
      * TODO: rework if needed.
      *
      * @throws LocalizedException

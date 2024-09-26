@@ -1,17 +1,17 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Quote;
 
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Quote\QuoteExtensionData as QuoteExtensionDataResource;
 use Exception;
-use Magento\Framework\Serialize\SerializerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Set quote extension data.
+ * Get quote extension data.
  */
-class SetQuoteExtensionData
+class GetQuoteExtensionData
 {
     /**
      * @var QuoteExtensionDataFactory
@@ -24,11 +24,6 @@ class SetQuoteExtensionData
     private $quoteExtensionDataResource;
 
     /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @var LoggerInterface
      */
     private $logger;
@@ -39,25 +34,22 @@ class SetQuoteExtensionData
      * @param LoggerInterface $logger
      */
     public function __construct(
-        QuoteExtensionDataFactory $quoteExtensionDataFactory,
+        QuoteExtensionDataFactory  $quoteExtensionDataFactory,
         QuoteExtensionDataResource $quoteExtensionDataResource,
-        SerializerInterface $serializer,
-        LoggerInterface $logger
+        LoggerInterface            $logger
     ) {
         $this->quoteExtensionDataFactory = $quoteExtensionDataFactory;
         $this->quoteExtensionDataResource = $quoteExtensionDataResource;
-        $this->serializer = $serializer;
         $this->logger = $logger;
     }
 
     /**
-     * Set quote extension data.
+     * Get quote extension data.
      *
      * @param int $quoteId
-     * @param array $data
-     * @return void
+     * @return QuoteExtensionData
      */
-    public function execute(int $quoteId, array $data): void
+    public function execute(int $quoteId): ?QuoteExtensionData
     {
         try {
             $quoteExtensionData = $this->quoteExtensionDataFactory->create();
@@ -66,18 +58,12 @@ class SetQuoteExtensionData
                 $quoteId,
                 QuoteExtensionDataResource::QUOTE_ID
             );
-            if (!$quoteExtensionData->getId()) {
-                $quoteExtensionData->setQuoteId($quoteId);
-            }
-            foreach ($data as $key => $value) {
-                if (is_array($value)) {
-                    $value = $this->serializer->serialize($value);
-                }
-                $quoteExtensionData->setData($key, $value);
-            }
-            $this->quoteExtensionDataResource->save($quoteExtensionData);
+
+            return $quoteExtensionData->getQuoteId() ? $quoteExtensionData : null;
         } catch (Exception $e) {
             $this->logger->error($e->getMessage());
         }
+
+        return null;
     }
 }

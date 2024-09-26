@@ -83,7 +83,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         if ($publicOrderId === null || $jwtToken === null) {
             return [];
         }
-        $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
         return [
             'bold' => [
                 'epsAuthToken' => $epsAuthToken,
@@ -96,7 +95,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'shopId' => $shopId,
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
-                'alternativePaymentMethods' => $alternativePaymentMethods,
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'paymentBooster' => [
                     'payment' => [

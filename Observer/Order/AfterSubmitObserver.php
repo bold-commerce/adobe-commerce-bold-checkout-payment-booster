@@ -16,7 +16,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
- * TODO
+ * Authorize Bold payments before placing order.
  */
 class AfterSubmitObserver implements ObserverInterface
 {
@@ -48,6 +48,7 @@ class AfterSubmitObserver implements ObserverInterface
     /**
      * @param Session $session
      * @param SetCompleteState $setCompleteState
+     * @param CheckPaymentMethod $checkPaymentMethod
      * @param OrderExtensionDataFactory $orderExtensionDataFactory
      * @param OrderExtensionDataResource $orderExtensionDataResource
      */
@@ -57,8 +58,7 @@ class AfterSubmitObserver implements ObserverInterface
         CheckPaymentMethod         $checkPaymentMethod,
         OrderExtensionDataFactory  $orderExtensionDataFactory,
         OrderExtensionDataResource $orderExtensionDataResource
-    )
-    {
+    ) {
         $this->session = $session;
         $this->orderExtensionDataFactory = $orderExtensionDataFactory;
         $this->orderExtensionDataResource = $orderExtensionDataResource;

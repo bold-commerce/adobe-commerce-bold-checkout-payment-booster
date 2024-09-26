@@ -28,6 +28,8 @@
     <table name="bold_checkout_payment_booster_quote" resource="default" engine="innodb" comment="Bold Checkout Quote Additional Data">
         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true" comment="ID"/>
         <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" identity="false" comment="Magento Quote ID"/>
+        <column xsi:type="varchar" name="public_id" nullable="true" length="255" comment="Bold Order Public ID"/>
+        <column xsi:type="varchar" name="flow_settings" nullable="true" comment="Bold Order Flow Settings"/>
         <column xsi:type="smallint" name="order_created" default="0" comment="Magento Order Should Be Created On Magento Side"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>

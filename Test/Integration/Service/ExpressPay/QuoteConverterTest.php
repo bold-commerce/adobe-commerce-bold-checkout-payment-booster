@@ -23,7 +23,7 @@ class QuoteConverterTest extends TestCase
 {
     /**
      * @phpcs:disable Generic.Files.LineLength.TooLong
-     * @magentoConfigFixture current_store checkout/cart/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
+     * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
      * @phpcs:enable Generic.Files.LineLength.TooLong
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */

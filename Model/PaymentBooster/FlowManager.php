@@ -7,7 +7,6 @@ namespace Bold\CheckoutPaymentBooster\Model\PaymentBooster;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Exception;
 
 class FlowManager {
     private const FLOW_CREATE_URL = 'checkout/shop/{shop_identifier}/flows';

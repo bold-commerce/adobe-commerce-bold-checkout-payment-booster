@@ -96,7 +96,7 @@ class SaveShopDataObserver implements ObserverInterface
         $event = $observer->getEvent();
         $websiteId = (int)$event->getWebsite() ?: (int)$this->storeManager->getWebsite(true)->getId();
         $this->saveShopId($websiteId);
-        // $this->saveSharedSecret($websiteId);
+        $this->saveSharedSecret($websiteId);
         $this->getOrCreatePaymentBoosterFlowID($websiteId);
     }
 

@@ -75,7 +75,7 @@ class InitOrderFromQuote
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $flowId = $this->config->getPaymentBoosterFlowID($websiteId);
         if (!$flowId) {
-            $this->flowManager->createAndSetPaymentBoosterFlowID($websiteId);
+            $this->flowManager->createAndSetBoldBoosterFlowID($websiteId);
         }
         $body = [
             'flow_id' => $flowId,

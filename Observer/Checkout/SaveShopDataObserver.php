@@ -135,7 +135,7 @@ class SaveShopDataObserver implements ObserverInterface
         $defaultFlowId = $this->config->getPaymentBoosterFlowID($websiteId);
         if (!$defaultFlowId) {
             try {
-                $this->flowManager->createAndSetPaymentBoosterFlowID($websiteId);
+                $this->flowManager->createAndSetBoldBoosterFlowID($websiteId);
             } catch (LocalizedException $e) {
                 throw $e;
             } catch (Exception $e) {

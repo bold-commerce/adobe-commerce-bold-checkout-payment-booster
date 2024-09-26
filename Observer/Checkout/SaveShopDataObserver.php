@@ -15,7 +15,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
-use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowManager;
+use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 
 /**
  * Save shop Id and register shared secret when checkout configuration is saved.
@@ -53,9 +53,9 @@ class SaveShopDataObserver implements ObserverInterface
     private $boldClient;
 
     /**
-     * @var FlowManager
+     * @var FlowService
      */
-    private $flowManager;
+    private $FlowService;
     /**
      * @param Config $config
      * @param ShopId $shopId
@@ -63,7 +63,7 @@ class SaveShopDataObserver implements ObserverInterface
      * @param GenerateSharedSecret $generateSharedSecret
      * @param RegisterSharedSecret $registerSharedSecret
      * @param BoldClient $boldClient
-     * @param FlowManager $flowManager
+     * @param FlowService $FlowService
      */
     public function __construct(
         Config                $config,
@@ -72,7 +72,7 @@ class SaveShopDataObserver implements ObserverInterface
         GenerateSharedSecret  $generateSharedSecret,
         RegisterSharedSecret  $registerSharedSecret,
         BoldClient            $boldClient,
-        FlowManager           $flowManager
+        FlowService           $FlowService
     ) {
         $this->config = $config;
         $this->shopId = $shopId;
@@ -80,7 +80,7 @@ class SaveShopDataObserver implements ObserverInterface
         $this->generateSharedSecret = $generateSharedSecret;
         $this->registerSharedSecret = $registerSharedSecret;
         $this->boldClient = $boldClient;
-        $this->flowManager = $flowManager;
+        $this->FlowService = $FlowService;
     }
 
     /**

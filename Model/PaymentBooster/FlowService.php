@@ -8,8 +8,8 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Bold\CheckoutPaymentBooster\Model\Config;
 
-class FlowManager {
-    private const FLOW_CREATE_URL = 'checkout/shop/{shop_identifier}/flows';
+class FlowService {
+    private const FLOW_CREATE_URL = 'checkout/shop/{{shopId}}/flows';
     private const DEFAULT_FLOW_NAME = 'Bold Booster for Paypal';
     private const DEFAULT_FLOW_ID = 'bold-booster-m2';
     private const DEFAULT_FLOW_TYPE = 'custom';
@@ -43,7 +43,7 @@ class FlowManager {
      * @return string
      * @throws LocalizedException
      */
-    public function createAndSetBoldBoosterFlowID(int $websiteId): void
+    public function createAndSetBoldBoosterFlowID(int $websiteId): string
     {
         $body = [
             'flow_name' => self::DEFAULT_FLOW_NAME,
@@ -62,6 +62,7 @@ class FlowManager {
         if (!$flowId) {
             throw new LocalizedException(__('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.'));
         }
-        $this->config->setPaymentBoosterFlowID($websiteId, $flowId);
+        $this->config->setBoldBoosterFlowID($websiteId, $flowId);
+        return $flowId;
     }
 }

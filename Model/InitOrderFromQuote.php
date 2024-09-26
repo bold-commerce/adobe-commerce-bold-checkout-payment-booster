@@ -10,7 +10,7 @@ use Exception;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\Data\CartInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowManager;
+use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 
 /**
  * Init Bold order from quote.
@@ -33,10 +33,10 @@ class InitOrderFromQuote
      */
     private $json;
 
-      /**
-     * @var FlowManager
+    /**
+     * @var FlowService
      */
-    private $flowManager;
+    private $FlowService;
 
     /**
      * @var OrderDataProcessorInterface[]
@@ -53,13 +53,13 @@ class InitOrderFromQuote
         Config $config,
         BoldClient $client,
         Json $json,
-        FlowManager $flowManager,
+        FlowService $FlowService,
         array $orderDataProcessors = []
     ) {
         $this->config = $config;
         $this->client = $client;
         $this->json = $json;
-        $this->flowManager = $flowManager;
+        $this->FlowService = $FlowService;
         $this->orderDataProcessors = $orderDataProcessors;
     }
 

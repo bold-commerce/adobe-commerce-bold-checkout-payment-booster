@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 declare(strict_types=1);
 
@@ -8,7 +8,8 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Bold\CheckoutPaymentBooster\Model\Config;
 
-class FlowService {
+class FlowService
+{
     private const FLOW_CREATE_URL = 'checkout/shop/{{shopId}}/flows';
     private const DEFAULT_FLOW_NAME = 'Bold Booster for Paypal';
     private const DEFAULT_FLOW_ID = 'bold-booster-m2';

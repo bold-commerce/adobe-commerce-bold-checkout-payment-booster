@@ -73,9 +73,9 @@ class InitOrderFromQuote
     public function init(CartInterface $quote): array
     {
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        $flowId = $this->config->getPaymentBoosterFlowID($websiteId);
+        $flowId = $this->config->getBoldBoosterFlowID($websiteId);
         if (!$flowId) {
-            $this->flowManager->createAndSetBoldBoosterFlowID($websiteId);
+            $flowId = $this->FlowService->createAndSetBoldBoosterFlowID($websiteId);
         }
         $body = [
             'flow_id' => $flowId,

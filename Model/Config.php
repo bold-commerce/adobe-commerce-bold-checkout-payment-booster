@@ -221,7 +221,7 @@ class Config
             $websiteId
         );
     }
-    public function setPaymentBoosterFlowID(int $websiteId, string $flowID): void
+    public function setBoldBoosterFlowID(int $websiteId, string $flowID): void
     {
         $this->configWriter->save(
             self::PATH_BOLD_BOOSTER_FLOW_ID,
@@ -231,7 +231,7 @@ class Config
         );
     }
 
-    public function getPaymentBoosterFlowID(int $websiteId): ?string
+    public function getBoldBoosterFlowID(int $websiteId): ?string
     {
         return $this->scopeConfig->getValue(
             self::PATH_BOLD_BOOSTER_FLOW_ID,

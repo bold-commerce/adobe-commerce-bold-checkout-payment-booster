@@ -24,7 +24,7 @@ class Config
     private const PATH_INTEGRATION_API_URL = 'checkout/bold_checkout_payment_booster_advanced/api_url';
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
-    private const PATH_PAYMENT_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/default_flow_id';
+    private const PATH_PAYMENT_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/payment_booster_flow_id';
 
     /**
      * @var ScopeConfigInterface
@@ -221,7 +221,7 @@ class Config
             $websiteId
         );
     }
-    public function setPaymentBoosterFlowID(int $websiteId, ?string $flowID): void
+    public function setPaymentBoosterFlowID(int $websiteId, string $flowID): void
     {
         $this->configWriter->save(
             self::PATH_PAYMENT_BOOSTER_FLOW_ID,

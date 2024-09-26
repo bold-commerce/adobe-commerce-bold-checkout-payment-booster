@@ -43,7 +43,7 @@ class FlowManager {
      * @return string
      * @throws LocalizedException
      */
-    public function createAndSetDefaultFlowID(int $websiteId): void
+    public function createAndSetPaymentBoosterFlowID(int $websiteId): void
     {
         $body = [
             'flow_name' => self::DEFAULT_FLOW_NAME,

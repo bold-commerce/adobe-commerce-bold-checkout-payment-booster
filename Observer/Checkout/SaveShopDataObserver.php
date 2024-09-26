@@ -123,19 +123,27 @@ class SaveShopDataObserver implements ObserverInterface
     {
         $defaultFlowId = $this->config->getPaymentBoosterFlowID($websiteId);
         if (!$defaultFlowId) {
-            $body = [
-                'flow_name' => 'Bold Booster for Paypal',
-                'flow_id' => 'bold-booster-m2',
-                'flow_type' => 'custom'
-            ];
-            $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
-            if ($result->getErrors()) {
-                $message = isset(current($result->getErrors())['message'])
-                    ? __(current($result->getErrors())['message'])
-                    : __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.');
-                throw new LocalizedException($message);
+            try {
+                $this->createAndSetDefaultFlowID($websiteId);
+            } catch (Exception $e) {
+                throw new LocalizedException($e->getMessage());
             }
-            $this->config->setPaymentBoosterFlowID($websiteId, $result->getBody()['data']['flows'][0]['flow_id']);
         }
+    }
+    private function createAndSetDefaultFlowID(int $websiteId): void
+    {
+        $body = [
+            'flow_name' => 'Bold Booster for Paypal',
+            'flow_id' => 'bold-booster-m2',
+            'flow_type' => 'custom'
+        ];
+        $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
+        if ($result->getErrors()) {
+            $message = isset(current($result->getErrors())['message'])
+                ? __(current($result->getErrors())['message'])
+                : __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.');
+            throw new LocalizedException($message);
+        }
+        $this->config->setPaymentBoosterFlowID($websiteId, $result->getBody()['data']['flows'][0]['flow_id']);
     }
 }

@@ -13,12 +13,14 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 
 /**
  * Save shop Id and register shared secret when checkout configuration is saved.
  */
 class SaveShopDataObserver implements ObserverInterface
 {
+    private const FLOW_CREATE_URL = 'checkout/shop/{shop_identifier}/flows';
     /**
      * @var Config
      */
@@ -45,24 +47,31 @@ class SaveShopDataObserver implements ObserverInterface
     private $registerSharedSecret;
 
     /**
+     * @var BoldClient
+     */
+    private $boldClient;
+    /**
      * @param Config $config
      * @param ShopId $shopId
      * @param StoreManagerInterface $storeManager
      * @param GenerateSharedSecret $generateSharedSecret
      * @param RegisterSharedSecret $registerSharedSecret
+     * @param BoldClient $boldClient
      */
     public function __construct(
         Config                $config,
         ShopId                $shopId,
         StoreManagerInterface $storeManager,
         GenerateSharedSecret  $generateSharedSecret,
-        RegisterSharedSecret  $registerSharedSecret
+        RegisterSharedSecret  $registerSharedSecret,
+        BoldClient            $boldClient
     ) {
         $this->config = $config;
         $this->shopId = $shopId;
         $this->storeManager = $storeManager;
         $this->generateSharedSecret = $generateSharedSecret;
         $this->registerSharedSecret = $registerSharedSecret;
+        $this->boldClient = $boldClient;
     }
 
     /**
@@ -78,6 +87,7 @@ class SaveShopDataObserver implements ObserverInterface
         $websiteId = (int)$event->getWebsite() ?: (int)$this->storeManager->getWebsite(true)->getId();
         $this->saveShopId($websiteId);
         $this->saveSharedSecret($websiteId);
+        $this->getOrCreatePaymentBoosterFlowID($websiteId);
     }
 
     /**
@@ -107,5 +117,25 @@ class SaveShopDataObserver implements ObserverInterface
             $this->config->setSharedSecret($websiteId, $sharedSecret);
         }
         $this->registerSharedSecret->execute($websiteId, $sharedSecret);
+    }
+
+    private function getOrCreatePaymentBoosterFlowID(int $websiteId): void
+    {
+        $defaultFlowId = $this->config->getPaymentBoosterFlowID($websiteId);
+        if (!$defaultFlowId) {
+            $body = [
+                'flow_name' => 'Bold Booster for Paypal',
+                'flow_id' => 'bold-booster-m2',
+                'flow_type' => 'custom'
+            ];
+            $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
+            if ($result->getErrors()) {
+                $message = isset(current($result->getErrors())['message'])
+                    ? __(current($result->getErrors())['message'])
+                    : __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.');
+                throw new LocalizedException($message);
+            }
+            $this->config->setPaymentBoosterFlowID($websiteId, $result->getBody()['data']['flows'][0]['flow_id']);
+        }
     }
 }

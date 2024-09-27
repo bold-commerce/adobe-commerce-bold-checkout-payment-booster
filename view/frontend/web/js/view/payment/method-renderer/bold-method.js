@@ -3,6 +3,8 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'Magento_Customer/js/customer-data',
+    'Magento_Checkout/js/action/select-shipping-address',
+    'Magento_Checkout/js/action/get-totals',
     'checkoutData',
     'underscore',
     'ko',
@@ -12,12 +14,15 @@ define([
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
     'Bold_CheckoutPaymentBooster/js/action/reload-cart-action',
     'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
-    'Bold_CheckoutPaymentBooster/js/model/address',
+    'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
+    'Bold_CheckoutPaymentBooster/js/model/address'
 ], function (
     DefaultPaymentComponent,
     quote,
     fullscreenLoader,
     customerData,
+    selectShippingAddressAction,
+    getTotalsAction,
     checkoutData,
     _,
     ko,
@@ -27,6 +32,7 @@ define([
     hydrateOrderAction,
     reloadCartAction,
     createOrderAction,
+    convertBoldAddressAction,
     addressModel,
 ) {
     'use strict';
@@ -95,7 +101,7 @@ define([
                     }
                 ],
                 'callbacks': {
-                    'onCreatePaymentOrder': async function (paymentType, paymentPayload) {
+                    'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
                         if (paymentType !== 'ppcp') {
                             return;
                         }
@@ -108,7 +114,26 @@ define([
                         } else {
                             throw 'Unable to create order';
                         }
-                    }
+                    },
+                    'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (paymentType !== 'ppcp') {
+                            return;
+                        }
+                        const addressData = paymentPayload?.payment_data?.shipping_address ?? null;
+                        if (!addressData) {
+                            return;
+                        }
+                        const address = convertBoldAddressAction(addressData);
+                        selectShippingAddressAction(address);
+                        checkoutData.setSelectedShippingAddress(address.getKey());
+                        getTotalsAction([]);
+                    },
+                    'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (paymentType !== 'ppcp') {
+                            return;
+                        }
+                        this.placeOrder({}, jQuery.Event());
+                    },
                 }
             };
             const boldPayments = new window.bold.Payments(initialData);
@@ -150,6 +175,10 @@ define([
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
             const callback = this._super.bind(this);
+            if (this.paymentId) {
+                callback(data, event);
+                return;
+            }
             this.tokenize()
             this.paymentId.subscribe((id) => {
                 if (id != null) {

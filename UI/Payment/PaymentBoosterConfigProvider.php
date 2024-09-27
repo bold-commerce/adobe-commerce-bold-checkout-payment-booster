@@ -88,7 +88,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'epsAuthToken' => $epsAuthToken,
                 'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
                 'epsUrl' => $this->config->getEpsUrl($websiteId),
-                'epsStaticUrl' => 'https://static-eps.secure.staging.boldcommerce.com',
+                'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),

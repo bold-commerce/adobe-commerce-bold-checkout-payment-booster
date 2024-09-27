@@ -62,7 +62,12 @@
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold EPS URL. Do not change.]]></comment>
                 </field>
-                <field id="log_enabled" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1">
+                <field id="static_eps_url" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1">
+                    <label>Static EPS URL</label>
+                    <validate>required-url</validate>
+                    <comment><![CDATA[Bold static EPS URL. Do not change.]]></comment>
+                </field>
+                <field id="log_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
                     <label>Enable Bold Checkout Requests Log</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>

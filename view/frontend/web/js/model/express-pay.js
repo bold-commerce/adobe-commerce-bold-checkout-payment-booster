@@ -1,15 +1,21 @@
 define([
     'jquery',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
+    'Magento_Checkout/js/action/set-shipping-information',
     'Magento_Checkout/js/model/address-converter',
     'Magento_Checkout/js/model/quote',
-    'Magento_Customer/js/customer-data'
+    'Magento_Checkout/js/model/shipping-service',
+    'Magento_Customer/js/customer-data',
+    'Magento_Checkout/js/action/select-shipping-method'
 ], function (
     $,
     platformClient,
+    setShippingInformationAction,
     addressConverter,
     quote,
-    customerData
+    shippingService,
+    customerData,
+    selectShippingMethodAction
 ) {
     'use strict';
 
@@ -21,6 +27,8 @@ define([
     return {
         expressGatewayData: null,
         expressGatewayId: null,
+        expressOrderId: null,
+        monitoringShippingRates: false,
 
         /**
          * Check if PPCP is configured.
@@ -81,6 +89,8 @@ define([
             });
             this.expressGatewayId = Object.keys(gatewayData).find((gateway) => gatewayData[gateway].type === 'ppcp') ?? null;
             this.expressGatewayData = this.expressGatewayId ? gatewayData[this.expressGatewayId] : null;
+
+            // this.subscribeToShippingRates();
         },
 
         /**
@@ -96,14 +106,19 @@ define([
                 return;
             }
 
+            // this.subscribeToShippingRates();
+
             try {
-                return await platformClient.post(
+                let createOrderResponse =  await platformClient.post(
                     url,
                     {
                         quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                         gatewayId: gatewayId,
                     }
                 );
+
+                this.expressOrderId = createOrderResponse[0];
+                return createOrderResponse;
             } catch (e) {
                 console.error(e);
             }
@@ -115,6 +130,7 @@ define([
          * @returns {Promise<*>}
          */
         updateOrder: async function (orderId) {
+            console.log('UPDATE ORDER', quote.shippingMethod());
             let url = 'rest/V1/express_pay/order/update';
 
             return new Promise ((resolve, reject) => {
@@ -134,7 +150,7 @@ define([
          *
          * @param addressData
          */
-        updateQuoteShippingAddress: function(addressData) {
+        updateQuoteShippingAddress: async function(addressData) {
             const directoryData = customerData.get('directory-data');
             let regions;
 
@@ -160,17 +176,65 @@ define([
                 city: addressData['city'],
                 region: {
                     region: regionName,
-                    region_code: addressData['postalCode'],
+                    region_code: addressData['state'],
                     region_id: regionId
                 },
                 region_id: regionId,
                 postcode: addressData['postalCode'],
-                country_id: addressData['countryCode'],
-                customerAddressId: null,
-                saveInAddressBook: false
+                country_id: addressData['countryCode']
             });
 
             quote.shippingAddress(newAddress);
-        }
+            await setShippingInformationAction();
+        },
+
+        updateSelectedShippingMethod: async function (shippingMethod) {
+            console.log('UPDATE SELECTED SHIPPING METHOD', shippingMethod);
+            let availableMethods = null;
+
+            if (shippingMethod !== null) {
+                availableMethods = shippingService.getShippingRates().filter((method) => {
+                    let methodId = `${method.carrier_code}_${method.method_code}`;
+                    methodId = methodId.replace(/\s/g, '');
+
+                    return methodId === shippingMethod['id'];
+                });
+            } else {
+                availableMethods = shippingService.getShippingRates()[0];
+            }
+
+            console.log('AVAILABLE METHODS', availableMethods);
+
+            if (availableMethods.length > 0) {
+                quote.shippingMethod(availableMethods[0]);
+                selectShippingMethodAction(availableMethods[0]);
+                setShippingInformationAction();
+                await this.updateOrder(this.expressOrderId);
+                return new Promise.resolve();
+                // selectShippingMethodAction(availableMethods[0]);
+                // await setShippingInformationAction();
+            } else {
+                return new Promise.reject();
+            }
+        },
+
+        // subscribeToShippingRates: function () {
+        //     if (!this.monitoringShippingRates) {
+        //         this.monitoringShippingRates = true;
+        //         console.log('SETTING UP RATE MONITORING');
+        //         shippingService.getShippingRates().subscribe(async (rates) => {
+        //             console.log('RATES UPDATED', quote.shippingAddress(), rates);
+        //             let shippingAddress = quote.shippingAddress();
+        //             let hasRequiredAddressData = (
+        //                 shippingAddress.city !== null
+        //                 && shippingAddress.postcode !== null
+        //                 && shippingAddress.country_id !== null);
+        //             if (rates.length > 0 && hasRequiredAddressData) {
+        //                 quote.shippingMethod(rates[0]);
+        //                 await this.updateOrder(this.expressOrderId);
+        //             }
+        //         });
+        //     }
+        // }
     };
 });

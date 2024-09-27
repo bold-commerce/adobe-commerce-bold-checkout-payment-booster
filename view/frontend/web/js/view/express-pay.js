@@ -41,6 +41,7 @@ define([
                         window.paypal.Buttons({
                             style: buttonStyles,
                             async createOrder() {
+                                console.log('CREATE ORDER');
                                 const response = await expressPay.createOrder();
 
                                 if (response !== undefined) {
@@ -50,7 +51,8 @@ define([
                                 }
                             },
                             async onShippingAddressChange(data, actions) {
-                                expressPay.updateQuoteShippingAddress(data['shippingAddress']);
+                                console.log('SHIPPING ADDRESS CHANGE', data.shippingAddress);
+                                await expressPay.updateQuoteShippingAddress(data['shippingAddress']);
 
                                 try {
                                     await expressPay.updateOrder(data['orderID']);
@@ -58,6 +60,16 @@ define([
                                     return actions.reject(data.errors.ADDRESS_ERROR);
                                 }
                             },
+                            async onShippingOptionsChange(data, actions) {
+                                console.log('SHIPPING METHOD CHANGE', data);
+                                try {
+                                    await expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
+                                } catch (e) {
+                                    return actions.reject(data.errors.METHOD_UNAVAILABLE);
+                                }
+                                // await expressPay.updateOrder(data['orderID']);
+                                // return actions.resolve();
+                            }
                         }).render(element);
                     }
                 });

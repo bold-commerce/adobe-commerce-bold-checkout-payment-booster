@@ -44,7 +44,7 @@
                 <fastlane_payment_title>Credit card</fastlane_payment_title>
             </bold_checkout_payment_booster>
             <bold_checkout_payment_booster_advanced>
-                <api_url>https://api.staging.boldcommerce.com/</api_url>
+                <api_url>https://api.boldcommerce.com/</api_url>
                 <eps_url>https://eps.secure.boldcommerce.com/</eps_url>
                 <static_eps_url>https://static-eps.secure.boldcommerce.com</static_eps_url>
             </bold_checkout_payment_booster_advanced>

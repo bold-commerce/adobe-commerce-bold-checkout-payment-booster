@@ -116,17 +116,7 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (paymentType !== 'ppcp') {
-                            return;
-                        }
-                        const addressData = paymentPayload?.payment_data?.shipping_address ?? null;
-                        if (!addressData) {
-                            return;
-                        }
-                        const address = convertBoldAddressAction(addressData);
-                        selectShippingAddressAction(address);
-                        checkoutData.setSelectedShippingAddress(address.getKey());
-                        getTotalsAction([]);
+                        // Do nothing for now.
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
                         if (paymentType !== 'ppcp') {

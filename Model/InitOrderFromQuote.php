@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
@@ -8,6 +9,8 @@ use Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\OrderDataProcesso
 use Exception;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\Data\CartInterface;
+use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 
 /**
  * Init Bold order from quote.
@@ -15,11 +18,10 @@ use Magento\Quote\Api\Data\CartInterface;
 class InitOrderFromQuote
 {
     private const INIT_SIMPLE_ORDER_URI = '/checkout_sidekick/{{shopId}}/order';
-
     /**
-     * @var Flow
+     * @var Config
      */
-    private $flow;
+    private $config;
 
     /**
      * @var BoldClient
@@ -32,21 +34,32 @@ class InitOrderFromQuote
     private $json;
 
     /**
+     * @var FlowService
+     */
+    private $FlowService;
+
+    /**
      * @var OrderDataProcessorInterface[]
      */
     private $orderDataProcessors;
 
     /**
-     * @param Flow $flow
+     * @param Config $config
      * @param BoldClient $client
      * @param Json $json
      * @param array $orderDataProcessors
      */
-    public function __construct(Flow $flow, BoldClient $client, Json $json, array $orderDataProcessors = [])
-    {
-        $this->flow = $flow;
+    public function __construct(
+        Config $config,
+        BoldClient $client,
+        Json $json,
+        FlowService $FlowService,
+        array $orderDataProcessors = []
+    ) {
+        $this->config = $config;
         $this->client = $client;
         $this->json = $json;
+        $this->FlowService = $FlowService;
         $this->orderDataProcessors = $orderDataProcessors;
     }
 
@@ -59,8 +72,13 @@ class InitOrderFromQuote
      */
     public function init(CartInterface $quote): array
     {
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $flowId = $this->config->getBoldBoosterFlowID($websiteId);
+        if (!$flowId) {
+            $flowId = $this->FlowService->createAndSetBoldBoosterFlowID($websiteId);
+        }
         $body = [
-            'flow_id' => $this->flow->getCheckoutFlowId($quote),
+            'flow_id' => $flowId,
             'order_type' => 'simple_order',
             'cart_id' => $quote->getId(),
         ];

@@ -27,6 +27,7 @@ class Config
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
     private const PATH_CONFIGURATION_GROUP_LABEL = 'checkout/bold_checkout_payment_booster/configuration_group_label';
+    private const PATH_BOLD_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/bold_booster_flow_id';
 
     /**
      * @var ScopeConfigInterface
@@ -249,6 +250,24 @@ class Config
         $this->configWriter->save(
             self::PATH_SHARED_SECRET,
             $encryptedToken,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+    public function setBoldBoosterFlowID(int $websiteId, string $flowID): void
+    {
+        $this->configWriter->save(
+            self::PATH_BOLD_BOOSTER_FLOW_ID,
+            $flowID,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    public function getBoldBoosterFlowID(int $websiteId): ?string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_BOLD_BOOSTER_FLOW_ID,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

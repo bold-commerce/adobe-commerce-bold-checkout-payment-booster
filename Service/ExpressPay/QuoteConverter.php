@@ -8,13 +8,16 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Rate;
+use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
 
 use function array_filter;
 use function array_map;
+use function array_merge;
 use function array_merge_recursive;
 use function array_sum;
+use function array_values;
 use function ceil;
 use function in_array;
 use function number_format;
@@ -32,6 +35,10 @@ class QuoteConverter
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
+    /**
+     * @var bool
+     */
+    private $areTotalsCollected = false;
 
     public function __construct(ScopeConfigInterface $scopeConfig)
     {
@@ -190,13 +197,14 @@ class QuoteConverter
      */
     public function convertQuoteItems(Quote $quote): array
     {
-        if ($quote->getItems() === null) {
+        $quoteItems = $quote->getItems();
+
+        if ($quoteItems === null) {
             return [];
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        return [
+        $convertedQuote = [
             'order_data' => [
                 'items' => array_map(
                     static function (CartItemInterface $cartItem) use ($currencyCode): array {
@@ -219,7 +227,7 @@ class QuoteConverter
                             ),
                         ];
                     },
-                    $quote->getItems()
+                    $quoteItems
                 ),
                 'item_total' => [
                     'currency_code' => $currencyCode ?? '',
@@ -229,7 +237,7 @@ class QuoteConverter
                                 static function (CartItemInterface $cartItem) {
                                     return $cartItem->getPrice() * $cartItem->getQty();
                                 },
-                                $quote->getItems()
+                                $quoteItems
                             )
                         ),
                         2
@@ -237,6 +245,10 @@ class QuoteConverter
                 ]
             ]
         ];
+
+        $this->convertCustomTotals($quote, $convertedQuote);
+
+        return $convertedQuote;
     }
 
     /**
@@ -246,7 +258,11 @@ class QuoteConverter
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
 
-        $quote->collectTotals(); // Ensure that we have the correct grand total for the quote
+        if (!$this->areTotalsCollected) {
+            $quote->collectTotals(); // Ensure that we have the correct grand total for the quote
+
+            $this->areTotalsCollected = true;
+        }
 
         return [
             'order_data' => [
@@ -312,5 +328,72 @@ class QuoteConverter
                 ]
             ]
         ];
+    }
+
+    /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
+     * @phpcs:enable Generic.Files.LineLength.TooLong
+     */
+    private function convertCustomTotals(Quote $quote, array &$convertedQuote): void
+    {
+        if (!$this->areTotalsCollected) {
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
+        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $excludedTotals = ['subtotal', 'shipping', 'tax', 'grand_total'];
+        $customTotals = array_filter(
+            $quote->getTotals(),
+            static function (Total $total) use ($excludedTotals): bool {
+                return !in_array($total->getCode(), $excludedTotals);
+            }
+        );
+
+        if (count($customTotals) === 0) {
+            return;
+        }
+
+        $customTotalsValue = 0;
+        $totalItems = array_filter(
+            array_map(
+                static function (Total $total) use ($currencyCode, &$customTotalsValue): ?array {
+                    /** @var string|null $name */
+                    $name = $total->getData('title') ?? '';
+                    /** @var float|string|null $value */
+                    $value = $total->getData('value') ?? 0;
+
+                    if ((float)$value === 0.00) {
+                        return null;
+                    }
+
+                    $customTotalsValue += (float)$value;
+
+                    return [
+                        'name' => $name,
+                        'sku' => $total->getCode() ?? '',
+                        'unit_amount' => [
+                            'currency_code' => $currencyCode ?? '',
+                            'value' => number_format((float)$value, 2)
+                        ],
+                        'quantity' => 1,
+                        'is_shipping_required' => false
+                    ];
+                },
+                array_values($customTotals)
+            )
+        );
+
+        if ($customTotalsValue === 0) {
+            return;
+        }
+
+        $convertedQuote['order_data']['items'] = array_merge($convertedQuote['order_data']['items'], $totalItems);
+        $convertedQuote['order_data']['item_total']['value'] = number_format(
+            ((float)$convertedQuote['order_data']['item_total']['value']) + $customTotalsValue,
+            2
+        );
     }
 }

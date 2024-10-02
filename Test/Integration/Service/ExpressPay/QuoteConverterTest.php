@@ -22,6 +22,9 @@ use function reset;
 class QuoteConverterTest extends TestCase
 {
     /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
+     * @phpcs:enable Generic.Files.LineLength.TooLong
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void
@@ -84,15 +87,35 @@ class QuoteConverterTest extends TestCase
                         ],
                         'quantity' => 2,
                         'is_shipping_required' => true
+                    ],
+                    [
+                        'name' => 'Test Fee',
+                        'sku' => 'test_fee_0',
+                        'unit_amount' => [
+                            'currency_code' => 'USD',
+                            'value' => '4.00'
+                        ],
+                        'quantity' => 1,
+                        'is_shipping_required' => false
+                    ],
+                    [
+                        'name' => 'Another Fee',
+                        'sku' => 'test_fee_1',
+                        'unit_amount' => [
+                            'currency_code' => 'USD',
+                            'value' => '1.00'
+                        ],
+                        'quantity' => 1,
+                        'is_shipping_required' => false
                     ]
                 ],
                 'amount' => [
                     'currency_code' => 'USD',
-                    'value' => '26.50'
+                    'value' => '31.50'
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '20.00'
+                    'value' => '25.00'
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',

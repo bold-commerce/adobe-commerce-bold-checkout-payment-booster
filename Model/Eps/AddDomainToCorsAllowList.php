@@ -5,6 +5,9 @@ namespace Bold\CheckoutPaymentBooster\Model\Eps;
 
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 
+/**
+ * Add Magento domain to CORS allow list.
+ */
 class AddDomainToCorsAllowList
 {
     private const CORS_PATH = 'checkout/shop/{{shopId}}/cors';

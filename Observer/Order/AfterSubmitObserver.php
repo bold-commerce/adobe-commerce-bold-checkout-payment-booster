@@ -89,10 +89,9 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
         $orderId = (int)$order->getEntityId();
-        $publicOrderId = $this->checkoutData->getPublicOrderId() ?? null;
         $orderExtensionData = $this->orderExtensionDataFactory->create();
         $orderExtensionData->setOrderId($orderId);
-        $orderExtensionData->setPublicId($publicOrderId);
+        $orderExtensionData->setPublicId($this->checkoutData->getPublicOrderId());
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);
         } catch (Exception $e) {

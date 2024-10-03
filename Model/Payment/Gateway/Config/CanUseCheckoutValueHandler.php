@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config;
 
-use Magento\Checkout\Model\Session;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 
 /**
@@ -12,16 +12,16 @@ use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 class CanUseCheckoutValueHandler implements ValueHandlerInterface
 {
     /**
-     * @var Session
+     * @var CheckoutData
      */
-    private $checkoutSession;
+    private $checkoutData;
 
     /**
-     * @param Session $checkoutSession
+     * @param CheckoutData $checkoutData
      */
-    public function __construct(Session $checkoutSession)
+    public function __construct(CheckoutData $checkoutData)
     {
-        $this->checkoutSession = $checkoutSession;
+        $this->checkoutData = $checkoutData;
     }
 
     /**
@@ -29,7 +29,7 @@ class CanUseCheckoutValueHandler implements ValueHandlerInterface
      */
     public function handle(array $subject, $storeId = null): bool
     {
-        return $this->checkoutSession->getBoldCheckoutData() !== null
-            && !$this->checkoutSession->getQuote()->getIsMultiShipping();
+        return $this->checkoutData->getPublicOrderId() !== null
+            && !$this->checkoutData->getQuote()->getIsMultiShipping();
     }
 }

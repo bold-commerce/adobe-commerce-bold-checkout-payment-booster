@@ -12,10 +12,6 @@ use Magento\Framework\Model\AbstractModel;
  */
 class OrderExtensionData extends AbstractModel
 {
-    public const AUTHORITY_NOT_SET = 0;
-    public const AUTHORITY_LOCAL = 1;
-    public const AUTHORITY_REMOTE = 2;
-
     /**
      * @inheritDoc
      */
@@ -69,86 +65,62 @@ class OrderExtensionData extends AbstractModel
     }
 
     /**
-     * Set is order using delayed payment capture.
+     * Set is order capture currently in progress.
      *
-     * @param int $isDelayedCapture
      * @return void
      */
-    public function setIsDelayedCapture(int $isDelayedCapture)
+    public function setIsCaptureInProgress(bool $inProgress)
     {
-        $this->setData(OrderExtensionDataResource::IS_DELAYED_CAPTURE, $isDelayedCapture);
+        $this->setData(OrderExtensionDataResource::IS_CAPTURE_IN_PROGRESS, (int)$inProgress);
     }
 
     /**
-     * Retrieve is order using delayed payment capture flag.
+     * Get is order capture currently in progress.
      *
-     * @return int
+     * @return bool
      */
-    public function getIsDelayedCapture(): int
+    public function getIsCaptureInProgress(): bool
     {
-        return (int)$this->getData(OrderExtensionDataResource::IS_DELAYED_CAPTURE);
+        return (bool)$this->getData(OrderExtensionDataResource::IS_CAPTURE_IN_PROGRESS);
     }
 
     /**
-     * Get order payment capture authority.
+     * Get is order refund currently in progress.
      *
-     * @return int
-     */
-    public function getCaptureAuthority(): int
-    {
-        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_CAPTURE);
-    }
-
-    /**
-     * Get order payment refund authority.
-     *
-     * @return int
-     */
-    public function getRefundAuthority(): int
-    {
-        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_REFUND);
-    }
-
-    /**
-     * Get order cancel authority.
-     *
-     * @return int
-     */
-    public function getCancelAuthority(): int
-    {
-        return (int)$this->getData(OrderExtensionDataResource::AUTHORITY_CANCEL);
-    }
-
-    /**
-     * Set order payment capture authority.
-     *
-     * @param int $authorityCode
      * @return void
      */
-    public function setCaptureAuthority(int $authorityCode): void
+    public function setIsRefundInProgress(bool $inProgress)
     {
-        $this->setData(OrderExtensionDataResource::AUTHORITY_CAPTURE, $authorityCode);
+        $this->setData(OrderExtensionDataResource::IS_REFUND_IN_PROGRESS, (int)$inProgress);
     }
 
     /**
-     * Set order payment refund authority.
+     * Get is order refund currently in progress.
      *
-     * @param int $authorityCode
-     * @return void
+     * @return bool
      */
-    public function setRefundAuthority(int $authorityCode): void
+    public function getIsRefundInProgress(): bool
     {
-        $this->setData(OrderExtensionDataResource::AUTHORITY_REFUND, $authorityCode);
+        return (bool)$this->getData(OrderExtensionDataResource::IS_REFUND_IN_PROGRESS);
     }
 
     /**
-     * Set order cancel authority.
+     * Get is order cancel currently in progress.
      *
-     * @param int $authorityCode
      * @return void
      */
-    public function setCancelAuthority(int $authorityCode): void
+    public function setIsCancelInProgress(bool $inProgress)
     {
-        $this->setData(OrderExtensionDataResource::AUTHORITY_CANCEL, $authorityCode);
+        $this->setData(OrderExtensionDataResource::IS_CANCEL_IN_PROGRESS, (int)$inProgress);
+    }
+
+    /**
+     * Get is order cancel currently in progress.
+     *
+     * @return bool
+     */
+    public function getIsCancelInProgress(): bool
+    {
+        return (bool)$this->getData(OrderExtensionDataResource::IS_CANCEL_IN_PROGRESS);
     }
 }

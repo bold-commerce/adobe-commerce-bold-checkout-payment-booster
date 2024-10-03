@@ -40,9 +40,9 @@ class OrderExtensionDataRepository
      * Get OrderExtensionData by order id.
      *
      * @param int $orderId
-     * @return OrderExtensionData|null
+     * @return OrderExtensionData
      */
-    public function getByOrderId(int $orderId): ?OrderExtensionData
+    public function getByOrderId(int $orderId): OrderExtensionData
     {
         return $this->getByField(OrderExtensionDataResource::ORDER_ID, (string)$orderId);
     }
@@ -51,9 +51,9 @@ class OrderExtensionDataRepository
      * Get OrderExtensionData by public order id.
      *
      * @param string $publicOrderId
-     * @return OrderExtensionData|null
+     * @return OrderExtensionData
      */
-    public function getByPublicOrderId(string $publicOrderId): ?OrderExtensionData
+    public function getByPublicOrderId(string $publicOrderId): OrderExtensionData
     {
         return $this->getByField(OrderExtensionDataResource::PUBLIC_ID, $publicOrderId);
     }
@@ -63,9 +63,9 @@ class OrderExtensionDataRepository
      *
      * @param string $field
      * @param string $value
-     * @return OrderExtensionData|null
+     * @return OrderExtensionData
      */
-    private function getByField(string $field, string $value): ?OrderExtensionData
+    private function getByField(string $field, string $value): OrderExtensionData
     {
         $orderExtensionData = $this->orderExtensionDataFactory->create();
         $this->orderExtensionDataResource->load(
@@ -74,7 +74,7 @@ class OrderExtensionDataRepository
             $field
         );
 
-        return $orderExtensionData->getOrderId() ? $orderExtensionData : null;
+        return $orderExtensionData;
     }
 
     /**

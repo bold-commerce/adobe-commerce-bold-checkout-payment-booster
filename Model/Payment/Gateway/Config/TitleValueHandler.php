@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Store\Model\ScopeInterface;
@@ -30,6 +31,11 @@ class TitleValueHandler implements ValueHandlerInterface
     private $path;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param ScopeConfigInterface $config
      * @param StoreManagerInterface $storeManager
      * @param string $path
@@ -37,11 +43,13 @@ class TitleValueHandler implements ValueHandlerInterface
     public function __construct(
         ScopeConfigInterface $config,
         StoreManagerInterface $storeManager,
+        SerializerInterface $serializer,
         string $path
     ) {
         $this->config = $config;
         $this->storeManager = $storeManager;
         $this->path = $path;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -59,20 +67,16 @@ class TitleValueHandler implements ValueHandlerInterface
             }
             return $this->config->getValue($this->path, ScopeInterface::SCOPE_WEBSITE, $websiteId);
         }
-        $ccLast4 = $paymentObject->getPayment()->getCcLast4();
-        $ccType = $paymentObject->getPayment()->getCcType();
-        if (!$ccLast4 || !$ccType) {
-            if (!$websiteId) {
-                $orderAdapter = $paymentObject->getOrder();
-                $storeId = $orderAdapter->getStoreId();
-                $store = $this->storeManager->getStore($storeId);
-                $websiteId = (int)$store->getWebsiteId();
+        $payment = $paymentObject->getPayment();
+        if ($payment->getAdditionalInformation('card_details')) {
+            $cardDetails = $this->serializer->unserialize($payment->getAdditionalInformation('card_details'));
+            if (isset($cardDetails['brand']) && isset($cardDetails['last_four'])) {
+                return ucfirst($cardDetails['brand']) . ': ending in ' . $cardDetails['last_four'];
             }
-            return $this->config->getValue($this->path, ScopeInterface::SCOPE_WEBSITE, $websiteId);
+            if (isset($cardDetails['account']) && isset($cardDetails['email'])) {
+                return 'PayPal: ' . $cardDetails['email'];
+            }
         }
-
-        return strlen($ccLast4) === 4
-            ? $ccType . ': ending in ' . $ccLast4
-            : $ccType . ': ' . $ccLast4;
+        return $this->config->getValue($this->path, ScopeInterface::SCOPE_WEBSITE, $websiteId);
     }
 }

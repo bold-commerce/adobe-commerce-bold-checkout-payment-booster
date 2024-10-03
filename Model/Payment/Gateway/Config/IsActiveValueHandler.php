@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config;
 
-use Magento\Checkout\Model\Session;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Framework\Exception\LocalizedException;
@@ -20,18 +20,18 @@ class IsActiveValueHandler implements ValueHandlerInterface
     private $state;
 
     /**
-     * @var Session
+     * @var CheckoutData
      */
-    private $checkoutSession;
+    private $checkoutData;
 
     /**
      * @param State $state
-     * @param Session $checkoutSession
+     * @param CheckoutData $checkoutData
      */
-    public function __construct(State $state, Session $checkoutSession)
+    public function __construct(State $state, CheckoutData $checkoutData)
     {
         $this->state = $state;
-        $this->checkoutSession = $checkoutSession;
+        $this->checkoutData = $checkoutData;
     }
 
     /**
@@ -41,8 +41,8 @@ class IsActiveValueHandler implements ValueHandlerInterface
     {
         try {
             if ($this->state->getAreaCode() === Area::AREA_FRONTEND) {
-                return $this->checkoutSession->getBoldCheckoutData() !== null
-                    && !$this->checkoutSession->getQuote()->getIsMultiShipping();
+                return $this->checkoutData->getPublicOrderId() !== null
+                    && !$this->checkoutData->getQuote()->getIsMultiShipping();
             }
         } catch (LocalizedException $e) {
             return false;

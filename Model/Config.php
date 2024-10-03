@@ -254,6 +254,14 @@ class Config
             $websiteId
         );
     }
+
+    /**
+     * Set Bold Booster Flow ID.
+     *
+     * @param int $websiteId
+     * @param string $flowID
+     * @return void
+     */
     public function setBoldBoosterFlowID(int $websiteId, string $flowID): void
     {
         $this->configWriter->save(
@@ -264,6 +272,12 @@ class Config
         );
     }
 
+    /**
+     * Get Bold Booster Flow ID.
+     *
+     * @param int $websiteId
+     * @return string|null
+     */
     public function getBoldBoosterFlowID(int $websiteId): ?string
     {
         return $this->scopeConfig->getValue(

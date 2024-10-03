@@ -39,42 +39,40 @@ define([
     return DefaultPaymentComponent.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/bold',
-            paymentType: null,
-            iframeWindow: null,
-            boldPayments: null,
-            spiInitialized: false,
             paymentId: ko.observable(null),
             isVisible: ko.observable(true),
             isSpiLoading: ko.observable(true),
-            error: $t('An error occurred while processing your payment. Please try again.'),
         },
 
         /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
-            this.isVisible(window.checkoutConfig.bold && window.checkoutConfig.bold.paymentBooster && !fastlane.isEnabled());
-            if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.paymentBooster) {
+            this.isVisible(window.checkoutConfig.bold?.paymentBooster && !fastlane.isEnabled());
+            if (!window.checkoutConfig.bold?.paymentBooster) {
                 return;
             }
             this.subscribeToSpiEvents();
+            this.initPaymentForm();
             this.removeFullScreenLoaderOnError();
             const delayedHydrateOrder = _.debounce(
                 async function () {
-                    await hydrateOrderAction(this.displayErrorMessage.bind(this));
-                    if (window.checkoutConfig.bold.hydratedOrderAddress) {
-                        this.initPaymentForm();
+                    try {
+                        await hydrateOrderAction();
+                        this.isVisible(true);
+                    } catch (e) {
+                        console.error(e);
+                        this.isVisible(false);
                     }
                 }.bind(this),
                 500
             );
-            hydrateOrderAction(this.displayErrorMessage.bind(this)).then(() => {
-                if (window.checkoutConfig.bold.hydratedOrderAddress) {
-                    this.initPaymentForm();
-                }
-            }).finally(() => {
+            hydrateOrderAction().then(() => {
                 quote.billingAddress.subscribe(function () {
                     delayedHydrateOrder();
                 }, this);
+            }).catch((reason) => {
+                console.error(reason);
+                this.isVisible(false);
             });
         },
 
@@ -84,10 +82,14 @@ define([
          * @returns {Promise<void>}
          */
         initPaymentForm: async function () {
-            if (this.spiInitialized) {
-                return;
-            }
-            await this.loadScript(window.checkoutConfig.bold.epsStaticUrl + '/js/payments_sdk.js');
+            require.config({
+                paths: {
+                    bold_payments_sdk: window.checkoutConfig.bold.epsStaticUrl + '/js/payments_sdk',
+                },
+            });
+            await new Promise((resolve, reject) => {
+                require(['bold_payments_sdk'], resolve, reject);
+            });
             const initialData = {
                 'eps_url': window.checkoutConfig.bold.epsUrl,
                 'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
@@ -128,44 +130,13 @@ define([
             };
             const boldPayments = new window.bold.Payments(initialData);
             boldPayments.renderPayments('SPI');
-            this.spiInitialized = true;
-        },
-
-        /**
-         * Load specified script with attributes.
-         *
-         * @returns {Promise<void>}
-         */
-        loadScript: async function (src, attributes = {}) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.async = true;
-                script.onload = resolve;
-                script.onerror = reject;
-                if (attributes.constructor === Object) {
-                    Object.keys(attributes).forEach((key) => {
-                        script.setAttribute(key, attributes[key]);
-                    });
-                }
-                document.head.appendChild(script);
-            });
-        },
-
-        /** @inheritdoc */
-        selectPaymentMethod: function () {
-            this._super();
-            if (this.iframeWindow) {
-                this.iframeWindow.postMessage({actionType: 'PIGI_REFRESH_ORDER'}, '*');
-            }
-            return true;
         },
 
         /** @inheritdoc */
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
             const callback = this._super.bind(this);
-            if (this.paymentId) {
+            if (this.paymentId()) {
                 callback(data, event);
                 return;
             }
@@ -175,42 +146,6 @@ define([
                     callback(data, event);
                 }
             });
-        },
-
-        /**
-         * Display error message.
-         *
-         * @private
-         * @param {{}} error
-         */
-        displayErrorMessage: function (error) {
-            let message,
-                subType
-            try {
-                message = error.responseJSON.errors[0].message
-                subType = error.responseJSON.errors[0].sub_type
-            } catch (exception) {
-                message = this.error
-                subType = ''
-            }
-            if (!this.iframeWindow) {
-                this.messageContainer.errorMessages([message]);
-                return;
-            }
-            const action = {
-                actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
-                payload: {
-                    error: {
-                        message: message,
-                        sub_type: subType,
-                    }
-                }
-            };
-            try {
-                this.iframeWindow.postMessage(action, '*');
-            } catch (e) {
-                this.messageContainer.errorMessages([this.error]);
-            }
         },
 
         /**
@@ -274,9 +209,6 @@ define([
                         this.paymentId(null);
                         console.log('Failed to tokenize');
                         this.isSpiLoading(false);
-                        break;
-                    case 'EVENT_SPI_PAYMENT_ORDER_CREATE':
-                        console.log('Payment order created', data);
                         break;
                 }
             });

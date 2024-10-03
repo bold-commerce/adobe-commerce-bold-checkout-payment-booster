@@ -4,7 +4,7 @@ define([
     'prototype'
 ], function (
     ko,
-    initializeAction,
+    initializeGatewayAction,
 ) {
     'use strict';
 
@@ -77,7 +77,11 @@ define([
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
                 if (!this.gatewayData) {
-                    this.gatewayData = await initializeAction();
+                    this.gatewayData = await initializeGatewayAction();
+                }
+                if (!this.gatewayData) {
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    return null;
                 }
                 if (this.gatewayData.is_test_mode) {
                     window.localStorage.setItem('axoEnv', 'sandbox');

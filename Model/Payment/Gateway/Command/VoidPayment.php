@@ -1,11 +1,8 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 
-use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionData;
-use Bold\CheckoutPaymentBooster\Model\Order\SetIsDelayedCapture;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
@@ -23,27 +20,19 @@ class VoidPayment implements CommandInterface
     private $gatewayService;
 
     /**
-     * @var SetIsDelayedCapture
-     */
-    private $setIsDelayedCapture;
-
-    /**
      * @var OrderExtensionDataRepository
      */
     private $orderExtensionDataRepository;
 
     /**
      * @param Service $gatewayService
-     * @param SetIsDelayedCapture $setIsDelayedCapture
      * @param OrderExtensionDataRepository $orderExtensionDataRepository
      */
     public function __construct(
         Service $gatewayService,
-        SetIsDelayedCapture $setIsDelayedCapture,
         OrderExtensionDataRepository $orderExtensionDataRepository
     ) {
         $this->gatewayService = $gatewayService;
-        $this->setIsDelayedCapture = $setIsDelayedCapture;
         $this->orderExtensionDataRepository = $orderExtensionDataRepository;
     }
 
@@ -56,17 +45,24 @@ class VoidPayment implements CommandInterface
     {
         $paymentDataObject = $commandSubject['payment'];
         $payment = $paymentDataObject->getPayment();
-        $this->setIsDelayedCapture->set($payment->getOrder());
         $order = $payment->getOrder();
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
         if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Order public id is not set.'));
         }
-        if  ($orderExtensionData->getCancelAuthority() === OrderExtensionData::AUTHORITY_REMOTE) {
-            throw new LocalizedException(__('Payment cannot be cancelled.'));
+        if ($orderExtensionData->getIsCancelInProgress()) {
+            return;
         }
-        $orderExtensionData->setCancelAuthority(OrderExtensionData::AUTHORITY_LOCAL);
+        $orderExtensionData->setIsCancelInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
-        $this->gatewayService->cancel($order, Service::VOID);
+        try {
+            $this->gatewayService->cancel($order, Service::VOID);
+        } catch (Exception $e) {
+            $orderExtensionData->setIsCancelInProgress(false);
+            $this->orderExtensionDataRepository->save($orderExtensionData);
+            throw $e;
+        }
+        $orderExtensionData->setIsCancelInProgress(false);
+        $this->orderExtensionDataRepository->save($orderExtensionData);
     }
 }

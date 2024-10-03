@@ -86,74 +86,74 @@ class BoldClient
      * Perform get request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @return Result
      */
-    public function get(int $websiteId, string $url): Result
+    public function get(int $websiteId, string $path): Result
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->getCommand->execute($websiteId, $url, $headers);
+        return $this->getCommand->execute($websiteId, $path, $headers);
     }
 
     /**
      * Perform post request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return Result
      */
-    public function post(int $websiteId, string $url, array $data): Result
+    public function post(int $websiteId, string $path, array $data): Result
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->postCommand->execute($websiteId, $url, $headers, $data);
+        return $this->postCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform put request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return Result
      */
-    public function put(int $websiteId, string $url, array $data): Result
+    public function put(int $websiteId, string $path, array $data): Result
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->putCommand->execute($websiteId, $url, $headers, $data);
+        return $this->putCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform patch request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return Result
      */
-    public function patch(int $websiteId, string $url, array $data): Result
+    public function patch(int $websiteId, string $path, array $data): Result
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->patchCommand->execute($websiteId, $url, $headers, $data);
+        return $this->patchCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform delete request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return Result
      */
-    public function delete(int $websiteId, string $url, array $data): Result
+    public function delete(int $websiteId, string $path, array $data): Result
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->deleteCommand->execute($websiteId, $url, $headers, $data);
+        return $this->deleteCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**

@@ -3,6 +3,8 @@ define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
     'Magento_Customer/js/customer-data',
+    'Magento_Checkout/js/action/select-shipping-address',
+    'Magento_Checkout/js/action/get-totals',
     'checkoutData',
     'underscore',
     'ko',
@@ -10,12 +12,17 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
-    'Bold_CheckoutPaymentBooster/js/action/reload-cart-action'
+    'Bold_CheckoutPaymentBooster/js/action/reload-cart-action',
+    'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
+    'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
+    'Bold_CheckoutPaymentBooster/js/model/address'
 ], function (
     DefaultPaymentComponent,
     quote,
     fullscreenLoader,
     customerData,
+    selectShippingAddressAction,
+    getTotalsAction,
     checkoutData,
     _,
     ko,
@@ -23,115 +30,122 @@ define([
     platformClient,
     fastlane,
     hydrateOrderAction,
-    reloadCartAction
+    reloadCartAction,
+    createOrderAction,
+    convertBoldAddressAction,
+    addressModel,
 ) {
     'use strict';
     return DefaultPaymentComponent.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/bold',
-            paymentType: null,
-            iframeWindow: null,
+            paymentId: ko.observable(null),
             isVisible: ko.observable(true),
-            iframeSrc: ko.observable(null),
-            isPigiLoading: ko.observable(true),
-            error: $t('An error occurred while processing your payment. Please try again.'),
+            isSpiLoading: ko.observable(true),
         },
 
         /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
-            this.isVisible(window.checkoutConfig.bold && window.checkoutConfig.bold.paymentBooster && !fastlane.isEnabled());
-            if (!window.checkoutConfig.bold || !window.checkoutConfig.bold.paymentBooster) {
+            this.isVisible(window.checkoutConfig.bold?.paymentBooster && !fastlane.isEnabled());
+            if (!window.checkoutConfig.bold?.paymentBooster) {
                 return;
             }
-            this.subscribeToPIGI();
+            this.subscribeToSpiEvents();
+            this.initPaymentForm();
             this.removeFullScreenLoaderOnError();
             const delayedHydrateOrder = _.debounce(
                 async function () {
-                    await hydrateOrderAction(this.displayErrorMessage.bind(this));
-                    if (window.checkoutConfig.bold.hydratedOrderAddress) {
-                        this.initializePaymentGateway();
+                    try {
+                        await hydrateOrderAction();
+                        this.isVisible(true);
+                    } catch (e) {
+                        console.error(e);
+                        this.isVisible(false);
                     }
                 }.bind(this),
                 500
             );
-            hydrateOrderAction(this.displayErrorMessage.bind(this)).then(() => {
-                if (window.checkoutConfig.bold.hydratedOrderAddress) {
-                    this.initializePaymentGateway();
-                }
-            }).finally(() => {
+            hydrateOrderAction().then(() => {
                 quote.billingAddress.subscribe(function () {
                     delayedHydrateOrder();
                 }, this);
+            }).catch((reason) => {
+                console.error(reason);
+                this.isVisible(false);
             });
         },
-        /**
-         * Initialize PIGI iframe.
-         */
-        initializePaymentGateway: function () {
-            this.iframeSrc(window.checkoutConfig.bold.paymentBooster.payment.iframeSrc);
-        },
 
-        /** @inheritdoc */
-        selectPaymentMethod: function () {
-            this._super();
-            if (this.iframeWindow) {
-                this.iframeWindow.postMessage({actionType: 'PIGI_REFRESH_ORDER'}, '*');
-            }
-            return true;
+        /**
+         * Load SPI SDK.
+         *
+         * @returns {Promise<void>}
+         */
+        initPaymentForm: async function () {
+            require.config({
+                paths: {
+                    bold_payments_sdk: window.checkoutConfig.bold.epsStaticUrl + '/js/payments_sdk',
+                },
+            });
+            await new Promise((resolve, reject) => {
+                require(['bold_payments_sdk'], resolve, reject);
+            });
+            const initialData = {
+                'eps_url': window.checkoutConfig.bold.epsUrl,
+                'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
+                'group_label': window.checkoutConfig.bold.configurationGroupLabel,
+                'trace_id': window.checkoutConfig.bold.publicOrderId,
+                'payment_gateways': [
+                    {
+                        'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
+                        'auth_token': window.checkoutConfig.bold.epsAuthToken,
+                        'currency': quote.totals()['base_currency_code'],
+                    }
+                ],
+                'callbacks': {
+                    'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (paymentType !== 'ppcp') {
+                            return;
+                        }
+                        const walletPayResult = await createOrderAction(paymentPayload);
+                        if (walletPayResult.errors) {
+                            return Promise.reject('An error occurred while processing your payment. Please try again.');
+                        }
+                        if (walletPayResult.data) {
+                            return walletPayResult.data
+                        } else {
+                            throw 'Unable to create order';
+                        }
+                    },
+                    'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        // Do nothing for now.
+                    },
+                    'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (paymentType !== 'ppcp') {
+                            return;
+                        }
+                        this.placeOrder({}, jQuery.Event());
+                    },
+                }
+            };
+            const boldPayments = new window.bold.Payments(initialData);
+            boldPayments.renderPayments('SPI');
         },
 
         /** @inheritdoc */
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
-            if (!this.iframeWindow) {
-                console.error('PIGI iframe is not initialized');
-                fullscreenLoader.stopLoader();
-                return false;
-            }
-            const clearAction = {actionType: 'PIGI_CLEAR_ERROR_MESSAGES'};
-            this.iframeWindow.postMessage(clearAction, '*');
-            if (!this.paymentType) {
-                this.iframeWindow.postMessage({actionType: 'PIGI_ADD_PAYMENT'}, '*');
-                return false;
-            }
-            return this._super(data, event);
-        },
-
-        /**
-         * Display error message.
-         *
-         * @private
-         * @param {{}} error
-         */
-        displayErrorMessage: function (error) {
-            let message,
-                subType
-            try {
-                message = error.responseJSON.errors[0].message
-                subType = error.responseJSON.errors[0].sub_type
-            } catch (exception) {
-                message = this.error
-                subType = ''
-            }
-            if (!this.iframeWindow) {
-                this.messageContainer.errorMessages([message]);
+            const callback = this._super.bind(this);
+            if (this.paymentId()) {
+                callback(data, event);
                 return;
             }
-            const action = {
-                actionType: 'PIGI_DISPLAY_ERROR_MESSAGE',
-                payload: {
-                    error: {
-                        message: message,
-                        sub_type: subType,
-                    }
+            this.tokenize()
+            this.paymentId.subscribe((id) => {
+                if (id != null) {
+                    callback(data, event);
                 }
-            };
-            try {
-                this.iframeWindow.postMessage(action, '*');
-            } catch (e) {
-                this.messageContainer.errorMessages([this.error]);
-            }
+            });
         },
 
         /**
@@ -149,49 +163,53 @@ define([
         },
 
         /**
-         * Subscribe to PIGI events.
+         * Send tokenize action to SPI iframe.
          *
-         * @private
+         * @return void
+         */
+        tokenize: function () {
+            const iframeWindow = document.getElementById('spi_frame_SPI').contentWindow;
+            const address = addressModel.getAddress();
+            const payload = {
+                billing_address: {
+                    first_name: address.firstname,
+                    last_name: address.lastname,
+                    address_line_1: address.street[0],
+                    address_line_2: address.street[1],
+                    province_code: address.region,
+                    city: address.city,
+                    postal_code: address.postcode,
+                    country_code: address.country_id,
+                }
+            };
+            iframeWindow.postMessage({actionType: 'ACTION_SPI_TOKENIZE', payload: payload}, '*');
+        },
+        /**
+         * Subscribe to SPI iframe events.
+         *
          * @returns {void}
          */
-        subscribeToPIGI() {
+        subscribeToSpiEvents() {
             window.addEventListener('message', ({origin, data}) => {
-                if (origin !== window.checkoutConfig.bold.origin) {
-                    return;
-                }
-                const responseType = data.responseType;
-                const iframeElement = document.getElementById('PIGI');
-                if (responseType) {
-                    switch (responseType) {
-                        case 'PIGI_UPDATE_HEIGHT':
-                            if (iframeElement.height === Math.round(data.payload.height) + 'px') {
-                                return;
-                            }
-                            iframeElement.height = Math.round(data.payload.height) + 'px';
-                            if (fastlane.isEnabled()) {
-                                this.iframeWindow.postMessage({ actionType: 'PIGI_HIDE_CREDIT_CARD_OPTION' }, '*');
-                            }
-                            break;
-                        case 'PIGI_INITIALIZED':
-                            this.iframeWindow = iframeElement.contentWindow;
-                            if (data.payload && data.payload.height && iframeElement) {
-                                iframeElement.height = Math.round(data.payload.height) + 'px';
-                            }
-                            this.isPigiLoading(false);
-                            break;
-                        case 'PIGI_CHANGED_ORDER':
-                            reloadCartAction();
-                            break;
-                        case 'PIGI_ADD_PAYMENT':
-                            this.messageContainer.errorMessages([]);
-                            fullscreenLoader.stopLoader(true);
-                            if (!data.payload.success) {
-                                this.paymentType = null;
-                                return;
-                            }
-                            this.paymentType = data.payload.paymentType;
-                            this.placeOrder({}, null);
-                    }
+                const eventType = data?.eventType;
+                switch (eventType) {
+                    case 'EVENT_SPI_INITIALIZED':
+                        this.isSpiLoading(false);
+                        break;
+                    case 'EVENT_SPI_TOKENIZED':
+                        if (!data.payload.success) {
+                            this.paymentId(null);
+                            console.log('Tokenized');
+                            this.isSpiLoading(false);
+                            return;
+                        }
+                        this.paymentId(data.payload?.payload?.data?.payment_id);
+                        break;
+                    case 'EVENT_SPI_TOKENIZE_FAILED':
+                        this.paymentId(null);
+                        console.log('Failed to tokenize');
+                        this.isSpiLoading(false);
+                        break;
                 }
             });
         },

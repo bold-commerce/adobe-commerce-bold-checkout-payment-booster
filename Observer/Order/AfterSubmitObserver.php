@@ -1,29 +1,29 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
-use Bold\Checkout\Api\Data\PlaceOrder\Request\OrderDataInterface;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
-use Magento\Checkout\Model\Session;
+use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Psr\Log\LoggerInterface;
 
 /**
- * TODO
+ * Authorize Bold payments before placing order.
  */
 class AfterSubmitObserver implements ObserverInterface
 {
     /**
-     * @var Session
+     * @var CheckoutData
      */
-    private $session;
+    private $checkoutData;
 
     /**
      * @var SetCompleteState
@@ -46,24 +46,32 @@ class AfterSubmitObserver implements ObserverInterface
     private $orderExtensionDataResource;
 
     /**
-     * @param Session $session
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @param CheckoutData $checkoutData
      * @param SetCompleteState $setCompleteState
+     * @param CheckPaymentMethod $checkPaymentMethod
      * @param OrderExtensionDataFactory $orderExtensionDataFactory
      * @param OrderExtensionDataResource $orderExtensionDataResource
+     * @param LoggerInterface $logger
      */
     public function __construct(
-        Session                    $session,
-        SetCompleteState           $setCompleteState,
-        CheckPaymentMethod         $checkPaymentMethod,
-        OrderExtensionDataFactory  $orderExtensionDataFactory,
-        OrderExtensionDataResource $orderExtensionDataResource
-    )
-    {
-        $this->session = $session;
+        CheckoutData $checkoutData,
+        SetCompleteState $setCompleteState,
+        CheckPaymentMethod $checkPaymentMethod,
+        OrderExtensionDataFactory $orderExtensionDataFactory,
+        OrderExtensionDataResource $orderExtensionDataResource,
+        LoggerInterface $logger
+    ) {
+        $this->checkoutData = $checkoutData;
         $this->orderExtensionDataFactory = $orderExtensionDataFactory;
         $this->orderExtensionDataResource = $orderExtensionDataResource;
         $this->setCompleteState = $setCompleteState;
         $this->checkPaymentMethod = $checkPaymentMethod;
+        $this->logger = $logger;
     }
 
     /**
@@ -81,26 +89,16 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
         $orderId = (int)$order->getEntityId();
-        $publicOrderId = $this->session->getBoldCheckoutData()['data']['public_order_id'] ?? null;
-        $this->session->setBoldCheckoutData(null);
-        if (!$publicOrderId) {
-            // TODO: remove?
-            /** @var OrderDataInterface $orderPayload */
-            $orderPayload = $observer->getEvent()->getOrderPayload();
-            $publicOrderId = $orderPayload ? $orderPayload->getPublicId() : null;
-        }
-        if (!$publicOrderId) {
-            return;
-        }
         $orderExtensionData = $this->orderExtensionDataFactory->create();
         $orderExtensionData->setOrderId($orderId);
-        $orderExtensionData->setPublicId($publicOrderId);
+        $orderExtensionData->setPublicId($this->checkoutData->getPublicOrderId());
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
+            $this->logger->critical($e);
             return;
         }
-
         $this->setCompleteState->execute($order);
+        $this->checkoutData->resetCheckoutData();
     }
 }

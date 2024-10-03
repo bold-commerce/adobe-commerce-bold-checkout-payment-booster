@@ -1,10 +1,11 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Eps\AddDomainToCorsAllowList;
+use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\GenerateSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\RegisterSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\ShopId;
@@ -13,14 +14,13 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
-use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 
 /**
  * Save shop Id and register shared secret when checkout configuration is saved.
  */
-class SaveShopDataObserver implements ObserverInterface
+class ConfigureShopObserver implements ObserverInterface
 {
     /**
      * @var Config
@@ -48,39 +48,39 @@ class SaveShopDataObserver implements ObserverInterface
     private $registerSharedSecret;
 
     /**
-     * @var BoldClient
-     */
-    private $boldClient;
-
-    /**
      * @var FlowService
      */
-    private $FlowService;
+    private $flowService;
+
+    /**
+     * @var AddDomainToCorsAllowList
+     */
+    private $addDomainToCorsAllowList;
+
     /**
      * @param Config $config
      * @param ShopId $shopId
      * @param StoreManagerInterface $storeManager
      * @param GenerateSharedSecret $generateSharedSecret
      * @param RegisterSharedSecret $registerSharedSecret
-     * @param BoldClient $boldClient
-     * @param FlowService $FlowService
+     * @param FlowService $flowService
      */
     public function __construct(
-        Config                $config,
-        ShopId                $shopId,
+        Config $config,
+        ShopId $shopId,
         StoreManagerInterface $storeManager,
-        GenerateSharedSecret  $generateSharedSecret,
-        RegisterSharedSecret  $registerSharedSecret,
-        BoldClient            $boldClient,
-        FlowService           $FlowService
+        GenerateSharedSecret $generateSharedSecret,
+        RegisterSharedSecret $registerSharedSecret,
+        FlowService $flowService,
+        AddDomainToCorsAllowList $addDomainToCorsAllowList
     ) {
         $this->config = $config;
         $this->shopId = $shopId;
         $this->storeManager = $storeManager;
         $this->generateSharedSecret = $generateSharedSecret;
         $this->registerSharedSecret = $registerSharedSecret;
-        $this->boldClient = $boldClient;
-        $this->FlowService = $FlowService;
+        $this->flowService = $flowService;
+        $this->addDomainToCorsAllowList = $addDomainToCorsAllowList;
     }
 
     /**
@@ -96,6 +96,7 @@ class SaveShopDataObserver implements ObserverInterface
         $websiteId = (int)$event->getWebsite() ?: (int)$this->storeManager->getWebsite(true)->getId();
         $this->saveShopId($websiteId);
         $this->saveSharedSecret($websiteId);
+        $this->addDomainToCorsAllowList($websiteId);
         $this->getOrCreatePaymentBoosterFlowID($websiteId);
     }
 
@@ -130,12 +131,19 @@ class SaveShopDataObserver implements ObserverInterface
         $this->registerSharedSecret->execute($websiteId, $sharedSecret);
     }
 
+    /**
+     * Get or create Payment Booster Flow ID.
+     *
+     * @param int $websiteId
+     * @return void
+     * @throws LocalizedException
+     */
     private function getOrCreatePaymentBoosterFlowID(int $websiteId): void
     {
         $defaultFlowId = $this->config->getBoldBoosterFlowID($websiteId);
         if (!$defaultFlowId) {
             try {
-                $this->FlowService->createAndSetBoldBoosterFlowID($websiteId);
+                $this->flowService->createAndSetBoldBoosterFlowID($websiteId);
             } catch (LocalizedException $e) {
                 throw $e;
             } catch (Exception $e) {
@@ -145,5 +153,17 @@ class SaveShopDataObserver implements ObserverInterface
                 );
             }
         }
+    }
+
+    /**
+     * Add Magento domain to the CORS allow list.
+     *
+     * @param int $websiteId
+     * @return void
+     */
+    private function addDomainToCorsAllowList(int $websiteId)
+    {
+        $magentoUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
+        $this->addDomainToCorsAllowList->addDomain($websiteId, $magentoUrl);
     }
 }

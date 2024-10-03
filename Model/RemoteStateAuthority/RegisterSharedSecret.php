@@ -35,7 +35,7 @@ class RegisterSharedSecret
      * @param StoreManagerInterface $storeManager
      */
     public function __construct(
-        BoldClient            $boldClient,
+        BoldClient $boldClient,
         StoreManagerInterface $storeManager
     ) {
         $this->boldClient = $boldClient;
@@ -53,8 +53,9 @@ class RegisterSharedSecret
      */
     public function execute(int $websiteId, string $sharedSecret): void
     {
+        $storeId = $this->storeManager->getWebsite($websiteId)->getDefaultStore()->getId();
         $body = [
-            'url' => $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'rest/V1',
+            'url' => $this->storeManager->getStore($storeId)->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'rest/V1',
             'shared_secret' => $sharedSecret,
         ];
         $result = $this->boldClient->patch($websiteId, self::REGISTER_URL, $body);

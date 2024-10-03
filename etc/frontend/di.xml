@@ -9,19 +9,4 @@
             </argument>
         </arguments>
     </type>
-    <type name="Magento\Customer\CustomerData\SectionPoolInterface">
-        <arguments>
-            <argument name="sectionSourceMap" xsi:type="array">
-                <item name="bold" xsi:type="string">Bold\CheckoutPaymentBooster\CustomerData\CartData</item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote">
-        <arguments>
-            <argument name="orderDataProcessors" xsi:type="array">
-                <item name="payment_booster" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsPaymentBooster</item>
-                <item name="fastlane" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\MarkQuoteAsFastlane</item>
-            </argument>
-        </arguments>
-    </type>
 </config>

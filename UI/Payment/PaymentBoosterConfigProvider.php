@@ -3,9 +3,10 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Checkout\Model\Session;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
@@ -16,9 +17,9 @@ use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
     /**
-     * @var Session
+     * @var CheckoutData
      */
-    private $checkoutSession;
+    private $checkoutData;
 
     /**
      * @var Config
@@ -41,18 +42,18 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $countries = [];
 
     /**
-     * @param Session $checkoutSession
+     * @param CheckoutData $checkoutData
      * @param Config $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
      */
     public function __construct(
-        Session $checkoutSession,
+        CheckoutData $checkoutData,
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory
     ) {
-        $this->checkoutSession = $checkoutSession;
+        $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
@@ -63,66 +64,42 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
-        $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        $quote = $this->checkoutSession->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
-
-        if (!$boldCheckoutData
-            || !$this->config->isPaymentBoosterEnabled($websiteId)
-        ) {
+        if (!$this->checkoutData->getPublicOrderId()) {
             return [];
         }
 
-        $quote = $this->checkoutSession->getQuote();
+        $quote = $this->checkoutData->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $shopId = $this->config->getShopId($websiteId);
-        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
-        $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-        if ($publicOrderId === null || $jwtToken === null) {
+        $publicOrderId = $this->checkoutData->getPublicOrderId();
+        $jwtToken = $this->checkoutData->getJwtToken();
+        $epsAuthToken = $this->checkoutData->getEpsAuthToken();
+        $epsGatewayId = $this->checkoutData->getEpsGatewayId();
+        if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
             return [];
         }
-        $alternativePaymentMethods = $boldCheckoutData['data']['initial_data']['alternative_payment_methods'] ?? [];
         return [
             'bold' => [
+                'epsAuthToken' => $epsAuthToken,
+                'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
+                'epsUrl' => $this->config->getEpsUrl($websiteId),
+                'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
+                'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
                 'shopId' => $shopId,
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
-                'alternativePaymentMethods' => $alternativePaymentMethods,
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
                 'shopUrl' => $quote->getStore()->getBaseUrl(),
                 'paymentBooster' => [
                     'payment' => [
-                        'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
-                        'method' => 'bold',
+                        'method' => Service::CODE,
                     ],
                 ],
             ],
         ];
-    }
-
-    /**
-     * Get iframe src.
-     *
-     * @param string|null $publicOrderId
-     * @param string|null $jwtToken
-     * @param int $websiteId
-     * @return string|null
-     */
-    private function getIframeSrc(
-        ?string $publicOrderId,
-        ?string $jwtToken,
-        int $websiteId
-    ): ?string {
-        if (!$publicOrderId || !$jwtToken) {
-            return null;
-        }
-        return $this->getBoldStorefrontUrl(
-                $websiteId,
-                $publicOrderId
-            ) . 'payments/iframe?token=' . $jwtToken;
     }
 
     /**

@@ -4,41 +4,15 @@
       "id": true,
       "order_id": true,
       "public_id": true,
-      "fulfillment_status": true,
-      "financial_status": true,
-      "is_delayed_capture": true,
-      "capture_authority": true,
-      "refund_authority": true,
-      "cancel_authority": true        
+      "is_capture_in_progress": true,
+      "is_refund_in_progress": true,
+      "is_cancel_in_progress": true
     },
     "index": {
       "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true
     },
     "constraint": {
       "PRIMARY": true
-    }
-  },
-  "bold_checkout_payment_booster_quote_progress": {
-    "column": {
-      "id": true,
-      "quote_id": true
-    },
-    "index": {
-      "BOLD_CHECKOUT_PAYMENT_BOOSTER_QUOTE_PROGRESS_QUOTE_ID": true
-    },
-    "constraint": {
-      "PRIMARY": true
-    }
-  },
-  "bold_checkout_payment_booster_quote": {
-    "column": {
-      "id": true,
-      "quote_id": true,
-      "order_created": true
-    },
-    "constraint": {
-      "PRIMARY": true, 
-      "BOLD_CHECKOUT_PAYMENT_BOOSTER_QUOTE_QUOTE_ID": true
     }
   }
 }

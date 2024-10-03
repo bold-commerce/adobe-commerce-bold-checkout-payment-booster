@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <preference for="Bold\CheckoutPaymentBooster\Api\PaymentStyleManagementInterface" type="Bold\CheckoutPaymentBooster\Model\PaymentStyleManagement"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\GuestHydrateOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\HydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\HydrateOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments"/>
@@ -117,9 +116,6 @@
             </argument>
         </arguments>
     </virtualType>
-    <type name="Magento\Sales\Api\CreditmemoManagementInterface">
-        <plugin name="set_refund_authority" type="Bold\CheckoutPaymentBooster\Plugin\Sales\CreditmemoManagement\SetRefundAuthorityPlugin"/>
-    </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create">
         <arguments>

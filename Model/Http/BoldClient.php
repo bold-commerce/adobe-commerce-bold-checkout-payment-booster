@@ -87,74 +87,74 @@ class BoldClient implements ClientInterface
      * Perform get request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function get(int $websiteId, string $url): ResultInterface
+    public function get(int $websiteId, string $path): ResultInterface
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->getCommand->execute($websiteId, $url, $headers);
+        return $this->getCommand->execute($websiteId, $path, $headers);
     }
 
     /**
      * Perform post request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function post(int $websiteId, string $url, array $data): ResultInterface
+    public function post(int $websiteId, string $path, array $data): ResultInterface
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->postCommand->execute($websiteId, $url, $headers, $data);
+        return $this->postCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform put request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function put(int $websiteId, string $url, array $data): ResultInterface
+    public function put(int $websiteId, string $path, array $data): ResultInterface
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->putCommand->execute($websiteId, $url, $headers, $data);
+        return $this->putCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform patch request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function patch(int $websiteId, string $url, array $data): ResultInterface
+    public function patch(int $websiteId, string $path, array $data): ResultInterface
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->patchCommand->execute($websiteId, $url, $headers, $data);
+        return $this->patchCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**
      * Perform delete request.
      *
      * @param int $websiteId
-     * @param string $url
+     * @param string $path
      * @param array $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function delete(int $websiteId, string $url, array $data): ResultInterface
+    public function delete(int $websiteId, string $path, array $data): ResultInterface
     {
-        $url = $this->getUrl($websiteId, $url);
+        $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->deleteCommand->execute($websiteId, $url, $headers, $data);
+        return $this->deleteCommand->execute($websiteId, $path, $headers, $data);
     }
 
     /**

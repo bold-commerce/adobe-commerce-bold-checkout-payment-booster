@@ -1,11 +1,8 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 
-use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionData;
-use Bold\CheckoutPaymentBooster\Model\Order\SetIsDelayedCapture;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
@@ -23,27 +20,19 @@ class CapturePayment implements CommandInterface
     private $gatewayService;
 
     /**
-     * @var SetIsDelayedCapture
-     */
-    private $setIsDelayedCapture;
-
-    /**
      * @var OrderExtensionDataRepository
      */
     private $orderExtensionDataRepository;
 
     /**
      * @param Service $gatewayService
-     * @param SetIsDelayedCapture $setIsDelayedCapture
      * @param OrderExtensionDataRepository $orderExtensionDataRepository
      */
     public function __construct(
         Service $gatewayService,
-        SetIsDelayedCapture $setIsDelayedCapture,
         OrderExtensionDataRepository $orderExtensionDataRepository
     ) {
         $this->gatewayService = $gatewayService;
-        $this->setIsDelayedCapture = $setIsDelayedCapture;
         $this->orderExtensionDataRepository = $orderExtensionDataRepository;
     }
 
@@ -57,25 +46,32 @@ class CapturePayment implements CommandInterface
         $paymentDataObject = $commandSubject['payment'];
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
-        $this->setIsDelayedCapture->set($order);
         $amount = (float)$commandSubject['amount'];
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
         if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Order public id is not set.'));
         }
-        if  ($orderExtensionData->getCaptureAuthority() === OrderExtensionData::AUTHORITY_REMOTE) {
-            throw new LocalizedException(__('Payment cannot be captured.'));
-        }
-        $orderExtensionData->setCaptureAuthority(OrderExtensionData::AUTHORITY_LOCAL);
-        $this->orderExtensionDataRepository->save($orderExtensionData);
-        if ((float)$order->getGrandTotal() === $amount) {
-            $payment->setTransactionId($this->gatewayService->captureFull($order))
-                ->setShouldCloseParentTransaction(true);
+        if ($orderExtensionData->getIsCaptureInProgress()) {
             return;
         }
-        $payment->setTransactionId($this->gatewayService->capturePartial($order, $amount));
-        if ((float)$payment->getBaseAmountAuthorized() === $payment->getBaseAmountPaid() + $amount) {
-            $payment->setShouldCloseParentTransaction(true);
+        $orderExtensionData->setIsCaptureInProgress(true);
+        $this->orderExtensionDataRepository->save($orderExtensionData);
+        try {
+            if ((float)$order->getGrandTotal() === $amount) {
+                $payment->setTransactionId($this->gatewayService->captureFull($order))
+                    ->setShouldCloseParentTransaction(true);
+                return;
+            }
+            $payment->setTransactionId($this->gatewayService->capturePartial($order, $amount));
+            if ((float)$payment->getBaseAmountAuthorized() === $payment->getBaseAmountPaid() + $amount) {
+                $payment->setShouldCloseParentTransaction(true);
+            }
+        } catch (Exception $e) {
+            $orderExtensionData->setIsCaptureInProgress(false);
+            $this->orderExtensionDataRepository->save($orderExtensionData);
+            throw $e;
         }
+        $orderExtensionData->setIsCaptureInProgress(false);
+        $this->orderExtensionDataRepository->save($orderExtensionData);
     }
 }

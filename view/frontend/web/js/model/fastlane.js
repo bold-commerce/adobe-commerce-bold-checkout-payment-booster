@@ -1,8 +1,10 @@
 define([
     'ko',
-    'prototype',
+    'Bold_CheckoutPaymentBooster/js/action/eps-initialize-action',
+    'prototype'
 ], function (
     ko,
+    initializeGatewayAction,
 ) {
     'use strict';
 
@@ -14,6 +16,7 @@ define([
     return {
         memberAuthenticated: ko.observable(false),
         profileData: ko.observable(null),
+        gatewayData: null,
 
         /**
          * Check if Fastlane flow is enabled and active.
@@ -31,10 +34,10 @@ define([
          * @return {string}
          */
         getType: function () {
-            if (!window.checkoutConfig.bold.fastlane.gatewayData) {
+            if (!this.gatewayData) {
                 throw new Error('Fastlane instance is not initialized');
             }
-            return window.checkoutConfig.bold.fastlane.gatewayData.type;
+            return this.gatewayData.type;
         },
 
         /**
@@ -43,10 +46,10 @@ define([
          * @returns {string}
          */
         getGatewayPublicId: function () {
-            if (!window.checkoutConfig.bold.fastlane.gatewayData) {
+            if (!this.gatewayData) {
                 throw new Error('Fastlane instance is not initialized');
             }
-            return window.checkoutConfig.bold.fastlane.gatewayData.gateway_public_id;
+            return this.gatewayData.gateway_public_id;
         },
 
         /**
@@ -73,20 +76,26 @@ define([
             }
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
-                const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
-                if (gatewayData.is_test_mode) {
+                if (!this.gatewayData) {
+                    this.gatewayData = await initializeGatewayAction();
+                }
+                if (!this.gatewayData) {
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    return null;
+                }
+                if (this.gatewayData.is_test_mode) {
                     window.localStorage.setItem('axoEnv', 'sandbox');
                     window.localStorage.setItem('fastlaneEnv', 'sandbox');
                 }
                 if (!window.braintree) {
                     window.braintree = {};
                 }
-                switch (gatewayData.type) {
+                switch (this.gatewayData.type) {
                     case 'braintree':
-                        await this.buildBraintreeFastlaneInstance(gatewayData);
+                        await this.buildBraintreeFastlaneInstance(this.gatewayData);
                         break;
                     case 'ppcp':
-                        await this.buildPPCPFastlaneInstance(gatewayData);
+                        await this.buildPPCPFastlaneInstance(this.gatewayData);
                         break;
                 }
                 this.setLocale();

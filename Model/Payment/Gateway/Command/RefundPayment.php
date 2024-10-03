@@ -4,16 +4,15 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 
+use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 
 /**
  * Refund bold order payment.
- *
- * Please note: capture authority set in
- * \Bold\CheckoutPaymentBooster\Plugin\Sales\CreditmemoManagement\SetRefundAuthorityPlugin::beforeRefund.
  */
 class RefundPayment implements CommandInterface
 {
@@ -23,12 +22,19 @@ class RefundPayment implements CommandInterface
     private $gatewayService;
 
     /**
+     * @var OrderExtensionDataRepository
+     */
+    private $orderExtensionDataRepository;
+
+    /**
      * @param Service $gatewayService
      */
     public function __construct(
-        Service $gatewayService
+        Service $gatewayService,
+        OrderExtensionDataRepository $orderExtensionDataRepository
     ) {
         $this->gatewayService = $gatewayService;
+        $this->orderExtensionDataRepository = $orderExtensionDataRepository;
     }
 
     /**
@@ -44,18 +50,34 @@ class RefundPayment implements CommandInterface
 
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
-        if ((float)$order->getGrandTotal() <= $amount) {
-            $transactionId = $this->gatewayService->refundFull($order);
-            $payment->setTransactionId($transactionId)
-                ->setIsTransactionClosed(1)
-                ->setShouldCloseParentTransaction(true);
-
+        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
+        if (!$orderExtensionData->getPublicId()) {
+            throw new LocalizedException(__('Order public id is not set.'));
+        }
+        if ($orderExtensionData->getIsRefundInProgress()) {
             return;
         }
-        $transactionId = $this->gatewayService->refundPartial($order, $amount);
-        $payment->setTransactionId($transactionId)->setIsTransactionClosed(1);
-        if ((float)$payment->getBaseAmountPaid() === $payment->getBaseAmountRefunded() + $amount) {
-            $payment->setShouldCloseParentTransaction(true);
+        $orderExtensionData->setIsRefundInProgress(true);
+        $this->orderExtensionDataRepository->save($orderExtensionData);
+        try {
+            if ((float)$order->getGrandTotal() <= $amount) {
+                $transactionId = $this->gatewayService->refundFull($order);
+                $payment->setTransactionId($transactionId)
+                    ->setIsTransactionClosed(1)
+                    ->setShouldCloseParentTransaction(true);
+                return;
+            }
+            $transactionId = $this->gatewayService->refundPartial($order, $amount);
+            $payment->setTransactionId($transactionId)->setIsTransactionClosed(1);
+            if ((float)$payment->getBaseAmountPaid() === $payment->getBaseAmountRefunded() + $amount) {
+                $payment->setShouldCloseParentTransaction(true);
+            }
+        } catch (Exception $e) {
+            $orderExtensionData->setIsRefundInProgress(false);
+            $this->orderExtensionDataRepository->save($orderExtensionData);
+            throw $e;
         }
+        $orderExtensionData->setIsRefundInProgress(false);
+        $this->orderExtensionDataRepository->save($orderExtensionData);
     }
 }

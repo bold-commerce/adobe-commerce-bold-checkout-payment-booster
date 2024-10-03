@@ -16,6 +16,14 @@
                         ]]>
                     </comment>
                 </field>
+                <field id="configuration_group_label" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1">
+                    <label>Configuration Group Label</label>
+                    <validate>required-entry</validate>
+                    <comment><![CDATA[
+                            Configuration group label used to communicate with the Bold Checkout EPS.
+                        ]]>
+                    </comment>
+                </field>
                 <field id="is_payment_booster_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>Is Payment Booster Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -38,23 +46,23 @@
                 </field>
             </group>
             <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
-                <field id="payment_css" translate="label" type="textarea" sortOrder="10" showInDefault="1" showInWebsite="1">
-                    <label>CSS</label>
-                    <backend_model>Bold\CheckoutPaymentBooster\Model\Config\Backend\PaymentCssBackend</backend_model>
-                    <comment><![CDATA[Add custom styling to the payment section of your checkout.]]></comment>
-                </field>
                 <label>Bold Checkout Payment Booster Advanced Settings</label>
                 <field id="api_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>API URL</label>
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold API URL. Do not change.]]></comment>
                 </field>
-                <field id="eps_url" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1">
+                <field id="eps_url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1">
                     <label>EPS URL</label>
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold EPS URL. Do not change.]]></comment>
                 </field>
-                <field id="log_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1">
+                <field id="static_eps_url" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1">
+                    <label>Static EPS URL</label>
+                    <validate>required-url</validate>
+                    <comment><![CDATA[Bold static EPS URL. Do not change.]]></comment>
+                </field>
+                <field id="log_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
                     <label>Enable Bold Checkout Requests Log</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>

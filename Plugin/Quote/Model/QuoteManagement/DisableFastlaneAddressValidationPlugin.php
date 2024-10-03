@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement;
 
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteManagement;
 
@@ -25,7 +26,7 @@ class DisableFastlaneAddressValidationPlugin
         Quote $quote,
         $orderData = []
     ) {
-        if ($quote->getPayment()->getMethod() !== 'bold_fastlane') {
+        if ($quote->getPayment()->getMethod() !== Service::CODE_FASTLANE) {
             return;
         }
         $quote->getBillingAddress()->setShouldIgnoreValidation(true);

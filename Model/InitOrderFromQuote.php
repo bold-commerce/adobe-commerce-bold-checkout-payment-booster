@@ -1,10 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
 
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
-use Bold\CheckoutPaymentBooster\Model\Order\InitOrderFromQuote\OrderDataProcessorInterface;
+use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 use Exception;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\Data\CartInterface;
@@ -17,9 +18,9 @@ class InitOrderFromQuote
     private const INIT_SIMPLE_ORDER_URI = '/checkout_sidekick/{{shopId}}/order';
 
     /**
-     * @var Flow
+     * @var Config
      */
-    private $flow;
+    private $config;
 
     /**
      * @var BoldClient
@@ -32,22 +33,26 @@ class InitOrderFromQuote
     private $json;
 
     /**
-     * @var OrderDataProcessorInterface[]
+     * @var FlowService
      */
-    private $orderDataProcessors;
+    private $flowService;
 
     /**
-     * @param Flow $flow
+     * @param Config $config
      * @param BoldClient $client
      * @param Json $json
-     * @param array $orderDataProcessors
+     * @param FlowService $flowService
      */
-    public function __construct(Flow $flow, BoldClient $client, Json $json, array $orderDataProcessors = [])
-    {
-        $this->flow = $flow;
+    public function __construct(
+        Config $config,
+        BoldClient $client,
+        Json $json,
+        FlowService $flowService
+    ) {
+        $this->config = $config;
         $this->client = $client;
         $this->json = $json;
-        $this->orderDataProcessors = $orderDataProcessors;
+        $this->flowService = $flowService;
     }
 
     /**
@@ -59,8 +64,13 @@ class InitOrderFromQuote
      */
     public function init(CartInterface $quote): array
     {
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $flowId = $this->config->getBoldBoosterFlowID($websiteId);
+        if (!$flowId) {
+            $flowId = $this->flowService->createAndSetBoldBoosterFlowID($websiteId);
+        }
         $body = [
-            'flow_id' => $this->flow->getCheckoutFlowId($quote),
+            'flow_id' => $flowId,
             'order_type' => 'simple_order',
             'cart_id' => $quote->getId(),
         ];
@@ -77,10 +87,6 @@ class InitOrderFromQuote
                 'Cannot initialize order, quote id: ' . $quote->getId() . ', error: ' . $errorMessage
             );
         }
-        $boldCheckoutData = $orderData->getBody();
-        foreach ($this->orderDataProcessors as $processor) {
-            $boldCheckoutData = $processor->process($orderData->getBody(), $quote);
-        }
-        return $boldCheckoutData;
+        return $orderData->getBody();
     }
 }

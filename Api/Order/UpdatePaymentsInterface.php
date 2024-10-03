@@ -15,10 +15,13 @@ interface UpdatePaymentsInterface
      * Update order payment.
      *
      * @param string $shopId
-     * @param string $publicOrderId
-     * @param string $platformFriendlyId
      * @param string $financialStatus
+     * @param int $platformOrderId
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface
      */
-    public function update(string $shopId, string $publicOrderId, string $platformFriendlyId, string $financialStatus): ResultInterface;
+    public function update(
+        string $shopId,
+        string $financialStatus,
+        int $platformOrderId
+    ): ResultInterface;
 }

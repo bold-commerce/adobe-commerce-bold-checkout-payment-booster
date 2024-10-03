@@ -13,15 +13,20 @@ use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\CreateCreditMemo;
 use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\CreateInvoice;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
+/**
+ * Update payments.
+ */
 class UpdatePayments implements UpdatePaymentsInterface
 {
     private const FINANCIAL_STATUS_PAID = 'paid';
     private const FINANCIAL_STATUS_REFUNDED = 'refunded';
+    private const FINANCIAL_STATUS_PARTIALLY_REFUNDED = 'partially_refunded';
     private const FINANCIAL_STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -75,13 +80,13 @@ class UpdatePayments implements UpdatePaymentsInterface
      * @param OrderExtensionDataRepository $orderExtensionDataRepository
      */
     public function __construct(
-        ResultInterfaceFactory       $responseFactory,
-        SharedSecretAuthorization    $sharedSecretAuthorization,
-        GetWebsiteIdByShopId         $getWebsiteIdByShopId,
-        OrderRepositoryInterface     $orderRepository,
-        CreateInvoice                $createInvoice,
-        CreateCreditMemo             $createCreditMemo,
-        CancelOrder                  $cancelOrder,
+        ResultInterfaceFactory $responseFactory,
+        SharedSecretAuthorization $sharedSecretAuthorization,
+        GetWebsiteIdByShopId $getWebsiteIdByShopId,
+        OrderRepositoryInterface $orderRepository,
+        CreateInvoice $createInvoice,
+        CreateCreditMemo $createCreditMemo,
+        CancelOrder $cancelOrder,
         OrderExtensionDataRepository $orderExtensionDataRepository
     ) {
         $this->responseFactory = $responseFactory;
@@ -99,9 +104,8 @@ class UpdatePayments implements UpdatePaymentsInterface
      */
     public function update(
         string $shopId,
-        string $publicOrderId,
-        string $platformFriendlyId,
-        string $financialStatus
+        string $financialStatus,
+        int $platformOrderId
     ): ResultInterface {
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
         // Do not remove this check until resource authorized by ACL.
@@ -109,17 +113,11 @@ class UpdatePayments implements UpdatePaymentsInterface
             // Shared secret authorization failed.
             throw new AuthorizationException(__('The consumer isn\'t authorized to access resource.'));
         }
-        $order = $this->orderRepository->get($platformFriendlyId);
-        $orderWebsiteId = (int)$order->getStore()->getWebsiteId();
-        if ($orderWebsiteId !== $websiteId) {
-            // Order website does not match shared secret website.
-            throw new AuthorizationException(__('The consumer isn\'t authorized to access resource.'));
-        }
-        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
-        $orderStoredPublicId = $orderExtensionData ? $orderExtensionData->getPublicId() : null;
-        if (!$orderStoredPublicId || $orderStoredPublicId !== $publicOrderId) {
+        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId($platformOrderId);
+        if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Public Order ID does not match.'));
         }
+        $order = $this->orderRepository->get($platformOrderId);
         $this->processUpdate($order, $orderExtensionData, $financialStatus);
 
         return $this->responseFactory->create(
@@ -132,37 +130,39 @@ class UpdatePayments implements UpdatePaymentsInterface
     }
 
     /**
-     * TODO
+     * Process update based on financial status.
      *
      * @param OrderInterface $order
+     * @param OrderExtensionData $orderExtensionData
      * @param string $financialStatus
      * @return void
      * @throws LocalizedException
+     * @throws AlreadyExistsException
      */
-    private function processUpdate(OrderInterface $order, OrderExtensionData $orderExtensionData, string $financialStatus): void
-    {
+    private function processUpdate(
+        OrderInterface $order,
+        OrderExtensionData $orderExtensionData,
+        string $financialStatus
+    ): void {
         switch ($financialStatus) {
             case self::FINANCIAL_STATUS_PAID:
-                if ($orderExtensionData->getCaptureAuthority() !== OrderExtensionData::AUTHORITY_LOCAL) {
+                if (!$orderExtensionData->getIsCaptureInProgress()) {
                     $this->createInvoice->execute($order);
-                    $orderExtensionData->setCaptureAuthority(OrderExtensionData::AUTHORITY_REMOTE);
                 }
                 break;
             case self::FINANCIAL_STATUS_REFUNDED:
-                if ($orderExtensionData->getRefundAuthority() !== OrderExtensionData::AUTHORITY_LOCAL) {
+            case self::FINANCIAL_STATUS_PARTIALLY_REFUNDED:
+                if (!$orderExtensionData->getIsRefundInProgress()) {
                     $this->createCreditMemo->execute($order);
-                    $orderExtensionData->setRefundAuthority(OrderExtensionData::AUTHORITY_REMOTE);
                 }
                 break;
             case self::FINANCIAL_STATUS_CANCELLED:
-                if ($orderExtensionData->getCancelAuthority() !== OrderExtensionData::AUTHORITY_LOCAL) {
+                if (!$orderExtensionData->getIsCancelInProgress()) {
                     $this->cancelOrder->execute($order);
-                    $orderExtensionData->setCancelAuthority(OrderExtensionData::AUTHORITY_REMOTE);
                 }
                 break;
             default:
                 throw new LocalizedException(__('Unknown financial status.'));
         }
-        $this->orderExtensionDataRepository->save($orderExtensionData);
     }
 }

@@ -15,10 +15,11 @@ class OrderExtensionData extends AbstractDb
     public const ID = 'id';
     public const ORDER_ID = 'order_id';
     public const PUBLIC_ID = 'public_id';
-    public const IS_DELAYED_CAPTURE = 'is_delayed_capture';
-    public const AUTHORITY_CAPTURE = 'capture_authority';
-    public const AUTHORITY_REFUND = 'refund_authority';
-    public const AUTHORITY_CANCEL = 'cancel_authority';
+    public const IS_CAPTURE_IN_PROGRESS = 'is_capture_in_progress';
+    public const IS_REFUND_IN_PROGRESS = 'is_refund_in_progress';
+    public const IS_CANCEL_IN_PROGRESS = 'is_cancel_in_progress';
+
+
 
     /**
      * @inheritDoc

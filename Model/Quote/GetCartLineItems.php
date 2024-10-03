@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Quote;
 
-use Bold\CheckoutPaymentBooster\Model\Quote\Item\Validator;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product\Image\UrlBuilder;
 use Magento\Directory\Helper\Data;
@@ -27,11 +26,6 @@ class GetCartLineItems
     private $scopeConfig;
 
     /**
-     * @var Validator
-     */
-    private $itemValidator;
-
-    /**
      * @var StoreManagerInterface
      */
     private $storeManager;
@@ -49,20 +43,17 @@ class GetCartLineItems
     /**
      * @param ScopeConfigInterface $scopeConfig
      * @param ProductRepositoryInterface $productRepository
-     * @param Validator $itemValidator
      * @param StoreManagerInterface $storeManager
      * @param UrlBuilder $productUrlBuilder
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         ProductRepositoryInterface $productRepository,
-        Validator $itemValidator,
         StoreManagerInterface $storeManager,
         UrlBuilder $productUrlBuilder
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->productRepository = $productRepository;
-        $this->itemValidator = $itemValidator;
         $this->storeManager = $storeManager;
         $this->productUrlBuilder = $productUrlBuilder;
     }
@@ -78,10 +69,8 @@ class GetCartLineItems
     {
         $lineItems = [];
         /** @var CartItemInterface $cartItem */
-        foreach ($quote->getAllItems() as $cartItem) {
-            if ($this->itemValidator->shouldAppearInCart($cartItem)) {
-                $lineItems[] = $this->getLineItem($cartItem);
-            }
+        foreach ($quote->getAllVisibleItems() as $cartItem) {
+            $lineItems[] = $this->getLineItem($cartItem);
         }
         if (!$lineItems) {
             throw new LocalizedException(__('There are no cart items to checkout.'));

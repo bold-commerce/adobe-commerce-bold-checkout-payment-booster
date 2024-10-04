@@ -33,8 +33,6 @@ define([
                 return null;
             }
             const countryId = this.getFieldValue('countryId');
-            const country = window.checkoutConfig.bold.countries.find(country => country.value === countryId);
-            const countryName = country ? country.label : '';
             let street1 = '';
             let street2 = '';
             if (this.billingAddress.street && this.billingAddress.street[0]) {
@@ -115,9 +113,12 @@ define([
                 'telephone',
                 'email',
                 'country_id',
-                'street',
+                'street1',
                 'city',
             ];
+            if (payload.street) {
+                payload.street1 = payload.street[0];
+            }
             const country = window.checkoutConfig.bold.countries.find(country => country.value === payload.country_id);
             if (country && country.is_region_required) {
                 requiredFields.push('region');
@@ -130,6 +131,7 @@ define([
                     throw new Error('Missing required field: ' + field);
                 }
             })
+            delete payload.street1;
         },
     }
 });

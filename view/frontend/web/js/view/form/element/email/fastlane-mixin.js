@@ -42,7 +42,7 @@ define(
                     /** @inheritdoc */
                     initConfig: function () {
                         this._super();
-                        if (!fastlane.isEnabled()) {
+                        if (!fastlane.isAvailable()) {
                             return;
                         }
                         this.template = 'Bold_CheckoutPaymentBooster/form/element/email';
@@ -66,7 +66,7 @@ define(
                      */
                     checkEmailAvailability: function () {
                         this._super();
-                        if (!fastlane.isEnabled() || !this.email()) {
+                        if (!fastlane.isAvailable() || !this.email()) {
                             return;
                         }
                         this.lookupEmail().then(() => {

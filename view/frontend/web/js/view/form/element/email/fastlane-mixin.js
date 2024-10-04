@@ -10,8 +10,7 @@ define(
         'checkoutData',
         'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address',
         'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address',
-        'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/view/billing-address',
+        'Magento_Checkout/js/model/quote'
     ], function (
         fastlane,
         addressList,
@@ -23,8 +22,7 @@ define(
         checkoutData,
         setQuoteShippingAddressAction,
         resetShippingAddressAction,
-        quote,
-        billingAddress
+        quote
     ) {
         'use strict';
 
@@ -42,7 +40,7 @@ define(
                     /** @inheritdoc */
                     initConfig: function () {
                         this._super();
-                        if (!fastlane.isEnabled()) {
+                        if (!fastlane.isAvailable()) {
                             return;
                         }
                         this.template = 'Bold_CheckoutPaymentBooster/form/element/email';
@@ -66,7 +64,7 @@ define(
                      */
                     checkEmailAvailability: function () {
                         this._super();
-                        if (!fastlane.isEnabled() || !this.email()) {
+                        if (!fastlane.isAvailable() || !this.email()) {
                             return;
                         }
                         this.lookupEmail().then(() => {
@@ -100,14 +98,14 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    window.checkoutConfig.bold.fastlane.memberAuthenticated = true;
-                                    window.checkoutConfig.bold.fastlane.profileData = profileData;
+                                    fastlane.memberAuthenticated(true);
+                                    fastlane.profileData = profileData;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
                                 }
                                 return;
                             }
-                            window.checkoutConfig.bold.fastlane.memberAuthenticated = false;
+                            fastlane.memberAuthenticated(false);
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);
@@ -131,7 +129,6 @@ define(
                             return;
                         }
                         setQuoteShippingAddressAction(shippingAddress);
-                        billingAddress().useShippingAddress();
                     }
                 }
             );

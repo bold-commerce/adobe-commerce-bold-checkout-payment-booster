@@ -32,17 +32,12 @@
                                                     <item name="children" xsi:type="array">
                                                         <item name="renders" xsi:type="array">
                                                             <item name="children" xsi:type="array">
-                                                                <item name="bold" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/payment/bold-methods</item>
+                                                                <item name="bold_payments" xsi:type="array">
+                                                                    <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/payment/bold-payments</item>
                                                                     <item name="methods" xsi:type="array">
                                                                         <item name="bold" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>
-                                                                    </item>
-                                                                </item>
-                                                                <item name="bold_fastlane" xsi:type="array">
-                                                                    <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/payment/fastlane-methods</item>
-                                                                    <item name="methods" xsi:type="array">
                                                                         <item name="bold_fastlane" xsi:type="array">
                                                                             <item name="isBillingAddressRequired" xsi:type="boolean">true</item>
                                                                         </item>

@@ -38,27 +38,27 @@ define([
     'use strict';
     return DefaultPaymentComponent.extend({
         defaults: {
-            template: 'Bold_CheckoutPaymentBooster/payment/bold',
+            template: 'Bold_CheckoutPaymentBooster/payment/spi',
             paymentId: ko.observable(null),
-            isVisible: ko.observable(true),
+            isVisible: ko.observable(false),
             isSpiLoading: ko.observable(true),
         },
 
         /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
-            this.isVisible(window.checkoutConfig.bold?.paymentBooster && !fastlane.isEnabled());
-            if (!window.checkoutConfig.bold?.paymentBooster) {
-                return;
-            }
-            this.subscribeToSpiEvents();
-            this.initPaymentForm();
-            this.removeFullScreenLoaderOnError();
+            this.isVisible.subscribe((isVisible) => {
+                if (isVisible) {
+                    this.subscribeToSpiEvents();
+                    this.initPaymentForm();
+                    this.removeFullScreenLoaderOnError();
+                }
+            });
+            this.isVisible(window.checkoutConfig.bold?.paymentBooster && !fastlane.isAvailable());
             const delayedHydrateOrder = _.debounce(
                 async function () {
                     try {
                         await hydrateOrderAction();
-                        this.isVisible(true);
                     } catch (e) {
                         console.error(e);
                         this.isVisible(false);
@@ -117,13 +117,11 @@ define([
                             throw 'Unable to create order';
                         }
                     },
-                    'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                    'onUpdatePaymentOrder': async () => {
                         // Do nothing for now.
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (paymentType !== 'ppcp') {
-                            return;
-                        }
+                        this.paymentId(paymentPayload.payment_id);
                         this.placeOrder({}, jQuery.Event());
                     },
                 }
@@ -190,24 +188,19 @@ define([
          * @returns {void}
          */
         subscribeToSpiEvents() {
-            window.addEventListener('message', ({origin, data}) => {
+            window.addEventListener('message', ({data}) => {
                 const eventType = data?.eventType;
                 switch (eventType) {
                     case 'EVENT_SPI_INITIALIZED':
                         this.isSpiLoading(false);
                         break;
                     case 'EVENT_SPI_TOKENIZED':
-                        if (!data.payload.success) {
-                            this.paymentId(null);
-                            console.log('Tokenized');
-                            this.isSpiLoading(false);
-                            return;
-                        }
                         this.paymentId(data.payload?.payload?.data?.payment_id);
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);
                         console.log('Failed to tokenize');
+                        fullscreenLoader.stopLoader();
                         this.isSpiLoading(false);
                         break;
                 }

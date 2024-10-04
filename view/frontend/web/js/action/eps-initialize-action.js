@@ -15,7 +15,6 @@ define(
                 return;
             }
             const response = await epsClient.get('{{configuration-group-label}}/client_init?option=fastlane')
-
             return response[window.checkoutConfig.bold.gatewayId] || null;
         };
     });

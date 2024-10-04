@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
 
+use Bold\CheckoutPaymentBooster\Model\Eps\GetFastlaneStyles;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -29,16 +30,34 @@ class CheckoutData
     private $initOrderFromQuote;
 
     /**
+     * @var ResumeOrder
+     */
+    private $resumeOrder;
+
+    /**
+     * @var GetFastlaneStyles
+     */
+    private $getFastlaneStyles;
+
+    /**
      * @param Session $checkoutSession
+     * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
+     * @param InitOrderFromQuote $initOrderFromQuote
+     * @param ResumeOrder $resumeOrder
+     * @param GetFastlaneStyles $getFastlaneStyles
      */
     public function __construct(
         Session $checkoutSession,
         IsPaymentBoosterAvailable $isPaymentBoosterAvailable,
-        InitOrderFromQuote $initOrderFromQuote
+        InitOrderFromQuote $initOrderFromQuote,
+        ResumeOrder $resumeOrder,
+        GetFastlaneStyles $getFastlaneStyles
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
         $this->initOrderFromQuote = $initOrderFromQuote;
+        $this->resumeOrder = $resumeOrder;
+        $this->getFastlaneStyles = $getFastlaneStyles;
     }
 
     /**
@@ -49,15 +68,29 @@ class CheckoutData
      */
     public function initCheckoutData()
     {
-        $this->resetCheckoutData();
         $quote = $this->checkoutSession->getQuote();
-        if (!$quote) {
+        if (!$quote->getId()) {
             throw new Exception('Quote is not found');
         }
         if (!$this->isPaymentBoosterAvailable->isAvailable()) {
             return;
         }
+        if ($this->getPublicOrderId()) {
+            $orderData = $this->resumeOrder->resume(
+                $this->getPublicOrderId(),
+                (int)$quote->getStore()->getWebsiteId()
+            );
+            if ($orderData) {
+                $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+                $checkoutData['data']['jwt_token'] = $orderData['data']['jwt_token'];
+                $this->checkoutSession->setBoldCheckoutData($checkoutData);
+                return;
+            }
+        }
         $checkoutData = $this->initOrderFromQuote->init($quote);
+        $checkoutData['data']['flow_settings']['fastlane_styles'] = $this->getFastlaneStyles->getStyles(
+            (int)$quote->getStore()->getWebsiteId()
+        );
         $this->checkoutSession->setBoldCheckoutData($checkoutData);
     }
 
@@ -95,12 +128,12 @@ class CheckoutData
     /**
      * Get Fastlane styles from checkout session.
      *
-     * @return string|null
+     * @return array
      */
-    public function getFastlaneStyles(): ?string
+    public function getFastlaneStyles(): array
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
-        return $checkoutData['data']['fastlane_styles'] ?? null;
+        return $checkoutData['data']['flow_settings']['fastlane_styles'] ?? [];
     }
 
     /**

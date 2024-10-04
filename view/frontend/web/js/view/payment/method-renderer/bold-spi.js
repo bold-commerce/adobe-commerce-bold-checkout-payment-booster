@@ -120,10 +120,8 @@ define([
                     'onUpdatePaymentOrder': async () => {
                         // Do nothing for now.
                     },
-                    'onApprovePaymentOrder': async (paymentType) => {
-                        if (paymentType !== 'ppcp') {
-                            return;
-                        }
+                    'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
+                        this.paymentId(paymentPayload.payment_id);
                         this.placeOrder({}, jQuery.Event());
                     },
                 }

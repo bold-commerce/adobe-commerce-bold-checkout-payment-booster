@@ -193,8 +193,8 @@ define(
                 }
                 let fastlaneFirstName;
                 try {
-                    fastlaneFirstName = fastlane.profileData() && fastlane.profileData().name.firstName
-                        ? fastlane.profileData().name.firstName
+                    fastlaneFirstName = fastlane.profileData && fastlane.profileData.name.firstName
+                        ? fastlane.profileData.name.firstName
                         : tokenResponse.paymentSource.card.name.split(' ')[0];
                 } catch (e) {
                     fastlaneFirstName = quoteAddress.firstname;
@@ -204,8 +204,8 @@ define(
                 }
                 let fastlaneLastName;
                 try {
-                    fastlaneLastName = fastlane.profileData() && fastlane.profileData().name.lastName
-                        ? fastlane.profileData().name.lastName
+                    fastlaneLastName = fastlane.profileData && fastlane.profileData.name.lastName
+                        ? fastlane.profileData.name.lastName
                         : tokenResponse.paymentSource.card.name.split(' ')[1];
                 } catch (e) {
                     fastlaneLastName = quoteAddress.lastname;

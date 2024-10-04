@@ -15,7 +15,7 @@ define([
      */
     return {
         memberAuthenticated: ko.observable(false),
-        profileData: ko.observable(null),
+        profileData: null,
         gatewayData: null,
 
         /**

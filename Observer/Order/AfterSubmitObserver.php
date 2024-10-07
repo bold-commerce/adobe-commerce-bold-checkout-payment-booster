@@ -86,6 +86,7 @@ class AfterSubmitObserver implements ObserverInterface
     {
         $order = $observer->getEvent()->getOrder();
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            $this->checkoutData->resetCheckoutData();
             return;
         }
         $orderId = (int)$order->getEntityId();

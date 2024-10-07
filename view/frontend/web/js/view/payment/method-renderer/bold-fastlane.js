@@ -48,11 +48,11 @@ define(
              */
             initialize: function () {
                 this._super();
-                if (!fastlane.isEnabled()) {
+                if (!fastlane.isAvailable()) {
                     this.isVisible(false);
                     return;
                 }
-                this.renderPaymentContainer();
+                this.renderFastlanePaymentComponent();
                 if (fastlane.memberAuthenticated()) {
                     this.selectPaymentMethod();
                 }
@@ -60,7 +60,7 @@ define(
                     if (authenticated === true) {
                         this.selectPaymentMethod();
                     }
-                    this.renderPaymentContainer();
+                    this.renderFastlanePaymentComponent();
                 }, this);
                 quote.shippingAddress.subscribe(function () {
                     const shippingAddress = this.getFastlaneShippingAddress();
@@ -81,10 +81,9 @@ define(
              *
              * @returns {void}
              */
-            renderPaymentContainer: function () {
+            renderFastlanePaymentComponent: function () {
                 const observer = new MutationObserver(function () {
-                    const addressFilled = quote.isVirtual() || (quote.shippingAddress().firstname && quote.shippingAddress().lastname);
-                    if (addressFilled && document.querySelector(this.paymentContainer)) {
+                    if (document.querySelector(this.paymentContainer)) {
                         observer.disconnect();
                         this.renderCardComponent();
                     }
@@ -105,6 +104,10 @@ define(
                     if (!fastlaneInstance) {
                         this.isPlaceOrderActionAllowed(false);
                         this.isVisible(false);
+                        const spi = registry.get('index = bold');
+                        if (spi) {
+                            spi.isVisible(true);
+                        }
                         return;
                     }
                     const fields = {
@@ -112,9 +115,7 @@ define(
                             prefill: this.getFormattedPhoneNumber(),
                         },
                     };
-                    const styles = window.checkoutConfig.bold.fastlane.styles.length > 0
-                        ? window.checkoutConfig.bold.fastlane.styles
-                        : {};
+                    const styles = window.checkoutConfig.bold.fastlane.styles || {};
                     this.fastlanePaymentComponent = await fastlaneInstance.FastlanePaymentComponent(
                         {
                             styles,
@@ -138,7 +139,7 @@ define(
             placeOrder: function (data, event) {
                 loader.startLoader();
                 const placeMagentoOrder = this._super.bind(this);
-                this.processBoldOrder().then(() => {
+                this.tokenize().then(() => {
                     const orderPlacementResult = placeMagentoOrder(data, event);
                     loader.stopLoader();
                     return orderPlacementResult;
@@ -152,72 +153,22 @@ define(
                         errorMessage = this.error;
                     }
                     loader.stopLoader();
-                    errorProcessor.process({ responseText: JSON.stringify({ message: errorMessage }) }, this.messageContainer);
+                    errorProcessor.process({responseText: JSON.stringify({message: errorMessage})}, this.messageContainer);
                     return false;
                 });
             },
             /**
-             * Process order on Bold side before Magento order placement.
+             * Process Fastlane payment for the PPCP|Braintree gateway type.
              *
-             * @return {Promise<*>}
+             * @return {Promise<void>}
              */
-            processBoldOrder: async function () {
-                try {
-                    if (fastlane.getType() === 'braintree') {
-                        await this.processBraintreeOrder();
-                        return;
-                    }
-                    await this.processPPCPOrder();
-                } catch (e) {
-                    return Promise.reject(e);
-                }
-            },
-            /**
-             * Process Bold order for the Braintree gateway.
-             *
-             * @return {Promise<never>}
-             */
-            processBraintreeOrder: async function () {
-                const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                this.updateQuoteBillingAddress(tokenResponse);
-                await this.sendGuestCustomerInfo();
-                await boldFrontendClient.get('refresh');
-                await boldFrontendClient.post('taxes');
-                if (this.fastlanePaymentToken) {
-                    const paymentPayload = {
-                        'gateway_public_id': fastlane.getGatewayPublicId(),
-                        'token': 'nonce:' + this.fastlanePaymentToken,
-                    };
-                    try {
-                        await boldFrontendClient.delete('payments', paymentPayload);
-                    } catch (e) {
-                        console.log(e);
-                    }
-                }
-                await boldFrontendClient.post(
-                    'payments',
-                    {
-                        'gateway_public_id': fastlane.getGatewayPublicId(),
-                        'currency': quote.totals().quote_currency_code,
-                        'token': tokenResponse.id,
-                        'type': 'fastlane',
-                    },
-                );
-                this.fastlanePaymentToken = tokenResponse.id;
-            },
-            /**
-             * Process Bold order for the PPCP gateway.
-             *
-             * @return {Promise<never>}
-             */
-            processPPCPOrder: async function () {
-                if (!this.fastlanePaymentToken) {
-                    const tokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
-                    if (!tokenResponse) {
-                        return Promise.reject('An error occurred while processing your payment. Please try again.');
-                    }
-                    this.fastlanePaymentToken = (await tokenizeAction(tokenResponse.id))?.data?.payment_id;
-                    this.updateQuoteBillingAddress(tokenResponse);
+            tokenize: async function () {
+                const paymentTokenResponse = await this.fastlanePaymentComponent.getPaymentToken();
+                this.updateQuoteBillingAddress(paymentTokenResponse);
+                const tokenizeResponse = await tokenizeAction(paymentTokenResponse.id);
+                const paymentId = tokenizeResponse.data?.payment_id;
+                if (!paymentId) {
+                    return Promise.reject('An error occurred while processing your payment. Please try again.');
                 }
             },
             /**
@@ -242,8 +193,8 @@ define(
                 }
                 let fastlaneFirstName;
                 try {
-                    fastlaneFirstName = fastlane.profileData() && fastlane.profileData().name.firstName
-                        ? fastlane.profileData().name.firstName
+                    fastlaneFirstName = fastlane.profileData && fastlane.profileData.name.firstName
+                        ? fastlane.profileData.name.firstName
                         : tokenResponse.paymentSource.card.name.split(' ')[0];
                 } catch (e) {
                     fastlaneFirstName = quoteAddress.firstname;
@@ -253,8 +204,8 @@ define(
                 }
                 let fastlaneLastName;
                 try {
-                    fastlaneLastName = fastlane.profileData() && fastlane.profileData().name.lastName
-                        ? fastlane.profileData().name.lastName
+                    fastlaneLastName = fastlane.profileData && fastlane.profileData.name.lastName
+                        ? fastlane.profileData.name.lastName
                         : tokenResponse.paymentSource.card.name.split(' ')[1];
                 } catch (e) {
                     fastlaneLastName = quoteAddress.lastname;
@@ -281,40 +232,20 @@ define(
                     return null;
                 }
                 const quoteAddress = quote.shippingAddress();
-                if (!quoteAddress) {
+                if (!quoteAddress || typeof quoteAddress.firstname === 'undefined') {
                     return null;
                 }
                 return {
                     firstName: quoteAddress.firstname,
                     lastName: quoteAddress.lastname,
-                    streetAddress: quoteAddress.street[0],
-                    extendedAddress: quoteAddress.street[1],
+                    streetAddress: quoteAddress.street ? quoteAddress.street[0] : '',
+                    extendedAddress: quoteAddress.street ? quoteAddress.street[1] : '',
                     locality: quoteAddress.city,
                     region: quoteAddress.regionCode,
                     postalCode: quoteAddress.postcode,
                     countryCodeAlpha2: quoteAddress.countryId,
                     phoneNumber: quoteAddress.telephone,
                 };
-            },
-            /**
-             * Send guest customer info to Bold.
-             *
-             * @private
-             */
-            sendGuestCustomerInfo: async function () {
-                try {
-                    await boldFrontendClient.post('customer/guest');
-                } catch (error) {
-                    let errorMessage;
-                    try {
-                        errorMessage = error.responseJSON && error.responseJSON.errors
-                            ? error.responseJSON.errors[0].message
-                            : error.message;
-                    } catch (e) {
-                        errorMessage = this.error;
-                    }
-                    errorProcessor.process(errorMessage, this.messageContainer);
-                }
             },
             /**
              * Remove country code from the Fastlane phone number.

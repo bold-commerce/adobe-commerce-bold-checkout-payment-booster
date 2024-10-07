@@ -36,7 +36,7 @@ define(
             /** @inheritdoc */
             initialize: function () {
                 this._super();
-                if (!fastlane.isEnabled()) {
+                if (!fastlane.isAvailable()) {
                     this.visible(false);
                     return;
                 }
@@ -56,7 +56,7 @@ define(
                     return;
                 }
                 this._super(address, index);
-                if (!fastlane.isEnabled()) {
+                if (!fastlane.isAvailable()) {
                     this.visible(false);
                     return;
                 }

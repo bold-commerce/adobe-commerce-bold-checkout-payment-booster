@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\UI\Payment;
+namespace Bold\CheckoutPaymentBooster\UI;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;

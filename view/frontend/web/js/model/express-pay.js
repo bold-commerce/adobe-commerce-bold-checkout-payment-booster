@@ -1,21 +1,29 @@
 define([
+    'checkoutData',
     'jquery',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Magento_Checkout/js/action/set-shipping-information',
     'Magento_Checkout/js/model/address-converter',
+    'Magento_Checkout/js/model/checkout-data-resolver',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/shipping-service',
     'Magento_Customer/js/customer-data',
-    'Magento_Checkout/js/action/select-shipping-method'
+    'Magento_Checkout/js/action/select-shipping-method',
+    'Magento_Customer/js/model/address-list',
+    'Magento_Checkout/js/action/select-shipping-address'
 ], function (
+    checkoutData,
     $,
     platformClient,
     setShippingInformationAction,
     addressConverter,
+    checkoutDataResolver,
     quote,
     shippingService,
     customerData,
-    selectShippingMethodAction
+    selectShippingMethodAction,
+    addressList,
+    selectShippingAddressAction
 ) {
     'use strict';
 
@@ -58,14 +66,14 @@ define([
             if (testMode) {
                 parameters = '&debug=true';
             }
-            if (!require.defined('bold_paypal_sdk')){
+            if (!require.defined('bold_paypal_fastlane')){
                 require.config({
                     paths: {
-                        bold_paypal_sdk: 'https://www.paypal.com/sdk/js?client-id=' + clientId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
+                        bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + clientId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
                     },
                 });
                 await new Promise((resolve, reject) => {
-                    require(['bold_paypal_sdk'], resolve, reject);
+                    require(['bold_paypal_fastlane'], resolve, reject);
                 });
             }
         },
@@ -98,7 +106,7 @@ define([
          *
          * @returns {Promise<*>}
          */
-        createOrder: async function () {
+        createExpressOrder: async function () {
             let url = 'rest/V1/express_pay/order/create';
             const gatewayId = this.expressGatewayId;
 
@@ -130,7 +138,7 @@ define([
          * @returns {Promise<*>}
          */
         updateOrder: async function (orderId) {
-            console.log('UPDATE ORDER', quote.shippingMethod());
+            console.log('UPDATE ORDER', quote.shippingAddress(), quote.shippingMethod());
             let url = 'rest/V1/express_pay/order/update';
 
             return new Promise ((resolve, reject) => {
@@ -185,36 +193,65 @@ define([
             });
 
             quote.shippingAddress(newAddress);
-            await setShippingInformationAction();
+            this.updateSelectedShippingMethod();
+            setShippingInformationAction();
+            // return new Promise((resolve) => {
+            //     setShippingInformationAction().done(() => {
+            //         console.log('SET SHIPPING INFORMATION SUCCESS');
+            //         resolve();
+            //     }).fail(() => {
+            //         console.log('SET SHIPPING INFORMATION FAIL');
+            //     });;
+            // });
+
+            // await setShippingInformationAction();
+            // setShippingInformationAction().done(function () {
+            //     this.updateSelectedShippingMethod();
+            // });
+
+            // addressList([]);
+            // selectShippingAddressAction(newAddress);
+            // await this.updateSelectedShippingMethod();
+
+            // console.log('UPDATED QUOTE:', quote.shippingAddress(), quote.shippingMethod());
+            // checkoutData.setSelectedShippingAddress(newAddress.getKey());
+            // console.log('DONE ADDRESS UPDATE!');
         },
 
-        updateSelectedShippingMethod: async function (shippingMethod) {
+        updateSelectedShippingMethod: function (shippingMethod = null) {
             console.log('UPDATE SELECTED SHIPPING METHOD', shippingMethod);
-            let availableMethods = null;
+            let newMethod = null;
+            let testMethod = null;
 
             if (shippingMethod !== null) {
-                availableMethods = shippingService.getShippingRates().filter((method) => {
+                let availableMethods = shippingService.getShippingRates().filter((method) => {
+                    if (shippingMethod === null) {
+                        return true;
+                    }
                     let methodId = `${method.carrier_code}_${method.method_code}`;
                     methodId = methodId.replace(/\s/g, '');
 
                     return methodId === shippingMethod['id'];
                 });
+                if (availableMethods.length > 0) {
+                    newMethod = availableMethods[0];
+                }
             } else {
-                availableMethods = shippingService.getShippingRates()[0];
+                newMethod = shippingService.getShippingRates().first();
             }
 
-            console.log('AVAILABLE METHODS', availableMethods);
+            console.log('NEW METHOD', newMethod, testMethod);
 
-            if (availableMethods.length > 0) {
-                quote.shippingMethod(availableMethods[0]);
-                selectShippingMethodAction(availableMethods[0]);
-                setShippingInformationAction();
-                await this.updateOrder(this.expressOrderId);
-                return new Promise.resolve();
+            if (newMethod !== null) {
+                quote.shippingMethod(newMethod);
+                // selectShippingMethodAction(newMethod);
+                // setShippingInformationAction();
+                // await this.updateOrder(this.expressOrderId);
+                // return new Promise.resolve();
                 // selectShippingMethodAction(availableMethods[0]);
                 // await setShippingInformationAction();
-            } else {
-                return new Promise.reject();
+            // } else {
+            //     return new Promise.reject();
             }
         },
 

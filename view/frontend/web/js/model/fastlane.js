@@ -161,7 +161,7 @@ define([
             if (!require.defined('bold_paypal_fastlane')){
                 require.config({
                     paths: {
-                        bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,
+                        bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=buttons,fastlane&disable-funding=card&intent=authorize${debugMode}`,
                     },
                 });
                 this.addAuthorizationAttributesToPayPalScript(gatewayData);

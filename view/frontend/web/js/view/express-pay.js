@@ -40,9 +40,9 @@ define([
                         observer.disconnect();
                         window.paypal.Buttons({
                             style: buttonStyles,
-                            async createOrder() {
+                            createOrder: async function() {
                                 console.log('CREATE ORDER');
-                                const response = await expressPay.createOrder();
+                                const response = await expressPay.createExpressOrder();
 
                                 if (response !== undefined) {
                                     return response[0];
@@ -50,25 +50,26 @@ define([
                                     messageList.addErrorMessage({ message: $t('An error occurred while processing your payment. Please try again.') });
                                 }
                             },
-                            async onShippingAddressChange(data, actions) {
+                            onShippingAddressChange: async function(data, actions) {
                                 console.log('SHIPPING ADDRESS CHANGE', data.shippingAddress);
-                                await expressPay.updateQuoteShippingAddress(data['shippingAddress']);
+                                expressPay.updateQuoteShippingAddress(data['shippingAddress']);
 
                                 try {
                                     await expressPay.updateOrder(data['orderID']);
+                                    console.log('ADDRESS CHANGE SUCCESSFUL');
                                 } catch (e) {
                                     return actions.reject(data.errors.ADDRESS_ERROR);
                                 }
                             },
-                            async onShippingOptionsChange(data, actions) {
-                                console.log('SHIPPING METHOD CHANGE', data);
-                                try {
-                                    await expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
-                                } catch (e) {
-                                    return actions.reject(data.errors.METHOD_UNAVAILABLE);
-                                }
-                                // await expressPay.updateOrder(data['orderID']);
-                                // return actions.resolve();
+                            onShippingOptionsChange: async function(data, actions) {
+                                console.log('SHIPPING METHOD CHANGE', data, actions);
+                            //     try {
+                            //         await expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
+                            //     } catch (e) {
+                            //         return actions.reject(data.errors.METHOD_UNAVAILABLE);
+                            //     }
+                            //     // await expressPay.updateOrder(data['orderID']);
+                            //     // return actions.resolve();
                             }
                         }).render(element);
                     }

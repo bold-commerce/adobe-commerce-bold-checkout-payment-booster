@@ -66,7 +66,7 @@ class Get
     public function execute($paypalOrderId, $gatewayId): array
     {
         $websiteId = (int)$this->storeManager->getStore()->getWebsiteId();
-        $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId?gateway_id=$gatewayId";
+        $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId?gateway_id=$gatewayId";
 
         try {
             $result = $this->httpClient->get($websiteId, $uri);

@@ -1,29 +1,25 @@
 define([
-    'checkoutData',
     'jquery',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
-    'Magento_Checkout/js/action/set-shipping-information',
+    'Magento_Customer/js/customer-data',
     'Magento_Checkout/js/model/address-converter',
-    'Magento_Checkout/js/model/checkout-data-resolver',
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/shipping-service',
-    'Magento_Customer/js/customer-data',
-    'Magento_Checkout/js/action/select-shipping-method',
-    'Magento_Customer/js/model/address-list',
-    'Magento_Checkout/js/action/select-shipping-address'
+    'Magento_Checkout/js/model/shipping-save-processor/payload-extender',
+    'Magento_Checkout/js/model/resource-url-manager',
+    'Magento_Checkout/js/model/error-processor',
+    'mage/storage'
 ], function (
-    checkoutData,
     $,
     platformClient,
-    setShippingInformationAction,
+    customerData,
     addressConverter,
-    checkoutDataResolver,
     quote,
     shippingService,
-    customerData,
-    selectShippingMethodAction,
-    addressList,
-    selectShippingAddressAction
+    payloadExtender,
+    resourceUrlManager,
+    errorProcessor,
+    storage
 ) {
     'use strict';
 
@@ -36,7 +32,6 @@ define([
         expressGatewayData: null,
         expressGatewayId: null,
         expressOrderId: null,
-        monitoringShippingRates: false,
 
         /**
          * Check if PPCP is configured.
@@ -97,8 +92,6 @@ define([
             });
             this.expressGatewayId = Object.keys(gatewayData).find((gateway) => gatewayData[gateway].type === 'ppcp') ?? null;
             this.expressGatewayData = this.expressGatewayId ? gatewayData[this.expressGatewayId] : null;
-
-            // this.subscribeToShippingRates();
         },
 
         /**
@@ -113,8 +106,6 @@ define([
             if (!gatewayId) {
                 return;
             }
-
-            // this.subscribeToShippingRates();
 
             try {
                 let createOrderResponse =  await platformClient.post(
@@ -138,7 +129,6 @@ define([
          * @returns {Promise<*>}
          */
         updateOrder: async function (orderId) {
-            console.log('UPDATE ORDER', quote.shippingAddress(), quote.shippingMethod());
             let url = 'rest/V1/express_pay/order/update';
 
             return new Promise ((resolve, reject) => {
@@ -158,7 +148,7 @@ define([
          *
          * @param addressData
          */
-        updateQuoteShippingAddress: async function(addressData) {
+        updateQuoteShippingAddress: function(addressData) {
             const directoryData = customerData.get('directory-data');
             let regions;
 
@@ -194,34 +184,15 @@ define([
 
             quote.shippingAddress(newAddress);
             this.updateSelectedShippingMethod();
-            setShippingInformationAction();
-            // return new Promise((resolve) => {
-            //     setShippingInformationAction().done(() => {
-            //         console.log('SET SHIPPING INFORMATION SUCCESS');
-            //         resolve();
-            //     }).fail(() => {
-            //         console.log('SET SHIPPING INFORMATION FAIL');
-            //     });;
-            // });
-
-            // await setShippingInformationAction();
-            // setShippingInformationAction().done(function () {
-            //     this.updateSelectedShippingMethod();
-            // });
-
-            // addressList([]);
-            // selectShippingAddressAction(newAddress);
-            // await this.updateSelectedShippingMethod();
-
-            // console.log('UPDATED QUOTE:', quote.shippingAddress(), quote.shippingMethod());
-            // checkoutData.setSelectedShippingAddress(newAddress.getKey());
-            // console.log('DONE ADDRESS UPDATE!');
         },
 
+        /**
+         * Update the quote selected shipping method
+         *
+         * @param shippingMethod
+         */
         updateSelectedShippingMethod: function (shippingMethod = null) {
-            console.log('UPDATE SELECTED SHIPPING METHOD', shippingMethod);
             let newMethod = null;
-            let testMethod = null;
 
             if (shippingMethod !== null) {
                 let availableMethods = shippingService.getShippingRates().filter((method) => {
@@ -240,38 +211,37 @@ define([
                 newMethod = shippingService.getShippingRates().first();
             }
 
-            console.log('NEW METHOD', newMethod, testMethod);
-
             if (newMethod !== null) {
                 quote.shippingMethod(newMethod);
-                // selectShippingMethodAction(newMethod);
-                // setShippingInformationAction();
-                // await this.updateOrder(this.expressOrderId);
-                // return new Promise.resolve();
-                // selectShippingMethodAction(availableMethods[0]);
-                // await setShippingInformationAction();
-            // } else {
-            //     return new Promise.reject();
             }
+
+            this.saveShippingInformation();
         },
 
-        // subscribeToShippingRates: function () {
-        //     if (!this.monitoringShippingRates) {
-        //         this.monitoringShippingRates = true;
-        //         console.log('SETTING UP RATE MONITORING');
-        //         shippingService.getShippingRates().subscribe(async (rates) => {
-        //             console.log('RATES UPDATED', quote.shippingAddress(), rates);
-        //             let shippingAddress = quote.shippingAddress();
-        //             let hasRequiredAddressData = (
-        //                 shippingAddress.city !== null
-        //                 && shippingAddress.postcode !== null
-        //                 && shippingAddress.country_id !== null);
-        //             if (rates.length > 0 && hasRequiredAddressData) {
-        //                 quote.shippingMethod(rates[0]);
-        //                 await this.updateOrder(this.expressOrderId);
-        //             }
-        //         });
-        //     }
-        // }
+        /**
+         * Update backend with new shipping information
+         *
+         * @returns {*}
+         */
+        saveShippingInformation: function () {
+            let payload;
+
+            payload = {
+                addressInformation: {
+                    'shipping_address': quote.shippingAddress(),
+                    'shipping_method_code': quote.shippingMethod()['method_code'],
+                    'shipping_carrier_code': quote.shippingMethod()['carrier_code']
+                }
+            };
+
+            payloadExtender(payload);
+
+            storage.post(
+                resourceUrlManager.getUrlForSetShippingInformation(quote),
+                JSON.stringify(payload)
+            ).fail((response) => {
+                errorProcessor.process(response);
+            });
+        },
     };
 });

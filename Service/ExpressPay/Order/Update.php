@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
@@ -43,17 +44,23 @@ class Update
      * @var ClientInterface
      */
     private $httpClient;
+    /**
+     * @var GetExpressPayOrder
+     */
+    private $getExpressPayOrder;
 
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
-        ClientInterface $httpClient
+        ClientInterface $httpClient,
+        GetExpressPayOrder $getExpressPayOrder
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
         $this->quoteConverter = $quoteConverter;
         $this->httpClient = $httpClient;
+        $this->getExpressPayOrder = $getExpressPayOrder;
     }
 
     /**
@@ -85,8 +92,16 @@ class Update
         }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
+        $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
+
+        $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
+        $expressPayOrderShipping = $expressPayOrder['data']['shipping_address'];
+        $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
+
+        if (!$hasShippingData) {
+            unset($expressPayData['order_data']['shipping_address']);
+        }
 
         try {
             $result = $this->httpClient->patch($websiteId, $uri, $expressPayData);

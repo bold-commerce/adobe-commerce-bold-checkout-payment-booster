@@ -41,7 +41,6 @@ define([
                         window.paypal.Buttons({
                             style: buttonStyles,
                             createOrder: async function() {
-                                console.log('CREATE ORDER');
                                 const response = await expressPay.createExpressOrder();
 
                                 if (response !== undefined) {
@@ -51,25 +50,22 @@ define([
                                 }
                             },
                             onShippingAddressChange: async function(data, actions) {
-                                console.log('SHIPPING ADDRESS CHANGE', data.shippingAddress);
                                 expressPay.updateQuoteShippingAddress(data['shippingAddress']);
 
                                 try {
                                     await expressPay.updateOrder(data['orderID']);
-                                    console.log('ADDRESS CHANGE SUCCESSFUL');
                                 } catch (e) {
                                     return actions.reject(data.errors.ADDRESS_ERROR);
                                 }
                             },
                             onShippingOptionsChange: async function(data, actions) {
-                                console.log('SHIPPING METHOD CHANGE', data, actions);
-                            //     try {
-                            //         await expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
-                            //     } catch (e) {
-                            //         return actions.reject(data.errors.METHOD_UNAVAILABLE);
-                            //     }
-                            //     // await expressPay.updateOrder(data['orderID']);
-                            //     // return actions.resolve();
+                                expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
+
+                                try {
+                                    await expressPay.updateOrder(data['orderID']);
+                                } catch (e) {
+                                    return actions.reject(data.errors.METHOD_UNAVAILABLE);
+                                }
                             }
                         }).render(element);
                     }

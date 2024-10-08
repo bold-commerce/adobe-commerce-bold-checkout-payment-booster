@@ -164,18 +164,18 @@ class QuoteConverter
             ]
         ];
 
-        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getPostcode() && $shippingAddress->getCountryId());
+        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
-//        if ($includeAddress && $hasRequiredAddressData) {
-//            $convertedQuote['order_data']['shipping_address'] = [
-//                'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
-//                'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
-//                'city' => $shippingAddress->getCity() ?? '',
-//                'country_code' => $shippingAddress->getCountryId() ?? '',
-//                'postal_code' => $shippingAddress->getPostcode() ?? '',
-//                'state' => $shippingAddress->getRegion() ?? ''
-//            ];
-//        }
+        if ($includeAddress && $hasRequiredAddressData) {
+            $convertedQuote['order_data']['shipping_address'] = [
+                'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
+                'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
+                'city' => $shippingAddress->getCity() ?? '',
+                'country_code' => $shippingAddress->getCountryId() ?? '',
+                'postal_code' => $shippingAddress->getPostcode() ?? '',
+                'state' => $shippingAddress->getRegion() ?? ''
+            ];
+        }
 
         if ($shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
             $convertedQuote['order_data']['selected_shipping_option'] = [

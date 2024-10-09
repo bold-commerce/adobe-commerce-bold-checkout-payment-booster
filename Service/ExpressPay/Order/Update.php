@@ -16,7 +16,6 @@ use Magento\Quote\Model\Quote;
 
 use function __;
 use function array_column;
-use function array_merge_recursive;
 use function count;
 use function implode;
 use function is_array;

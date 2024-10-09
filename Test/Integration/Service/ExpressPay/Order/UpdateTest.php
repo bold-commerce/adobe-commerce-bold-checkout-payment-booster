@@ -58,7 +58,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'e08fac5cffd6467389ce3aac1df1eeeb');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e08fac5cffd6467389ce3aac1df1eeeb',
+            '472df0908785478d8509fbfa8ef532eb'
+        );
     }
 
     public function testDoesNotUpdateExpressPayOrderIfQuoteMaskIdIsInvalid(): void
@@ -73,7 +77,11 @@ class UpdateTest extends TestCase
         /** @var Update $updateExpressPayOrderService */
         $updateExpressPayOrderService = $objectManager->create(Update::class);
 
-        $updateExpressPayOrderService->execute('d3b46018dbff492d8ad339229f9a30f7', '97fb04bc9669476bb271985ffa1875d9');
+        $updateExpressPayOrderService->execute(
+            'd3b46018dbff492d8ad339229f9a30f7',
+            '97fb04bc9669476bb271985ffa1875d9',
+            'ff369b06761c46dba3e3acb4e08347fd'
+        );
     }
 
     public function testDoesNotUpdateExpressPayOrderIfQuoteDoesNotExist(): void
@@ -86,7 +94,11 @@ class UpdateTest extends TestCase
         /** @var Update $updateExpressPayOrderService */
         $updateExpressPayOrderService = $objectManager->create(Update::class);
 
-        $updateExpressPayOrderService->execute(42, 'b76f88547476441a88c81fa0905d4505');
+        $updateExpressPayOrderService->execute(
+            42,
+            'b76f88547476441a88c81fa0905d4505',
+            '34695237c2914d3e953d7d5d81503b4d'
+        );
     }
 
     /**
@@ -112,7 +124,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willThrowException(new Exception('HTTP 503 Service Unavailable'));
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'c8ced8a1f3584d378bd35fd039aeec98');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'c8ced8a1f3584d378bd35fd039aeec98',
+            'b1db99325b9a47738a87f355ff409a75'
+        );
     }
 
     /**
@@ -145,7 +161,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, '6622461eb1174b57b688277efc3ffb5b');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            '6622461eb1174b57b688277efc3ffb5b',
+            '2e03ed6f555f4b0196c7d2d4d72e0f7c'
+        );
     }
 
     /**
@@ -177,7 +197,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'cd389ccd-08a0-4651-aa33-cb7db6327b95');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'cd389ccd-08a0-4651-aa33-cb7db6327b95',
+            'f36c10ca-b8e2-4187-9e15-7a3d9a6f99b4'
+        );
     }
 
     /**

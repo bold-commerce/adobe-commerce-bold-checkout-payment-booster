@@ -53,14 +53,14 @@ class Update
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
-        ClientInterface $httpClient,
-        GetExpressPayOrder $getExpressPayOrder
+        GetExpressPayOrder $getExpressPayOrder,
+        ClientInterface $httpClient
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
         $this->quoteConverter = $quoteConverter;
-        $this->httpClient = $httpClient;
         $this->getExpressPayOrder = $getExpressPayOrder;
+        $this->httpClient = $httpClient;
     }
 
     /**

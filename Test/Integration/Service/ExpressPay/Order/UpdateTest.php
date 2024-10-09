@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -36,6 +37,7 @@ class UpdateTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -44,10 +46,23 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
-                'httpClient' => $boldClientMock
+                'getExpressPayOrder' => $getExpressPayOrderMock,
+                'httpClient' => $boldClientMock,
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'data' => [
+                        'shipping_address' => [
+                            'country' => 'US',
+                            'city' => 'CityM',
+                        ],
+                    ]
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn([]);
@@ -109,6 +124,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('Could not update Express Pay order. Error: "HTTP 503 Service Unavailable"');
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
         $objectManager = Bootstrap::getObjectManager();
@@ -116,10 +132,23 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'data' => [
+                        'shipping_address' => [
+                            'country' => 'US',
+                            'city' => 'CityM',
+                        ],
+                    ]
+                ]
+            );
 
         $boldClientMock->method('patch')
             ->willThrowException(new Exception('HTTP 503 Service Unavailable'));
@@ -139,6 +168,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('An unknown error occurred while updating the Express Pay order.');
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -147,10 +177,23 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'data' => [
+                        'shipping_address' => [
+                            'country' => 'US',
+                            'city' => 'CityM',
+                        ],
+                    ]
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn([]);
@@ -178,6 +221,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage($expectedExceptionMessage);
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -186,10 +230,23 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'data' => [
+                        'shipping_address' => [
+                            'country' => 'US',
+                            'city' => 'CityM',
+                        ],
+                    ]
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn($apiErrors);

@@ -95,11 +95,11 @@ class Update
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
 
         $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
-        $expressPayOrderShipping = $expressPayOrder['data']['shipping_address'];
+        $expressPayOrderShipping = $expressPayOrder['shipping_address'];
         $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
 
         if (!$hasShippingData) {
-            unset($expressPayData['order_data']['shipping_address']);
+            unset($expressPayData['shipping_address']);
         }
 
         try {

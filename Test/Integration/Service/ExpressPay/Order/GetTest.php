@@ -21,26 +21,28 @@ class GetTest extends TestCase
     public function testGetsExpressPayOrderSuccessfully(): void
     {
         $expressPayOrderData = [
-            'first_name' => 'John',
-            'last_name' => 'Smith',
-            'email' => 'jsmithn@example.com',
-            'shipping_address' => [
-                'address_line_1' => '123 Example Street',
-                'address_line_2' => 'Unit 42',
-                'city' => 'Some City',
-                'country' => 'US',
-                'province' => 'SS',
-                'postal_code' => '01234',
-                'phone' => '123-456-7890'
-            ],
-            'billing_address' => [
-                'address_line_1' => '123 Example Street',
-                'address_line_2' => 'Unit 42',
-                'city' => 'Some City',
-                'country' => 'US',
-                'province' => 'SS',
-                'postal_code' => '01234',
-                'phone' => '123-456-7890'
+            'data' => [
+                'first_name' => 'John',
+                'last_name' => 'Smith',
+                'email' => 'jsmithn@example.com',
+                'shipping_address' => [
+                    'address_line_1' => '123 Example Street',
+                    'address_line_2' => 'Unit 42',
+                    'city' => 'Some City',
+                    'country' => 'US',
+                    'province' => 'SS',
+                    'postal_code' => '01234',
+                    'phone' => '123-456-7890'
+                ],
+                'billing_address' => [
+                    'address_line_1' => '123 Example Street',
+                    'address_line_2' => 'Unit 42',
+                    'city' => 'Some City',
+                    'country' => 'US',
+                    'province' => 'SS',
+                    'postal_code' => '01234',
+                    'phone' => '123-456-7890'
+                ]
             ]
         ];
         $boldApiResultMock = $this->createMock(ResultInterface::class);
@@ -72,7 +74,7 @@ class GetTest extends TestCase
             '87ef83fe-b43c-4c40-9c96-1413b9d11b79'
         );
 
-        self::assertSame($expressPayOrderData, $actualExpressPayOrderData);
+        self::assertSame($expressPayOrderData['data'], $actualExpressPayOrderData);
     }
 
     public function testThrowsExceptionIfApiCallThrowsException(): void

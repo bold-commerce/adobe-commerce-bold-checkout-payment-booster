@@ -55,12 +55,10 @@ class UpdateTest extends TestCase
         $getExpressPayOrderMock->method('execute')
             ->willReturn(
                 [
-                    'data' => [
-                        'shipping_address' => [
-                            'country' => 'US',
-                            'city' => 'CityM',
-                        ],
-                    ]
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
+                    ],
                 ]
             );
 
@@ -141,11 +139,9 @@ class UpdateTest extends TestCase
         $getExpressPayOrderMock->method('execute')
             ->willReturn(
                 [
-                    'data' => [
-                        'shipping_address' => [
-                            'country' => 'US',
-                            'city' => 'CityM',
-                        ],
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
                     ]
                 ]
             );
@@ -186,11 +182,9 @@ class UpdateTest extends TestCase
         $getExpressPayOrderMock->method('execute')
             ->willReturn(
                 [
-                    'data' => [
-                        'shipping_address' => [
-                            'country' => 'US',
-                            'city' => 'CityM',
-                        ],
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
                     ]
                 ]
             );
@@ -239,11 +233,9 @@ class UpdateTest extends TestCase
         $getExpressPayOrderMock->method('execute')
             ->willReturn(
                 [
-                    'data' => [
-                        'shipping_address' => [
-                            'country' => 'US',
-                            'city' => 'CityM',
-                        ],
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
                     ]
                 ]
             );

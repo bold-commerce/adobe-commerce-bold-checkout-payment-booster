@@ -20,6 +20,7 @@ use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
+use function __;
 use function reset;
 
 class UpdateTest extends TestCase
@@ -111,6 +112,49 @@ class UpdateTest extends TestCase
             42,
             'b76f88547476441a88c81fa0905d4505',
             '34695237c2914d3e953d7d5d81503b4d'
+        );
+    }
+
+    /**
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testIgnoresExceptionThrownWhenGettingExpressPayOrder(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Update $updateExpressPayOrderService */
+        $updateExpressPayOrderService = $objectManager->create(
+            Update::class,
+            [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
+                'httpClient' => $boldClientMock,
+            ]
+        );
+        $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willThrowException(
+                new LocalizedException(__('Could not get Express Pay order. Error: "%1"', 'HTTP 401 Not Authorized'))
+            );
+
+        $boldApiResultMock->method('getErrors')
+            ->willReturn([]);
+
+        $boldApiResultMock->method('getStatus')
+            ->willReturn(204);
+
+        $boldClientMock->method('patch')
+            ->willReturn($boldApiResultMock);
+
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e08fac5cffd6467389ce3aac1df1eeeb',
+            '472df0908785478d8509fbfa8ef532eb'
         );
     }
 

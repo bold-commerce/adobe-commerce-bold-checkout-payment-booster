@@ -94,8 +94,13 @@ class Update
         $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
 
-        $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
-        $expressPayOrderShipping = $expressPayOrder['shipping_address'];
+        try {
+            $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
+        } catch (LocalizedException $localizedException) {
+            $expressPayOrder = [];
+        }
+
+        $expressPayOrderShipping = $expressPayOrder['shipping_address'] ?? [];
         $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
 
         if (!$hasShippingData) {

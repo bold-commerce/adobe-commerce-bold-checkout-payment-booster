@@ -196,9 +196,6 @@ define([
 
             if (shippingMethod !== null) {
                 let availableMethods = shippingService.getShippingRates().filter((method) => {
-                    if (shippingMethod === null) {
-                        return true;
-                    }
                     let methodId = `${method.carrier_code}_${method.method_code}`;
                     methodId = methodId.replace(/\s/g, '');
 

@@ -131,10 +131,7 @@ define([
                                 'order_id': payload.order_id,
                                 'public_order_id': window.checkoutConfig.bold.publicOrderId
                             });
-                            if (scaResult.errors) {
-                                throw new Error('SCA failed');
-                            }
-                            return {card: scaResult.data};
+                            return {card: scaResult};
                         }
                         throw new Error('Unsupported payment type');
                     }.bind(this)

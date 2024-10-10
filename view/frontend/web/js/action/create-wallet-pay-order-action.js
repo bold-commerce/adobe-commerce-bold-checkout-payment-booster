@@ -1,9 +1,9 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client'
+        'Bold_CheckoutPaymentBooster/js/model/platform-client'
     ],
     function (
-        boldClient,
+        platformClient
     ) {
         'use strict';
 
@@ -11,9 +11,12 @@ define(
          * Create Wallet Pay order.
          */
         return async function (paymentPayload) {
-            return await boldClient.post(
-                'wallet_pay/create_order',
-                paymentPayload
+            return await platformClient.post(
+                'rest/V1/express_pay/order/create',
+                {
+                    quoteMaskId: window.checkoutConfig.quoteData.entity_id,
+                    gatewayId: paymentPayload['gateway_id'],
+                }
             );
         };
     });

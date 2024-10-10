@@ -1,15 +1,11 @@
 define([
     'uiComponent',
-    'Bold_CheckoutPaymentBooster/js/model/express-pay',
-    'Magento_Ui/js/model/messageList',
     'ko',
-    'mage/translate'
+    'Bold_CheckoutPaymentBooster/js/model/payment-booster'
 ], function (
     Component,
-    expressPay,
-    messageList,
     ko,
-    $t
+    paymentBooster
 ) {
     'use strict';
 
@@ -24,56 +20,31 @@ define([
         initialize: async function () {
             this._super();
 
-            await expressPay.loadExpressGatewayData();
             this._setVisibility();
             window.addEventListener('hashchange', this._setVisibility.bind(this));
 
-            expressPay.loadPPCPSdk().then(() => {
-                // Button rendering & styles will be taken over by SPI SDK
-                let buttonStyles = {};
-                buttonStyles['layout'] = 'horizontal';
-                buttonStyles['tagline'] = false;
+            const containerId = 'express-pay-buttons';
+            const observer = new MutationObserver(async () => {
+                if (document.getElementById(containerId)) {
+                    observer.disconnect();
 
-                const observer = new MutationObserver(() => {
-                    const element = document.getElementById('express-pay-buttons');
-                    if (element) {
-                        observer.disconnect();
-                        window.paypal.Buttons({
-                            style: buttonStyles,
-                            createOrder: async function() {
-                                const response = await expressPay.createExpressOrder();
-
-                                if (response !== undefined) {
-                                    return response[0];
-                                } else {
-                                    messageList.addErrorMessage({ message: $t('An error occurred while processing your payment. Please try again.') });
-                                }
-                            },
-                            onShippingAddressChange: async function(data, actions) {
-                                expressPay.updateQuoteShippingAddress(data['shippingAddress']);
-
-                                try {
-                                    await expressPay.updateOrder(data['orderID']);
-                                } catch (e) {
-                                    return actions.reject(data.errors.ADDRESS_ERROR);
-                                }
-                            },
-                            onShippingOptionsChange: async function(data, actions) {
-                                expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
-
-                                try {
-                                    await expressPay.updateOrder(data['orderID']);
-                                } catch (e) {
-                                    return actions.reject(data.errors.METHOD_UNAVAILABLE);
-                                }
-                            }
-                        }).render(element);
+                    if (!window.bold?.paymentsInstance) {
+                        await paymentBooster.initializeEps();
                     }
-                });
-                observer.observe(document.documentElement, {
-                    childList: true,
-                    subtree: true
-                });
+
+                    const allowedCountries = window.checkoutConfig.bold.countries;
+                    const walletOptions = {
+                        shopName: window.checkoutConfig.bold.shopName,
+                        isPhoneRequired: window.checkoutConfig.bold.isPhoneRequired,
+                        fastlane: window.checkoutConfig.bold.fastlane,
+                        allowedCountryCodes: allowedCountries
+                    };
+                    window.bold.paymentsInstance.renderWalletPayments(containerId, walletOptions);
+                }
+            });
+            observer.observe(document.documentElement, {
+                childList: true,
+                subtree: true
             });
         },
         /**
@@ -81,7 +52,8 @@ define([
          * @private
          */
         _setVisibility: function () {
-            this.isVisible(window.location.hash === '#shipping' && expressPay.isEnabled());
+            // this.isVisible(window.location.hash === '#shipping' && expressPay.isEnabled());
+            this.isVisible(window.location.hash === '#shipping');
         }
     });
 });

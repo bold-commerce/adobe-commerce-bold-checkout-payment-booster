@@ -119,11 +119,17 @@ define([
                 callback(data, event);
                 return;
             }
-            this.tokenize()
-            this.paymentId.subscribe((id) => {
-                if (id != null) {
-                    callback(data, event);
+
+            const containerId = 'SPI';
+            const observer = new MutationObserver(async () => {
+                if (document.getElementById(containerId)) {
+                    observer.disconnect();
+                    window.bold.paymentsInstance.renderPayments(containerId);
                 }
+            });
+            observer.observe(document.documentElement, {
+                childList: true,
+                subtree: true
             });
         },
 

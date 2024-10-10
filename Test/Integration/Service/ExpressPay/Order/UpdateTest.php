@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
@@ -19,6 +20,7 @@ use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
+use function __;
 use function reset;
 
 class UpdateTest extends TestCase
@@ -36,6 +38,7 @@ class UpdateTest extends TestCase
     {
         $this->expectNotToPerformAssertions();
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -44,10 +47,21 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
-                'httpClient' => $boldClientMock
+                'getExpressPayOrder' => $getExpressPayOrderMock,
+                'httpClient' => $boldClientMock,
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
+                    ],
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn([]);
@@ -58,7 +72,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'e08fac5cffd6467389ce3aac1df1eeeb');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e08fac5cffd6467389ce3aac1df1eeeb',
+            '472df0908785478d8509fbfa8ef532eb'
+        );
     }
 
     public function testDoesNotUpdateExpressPayOrderIfQuoteMaskIdIsInvalid(): void
@@ -73,7 +91,11 @@ class UpdateTest extends TestCase
         /** @var Update $updateExpressPayOrderService */
         $updateExpressPayOrderService = $objectManager->create(Update::class);
 
-        $updateExpressPayOrderService->execute('d3b46018dbff492d8ad339229f9a30f7', '97fb04bc9669476bb271985ffa1875d9');
+        $updateExpressPayOrderService->execute(
+            'd3b46018dbff492d8ad339229f9a30f7',
+            '97fb04bc9669476bb271985ffa1875d9',
+            'ff369b06761c46dba3e3acb4e08347fd'
+        );
     }
 
     public function testDoesNotUpdateExpressPayOrderIfQuoteDoesNotExist(): void
@@ -86,7 +108,54 @@ class UpdateTest extends TestCase
         /** @var Update $updateExpressPayOrderService */
         $updateExpressPayOrderService = $objectManager->create(Update::class);
 
-        $updateExpressPayOrderService->execute(42, 'b76f88547476441a88c81fa0905d4505');
+        $updateExpressPayOrderService->execute(
+            42,
+            'b76f88547476441a88c81fa0905d4505',
+            '34695237c2914d3e953d7d5d81503b4d'
+        );
+    }
+
+    /**
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testIgnoresExceptionThrownWhenGettingExpressPayOrder(): void
+    {
+        $this->expectNotToPerformAssertions();
+
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Update $updateExpressPayOrderService */
+        $updateExpressPayOrderService = $objectManager->create(
+            Update::class,
+            [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
+                'httpClient' => $boldClientMock,
+            ]
+        );
+        $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willThrowException(
+                new LocalizedException(__('Could not get Express Pay order. Error: "%1"', 'HTTP 401 Not Authorized'))
+            );
+
+        $boldApiResultMock->method('getErrors')
+            ->willReturn([]);
+
+        $boldApiResultMock->method('getStatus')
+            ->willReturn(204);
+
+        $boldClientMock->method('patch')
+            ->willReturn($boldApiResultMock);
+
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e08fac5cffd6467389ce3aac1df1eeeb',
+            '472df0908785478d8509fbfa8ef532eb'
+        );
     }
 
     /**
@@ -97,6 +166,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('Could not update Express Pay order. Error: "HTTP 503 Service Unavailable"');
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
         $objectManager = Bootstrap::getObjectManager();
@@ -104,15 +174,30 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
 
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
+                    ]
+                ]
+            );
+
         $boldClientMock->method('patch')
             ->willThrowException(new Exception('HTTP 503 Service Unavailable'));
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'c8ced8a1f3584d378bd35fd039aeec98');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'c8ced8a1f3584d378bd35fd039aeec98',
+            'b1db99325b9a47738a87f355ff409a75'
+        );
     }
 
     /**
@@ -123,6 +208,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage('An unknown error occurred while updating the Express Pay order.');
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -131,10 +217,21 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
+                    ]
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn([]);
@@ -145,7 +242,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, '6622461eb1174b57b688277efc3ffb5b');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            '6622461eb1174b57b688277efc3ffb5b',
+            '2e03ed6f555f4b0196c7d2d4d72e0f7c'
+        );
     }
 
     /**
@@ -158,6 +259,7 @@ class UpdateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessage($expectedExceptionMessage);
 
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldClientMock = $this->createMock(BoldClient::class);
         /** @var ObjectManagerInterface $objectManager */
@@ -166,10 +268,21 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService = $objectManager->create(
             Update::class,
             [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
                 'httpClient' => $boldClientMock
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $getExpressPayOrderMock->method('execute')
+            ->willReturn(
+                [
+                    'shipping_address' => [
+                        'country' => 'US',
+                        'city' => 'CityM',
+                    ]
+                ]
+            );
 
         $boldApiResultMock->method('getErrors')
             ->willReturn($apiErrors);
@@ -177,7 +290,11 @@ class UpdateTest extends TestCase
         $boldClientMock->method('patch')
             ->willReturn($boldApiResultMock);
 
-        $updateExpressPayOrderService->execute($quoteMaskId, 'cd389ccd-08a0-4651-aa33-cb7db6327b95');
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'cd389ccd-08a0-4651-aa33-cb7db6327b95',
+            'f36c10ca-b8e2-4187-9e15-7a3d9a6f99b4'
+        );
     }
 
     /**

@@ -40,8 +40,8 @@ define([
                         observer.disconnect();
                         window.paypal.Buttons({
                             style: buttonStyles,
-                            async createOrder() {
-                                const response = await expressPay.createOrder();
+                            createOrder: async function() {
+                                const response = await expressPay.createExpressOrder();
 
                                 if (response !== undefined) {
                                     return response[0];
@@ -49,7 +49,7 @@ define([
                                     messageList.addErrorMessage({ message: $t('An error occurred while processing your payment. Please try again.') });
                                 }
                             },
-                            async onShippingAddressChange(data, actions) {
+                            onShippingAddressChange: async function(data, actions) {
                                 expressPay.updateQuoteShippingAddress(data['shippingAddress']);
 
                                 try {
@@ -58,6 +58,15 @@ define([
                                     return actions.reject(data.errors.ADDRESS_ERROR);
                                 }
                             },
+                            onShippingOptionsChange: async function(data, actions) {
+                                expressPay.updateSelectedShippingMethod(data['selectedShippingOption']);
+
+                                try {
+                                    await expressPay.updateOrder(data['orderID']);
+                                } catch (e) {
+                                    return actions.reject(data.errors.METHOD_UNAVAILABLE);
+                                }
+                            }
                         }).render(element);
                     }
                 });

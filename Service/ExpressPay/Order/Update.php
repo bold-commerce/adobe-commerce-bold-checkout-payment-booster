@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
@@ -15,7 +16,6 @@ use Magento\Quote\Model\Quote;
 
 use function __;
 use function array_column;
-use function array_merge_recursive;
 use function count;
 use function implode;
 use function is_array;
@@ -43,16 +43,22 @@ class Update
      * @var ClientInterface
      */
     private $httpClient;
+    /**
+     * @var GetExpressPayOrder
+     */
+    private $getExpressPayOrder;
 
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
+        GetExpressPayOrder $getExpressPayOrder,
         ClientInterface $httpClient
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
         $this->quoteConverter = $quoteConverter;
+        $this->getExpressPayOrder = $getExpressPayOrder;
         $this->httpClient = $httpClient;
     }
 
@@ -85,8 +91,21 @@ class Update
         }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
+        $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId";
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
+
+        try {
+            $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
+        } catch (LocalizedException $localizedException) {
+            $expressPayOrder = [];
+        }
+
+        $expressPayOrderShipping = $expressPayOrder['shipping_address'] ?? [];
+        $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
+
+        if (!$hasShippingData) {
+            unset($expressPayData['shipping_address']);
+        }
 
         try {
             $result = $this->httpClient->patch($websiteId, $uri, $expressPayData);

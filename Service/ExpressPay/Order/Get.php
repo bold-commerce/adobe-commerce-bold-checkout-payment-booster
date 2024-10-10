@@ -11,6 +11,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 use function __;
 use function array_column;
+use function array_key_exists;
 use function implode;
 use function is_array;
 
@@ -66,7 +67,7 @@ class Get
     public function execute($paypalOrderId, $gatewayId): array
     {
         $websiteId = (int)$this->storeManager->getStore()->getWebsiteId();
-        $uri = "/checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId?gateway_id=$gatewayId";
+        $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId?gateway_id=$gatewayId";
 
         try {
             $result = $this->httpClient->get($websiteId, $uri);
@@ -91,12 +92,39 @@ class Get
             throw new LocalizedException($exceptionMessage);
         }
 
-        if ($result->getStatus() !== 200) {
+        /** @var array{
+         *     data?: array{
+         *         first_name: string,
+         *         last_name: string,
+         *         email: string,
+         *         shipping_address: array{
+         *             address_line_1: string,
+         *             address_line_2: string,
+         *             city: string,
+         *             country: string,
+         *             province: string,
+         *             postal_code: string,
+         *             phone: string
+         *         },
+         *         billing_address: array{
+         *             address_line_1: string,
+         *             address_line_2: string,
+         *             city: string,
+         *             country: string,
+         *             province: string,
+         *             postal_code: string,
+         *             phone: string
+         *         }
+         *     }
+         * } $resultBody */
+        $resultBody = $result->getBody();
+
+        if ($result->getStatus() !== 200 || !array_key_exists('data', $resultBody)) {
             throw new LocalizedException(
                 __('An unknown error occurred while getting the Express Pay order.')
             );
         }
 
-        return $result->getBody(); // @phpstan-ignore return.type
+        return $resultBody['data'];
     }
 }

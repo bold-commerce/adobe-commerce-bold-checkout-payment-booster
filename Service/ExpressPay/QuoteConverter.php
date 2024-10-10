@@ -164,7 +164,7 @@ class QuoteConverter
             ]
         ];
 
-        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getPostcode() && $shippingAddress->getCountryId());
+        $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
         if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [

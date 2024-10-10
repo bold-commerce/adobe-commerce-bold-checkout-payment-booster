@@ -1,15 +1,25 @@
 define([
     'jquery',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
+    'Magento_Customer/js/customer-data',
     'Magento_Checkout/js/model/address-converter',
     'Magento_Checkout/js/model/quote',
-    'Magento_Customer/js/customer-data'
+    'Magento_Checkout/js/model/shipping-service',
+    'Magento_Checkout/js/model/shipping-save-processor/payload-extender',
+    'Magento_Checkout/js/model/resource-url-manager',
+    'Magento_Checkout/js/model/error-processor',
+    'mage/storage'
 ], function (
     $,
     platformClient,
+    customerData,
     addressConverter,
     quote,
-    customerData
+    shippingService,
+    payloadExtender,
+    resourceUrlManager,
+    errorProcessor,
+    storage
 ) {
     'use strict';
 
@@ -21,6 +31,7 @@ define([
     return {
         expressGatewayData: null,
         expressGatewayId: null,
+        expressOrderId: null,
 
         /**
          * Check if PPCP is configured.
@@ -50,14 +61,14 @@ define([
             if (testMode) {
                 parameters = '&debug=true';
             }
-            if (!require.defined('bold_paypal_sdk')){
+            if (!require.defined('bold_paypal_fastlane')){
                 require.config({
                     paths: {
-                        bold_paypal_sdk: 'https://www.paypal.com/sdk/js?client-id=' + clientId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
+                        bold_paypal_fastlane: 'https://www.paypal.com/sdk/js?client-id=' + clientId + '&components=buttons,fastlane&disable-funding=card&intent=authorize' + parameters,
                     },
                 });
                 await new Promise((resolve, reject) => {
-                    require(['bold_paypal_sdk'], resolve, reject);
+                    require(['bold_paypal_fastlane'], resolve, reject);
                 });
             }
         },
@@ -88,7 +99,7 @@ define([
          *
          * @returns {Promise<*>}
          */
-        createOrder: async function () {
+        createExpressOrder: async function () {
             let url = 'rest/V1/express_pay/order/create';
             const gatewayId = this.expressGatewayId;
 
@@ -97,13 +108,16 @@ define([
             }
 
             try {
-                return await platformClient.post(
+                let createOrderResponse =  await platformClient.post(
                     url,
                     {
                         quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                         gatewayId: gatewayId,
                     }
                 );
+
+                this.expressOrderId = createOrderResponse[0];
+                return createOrderResponse;
             } catch (e) {
                 console.error(e);
             }
@@ -160,17 +174,71 @@ define([
                 city: addressData['city'],
                 region: {
                     region: regionName,
-                    region_code: addressData['postalCode'],
+                    region_code: addressData['state'],
                     region_id: regionId
                 },
                 region_id: regionId,
                 postcode: addressData['postalCode'],
-                country_id: addressData['countryCode'],
-                customerAddressId: null,
-                saveInAddressBook: false
+                country_id: addressData['countryCode']
             });
 
             quote.shippingAddress(newAddress);
-        }
+            this.updateSelectedShippingMethod();
+        },
+
+        /**
+         * Update the quote selected shipping method
+         *
+         * @param shippingMethod
+         */
+        updateSelectedShippingMethod: function (shippingMethod = null) {
+            let newMethod = null;
+
+            if (shippingMethod !== null) {
+                let availableMethods = shippingService.getShippingRates().filter((method) => {
+                    let methodId = `${method.carrier_code}_${method.method_code}`;
+                    methodId = methodId.replace(/\s/g, '');
+
+                    return methodId === shippingMethod['id'];
+                });
+                if (availableMethods.length > 0) {
+                    newMethod = availableMethods[0];
+                }
+            } else {
+                newMethod = shippingService.getShippingRates().first();
+            }
+
+            if (newMethod !== null) {
+                quote.shippingMethod(newMethod);
+            }
+
+            this.saveShippingInformation();
+        },
+
+        /**
+         * Update backend with new shipping information
+         *
+         * @returns {*}
+         */
+        saveShippingInformation: function () {
+            let payload;
+
+            payload = {
+                addressInformation: {
+                    'shipping_address': quote.shippingAddress(),
+                    'shipping_method_code': quote.shippingMethod()['method_code'],
+                    'shipping_carrier_code': quote.shippingMethod()['carrier_code']
+                }
+            };
+
+            payloadExtender(payload);
+
+            storage.post(
+                resourceUrlManager.getUrlForSetShippingInformation(quote),
+                JSON.stringify(payload)
+            ).fail((response) => {
+                errorProcessor.process(response);
+            });
+        },
     };
 });

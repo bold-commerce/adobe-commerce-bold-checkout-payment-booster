@@ -84,7 +84,7 @@ class Create
         }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        $uri = '/checkout/orders/{{shopId}}/wallet_pay';
+        $uri = 'checkout/orders/{{shopId}}/wallet_pay';
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
 
         try {

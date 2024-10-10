@@ -106,7 +106,11 @@ class BeforePlaceObserver implements ObserverInterface
      */
     private function saveTransactionData(OrderInterface $order, array $transactionData)
     {
-        $order->getPayment()->setTransactionId($transactionData['data']['transactions'][0]['transaction_id']);
+        $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
+        if (!$transactionId) {
+            return;
+        }
+        $order->getPayment()->setTransactionId($transactionId);
         $order->getPayment()->setIsTransactionClosed(0);
         $order->getPayment()->addTransaction(TransactionInterface::TYPE_AUTH);
         $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;

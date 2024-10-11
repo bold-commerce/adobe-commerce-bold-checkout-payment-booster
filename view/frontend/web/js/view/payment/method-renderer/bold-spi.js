@@ -15,7 +15,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/action/reload-cart-action',
     'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
     'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
-    'Bold_CheckoutPaymentBooster/js/model/address'
+    'Bold_CheckoutPaymentBooster/js/action/payment-sca-action',
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -33,7 +33,7 @@ define([
     reloadCartAction,
     createOrderAction,
     convertBoldAddressAction,
-    addressModel,
+    paymentScaAction,
 ) {
     'use strict';
     return DefaultPaymentComponent.extend({
@@ -124,6 +124,17 @@ define([
                         this.paymentId(paymentPayload.payment_id);
                         this.placeOrder({}, jQuery.Event());
                     },
+                    'onScaPaymentOrder': async function (type, payload) {
+                        if (type === 'ppcp') {
+                            const scaResult = await paymentScaAction({
+                                'gateway_type': 'ppcp',
+                                'order_id': payload.order_id,
+                                'public_order_id': window.checkoutConfig.bold.publicOrderId
+                            });
+                            return {card: scaResult};
+                        }
+                        throw new Error('Unsupported payment type');
+                    }.bind(this)
                 }
             };
             const boldPayments = new window.bold.Payments(initialData);
@@ -167,18 +178,43 @@ define([
          */
         tokenize: function () {
             const iframeWindow = document.getElementById('spi_frame_SPI').contentWindow;
-            const address = addressModel.getAddress();
+            const billingAddress = quote.billingAddress();
+            const shippingAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
+            const email = checkoutData.getValidatedEmailValue()
+                ? checkoutData.getValidatedEmailValue()
+                : window.checkoutConfig.customerData.email;
             const payload = {
+                customer: {
+                    first_name: billingAddress.firstname,
+                    last_name: billingAddress.lastname,
+                    email: email,
+                },
                 billing_address: {
-                    first_name: address.firstname,
-                    last_name: address.lastname,
-                    address_line_1: address.street[0],
-                    address_line_2: address.street[1],
-                    province_code: address.region,
-                    city: address.city,
-                    postal_code: address.postcode,
-                    country_code: address.country_id,
-                }
+                    first_name: billingAddress.firstname,
+                    last_name: billingAddress.lastname,
+                    address_line_1: billingAddress.street[0],
+                    address_line_2: billingAddress.street[1],
+                    province_code: billingAddress.region,
+                    city: billingAddress.city,
+                    postal_code: billingAddress.postcode,
+                    country_code: billingAddress.countryId,
+                },
+                shipping_address: {
+                    first_name: shippingAddress.firstname,
+                    last_name: shippingAddress.lastname,
+                    address_line_1: shippingAddress.street[0],
+                    address_line_2: shippingAddress.street[1],
+                    province_code: shippingAddress.region,
+                    city: shippingAddress.city,
+                    postal_code: shippingAddress.postcode,
+                    country_code: shippingAddress.countryId,
+                },
+                totals: {
+                    order_total: quote.totals()['base_grand_total'] * 100,
+                    shipping_total: quote.totals()['base_shipping_amount'] * 100,
+                    discounts_total: quote.totals()['base_discount_amount'] * 100,
+                    taxes_total: quote.totals()['base_tax_amount'] * 100,
+                },
             };
             iframeWindow.postMessage({actionType: 'ACTION_SPI_TOKENIZE', payload: payload}, '*');
         },
@@ -202,6 +238,15 @@ define([
                         console.log('Failed to tokenize');
                         fullscreenLoader.stopLoader();
                         this.isSpiLoading(false);
+                        break;
+                    case 'EVENT_SPI_PAYMENT_ORDER_SCA':
+                        fullscreenLoader.stopLoader();
+                        break;
+                    case 'EVENT_SPI_ENABLE_FULLSCREEN':
+                        fullscreenLoader.stopLoader();
+                        break;
+                    case 'EVENT_SPI_DISABLE_FULLSCREEN':
+                        fullscreenLoader.startLoader();
                         break;
                 }
             });

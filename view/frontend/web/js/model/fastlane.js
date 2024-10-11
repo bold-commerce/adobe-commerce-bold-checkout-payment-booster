@@ -1,10 +1,9 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/action/eps-initialize-action',
-    'prototype'
+    'Bold_CheckoutPaymentBooster/js/model/spi',
 ], function (
     ko,
-    initializeGatewayAction,
+    spi,
 ) {
     'use strict';
 
@@ -63,7 +62,9 @@ define([
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
                 if (!this.gatewayData) {
-                    this.gatewayData = await initializeGatewayAction();
+                    const boldPaymentsInstance = await spi.getPaymentsClient();
+                    boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
+                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.gatewayId] || null;
                 }
                 if (!this.gatewayData) {
                     window.boldFastlaneInstanceCreateInProgress = false;

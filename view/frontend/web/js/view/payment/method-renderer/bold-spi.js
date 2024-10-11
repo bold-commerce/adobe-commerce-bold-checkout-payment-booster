@@ -9,13 +9,10 @@ define([
     'underscore',
     'ko',
     'mage/translate',
+    'Bold_CheckoutPaymentBooster/js/model/spi',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
-    'Bold_CheckoutPaymentBooster/js/action/reload-cart-action',
-    'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
-    'Bold_CheckoutPaymentBooster/js/action/convert-bold-address',
-    'Bold_CheckoutPaymentBooster/js/action/payment-sca-action',
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -27,13 +24,10 @@ define([
     _,
     ko,
     $t,
+    spi,
     platformClient,
     fastlane,
     hydrateOrderAction,
-    reloadCartAction,
-    createOrderAction,
-    convertBoldAddressAction,
-    paymentScaAction,
 ) {
     'use strict';
     return DefaultPaymentComponent.extend({
@@ -42,6 +36,8 @@ define([
             paymentId: ko.observable(null),
             isVisible: ko.observable(false),
             isSpiLoading: ko.observable(true),
+            isBillingAddressRequired: ko.observable(true),
+            isPlaceOrderButtonVisible: ko.observable(true),
         },
 
         /** @inheritdoc */
@@ -54,7 +50,7 @@ define([
                     this.removeFullScreenLoaderOnError();
                 }
             });
-            this.isVisible(window.checkoutConfig.bold?.paymentBooster && !fastlane.isAvailable());
+            this.isVisible(window.checkoutConfig.bold?.paymentBooster);
             const delayedHydrateOrder = _.debounce(
                 async function () {
                     try {
@@ -75,70 +71,44 @@ define([
                 this.isVisible(false);
             });
         },
-
+        /**
+         * Initialize SPI payment form.
+         *
+         * @return {Promise<void>}
+         */
+        initPaymentForm: async function () {
+            const observer = new MutationObserver(function () {
+                if (document.getElementById('SPI')) {
+                    observer.disconnect();
+                    this.renderPayments();
+                }
+            }.bind(this));
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+            });
+        },
         /**
          * Load SPI SDK.
          *
          * @returns {Promise<void>}
          */
-        initPaymentForm: async function () {
-            require.config({
-                paths: {
-                    bold_payments_sdk: window.checkoutConfig.bold.epsStaticUrl + '/js/payments_sdk',
-                },
-            });
-            await new Promise((resolve, reject) => {
-                require(['bold_payments_sdk'], resolve, reject);
-            });
-            const initialData = {
-                'eps_url': window.checkoutConfig.bold.epsUrl,
-                'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
-                'group_label': window.checkoutConfig.bold.configurationGroupLabel,
-                'trace_id': window.checkoutConfig.bold.publicOrderId,
-                'payment_gateways': [
-                    {
-                        'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
-                        'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        'currency': quote.totals()['base_currency_code'],
-                    }
-                ],
-                'callbacks': {
-                    'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (paymentType !== 'ppcp') {
-                            return;
-                        }
-                        const walletPayResult = await createOrderAction(paymentPayload);
-                        if (walletPayResult.errors) {
-                            return Promise.reject('An error occurred while processing your payment. Please try again.');
-                        }
-                        if (walletPayResult.data) {
-                            return walletPayResult.data
-                        } else {
-                            throw 'Unable to create order';
-                        }
-                    },
-                    'onUpdatePaymentOrder': async () => {
-                        // Do nothing for now.
-                    },
-                    'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
-                        this.paymentId(paymentPayload.payment_id);
-                        this.placeOrder({}, jQuery.Event());
-                    },
-                    'onScaPaymentOrder': async function (type, payload) {
-                        if (type === 'ppcp') {
-                            const scaResult = await paymentScaAction({
-                                'gateway_type': 'ppcp',
-                                'order_id': payload.order_id,
-                                'public_order_id': window.checkoutConfig.bold.publicOrderId
-                            });
-                            return {card: scaResult};
-                        }
-                        throw new Error('Unsupported payment type');
-                    }.bind(this)
+        renderPayments: async function () {
+            const paymentsInstance = await spi.getPaymentsClient();
+            const boldPaymentsForm = document.getElementById('SPI');
+            if (fastlane.isAvailable()) {
+                await paymentsInstance.renderWalletPayments('SPI');
+                this.isBillingAddressRequired(false);
+                this.isPlaceOrderButtonVisible(false);
+                this.isSpiLoading(false);
+                if (boldPaymentsForm.getHTML().trim() === '') {
+                    this.isVisible(false);
                 }
-            };
-            const boldPayments = new window.bold.Payments(initialData);
-            boldPayments.renderPayments('SPI');
+                return;
+            }
+            this.isBillingAddressRequired(true);
+            this.isPlaceOrderButtonVisible(true);
+            paymentsInstance.renderPayments('SPI');
         },
 
         /** @inheritdoc */

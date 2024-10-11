@@ -98,19 +98,19 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    fastlane.memberAuthenticated(true);
-                                    fastlane.profileData = profileData;
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
+                                    fastlane.memberAuthenticated(true);
+                                    fastlane.profileData = profileData;
                                 }
                                 return;
                             }
                             fastlane.memberAuthenticated(false);
+                            resetShippingAddressAction();
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);
                         }
-                        resetShippingAddressAction();
                     },
 
                     /**

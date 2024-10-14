@@ -62,10 +62,18 @@ define([
         _renderExpressPayments: function() {
             const containerId = 'express-pay-buttons';
             const observer = new MutationObserver(async () => {
+                let boldPaymentsInstance;
+
                 if (document.getElementById(containerId)) {
                     observer.disconnect();
 
-                    const boldPaymentsInstance = await spi.getPaymentsClient();
+                    try {
+                        boldPaymentsInstance = await spi.getPaymentsClient();
+                    } catch (error) {
+                        console.error('Could not instantiate Bold Payments Client.', error);
+
+                        return;
+                    }
 
                     const allowedCountries = window.checkoutConfig.bold.countries;
                     const walletOptions = {

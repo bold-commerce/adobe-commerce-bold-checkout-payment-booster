@@ -57,12 +57,12 @@ class Create
 
     /**
      * @param string|int $quoteMaskId
-     * @param string $gatewayId
+     * @param mixed $paymentPayload
      * @return array
      * @phpstan-return array{order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $gatewayId): array
+    public function execute($quoteMaskId, $paymentPayload): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -85,7 +85,9 @@ class Create
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = 'checkout/orders/{{shopId}}/wallet_pay';
-        $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
+
+        $expressPayData = $this->quoteConverter->convertFullQuote($quote, (string)$paymentPayload['gateway_id']);
+        $expressPayData['shipping_strategy'] = $paymentPayload['shipping_strategy'];
 
         try {
             $result = $this->httpClient->post($websiteId, $uri, $expressPayData);

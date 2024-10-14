@@ -11,7 +11,7 @@
                                 <item name="steps" xsi:type="array">
                                     <item name="children" xsi:type="array">
                                         <item name="bold-express-pay" xsi:type="array">
-                                            <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/express-pay</item>
+                                            <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/bold-express-pay</item>
                                             <item name="sortOrder" xsi:type="string">0</item>
                                         </item>
                                         <item name="shipping-step" xsi:type="array">

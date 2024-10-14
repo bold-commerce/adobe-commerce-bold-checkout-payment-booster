@@ -75,11 +75,11 @@ define([
                         return;
                     }
 
-                    const allowedCountries = window.checkoutConfig.bold.countries;
+                    const allowedCountries = window.checkoutConfig.bold?.countries ?? [];
                     const walletOptions = {
-                        shopName: window.checkoutConfig.bold.shopName,
-                        isPhoneRequired: window.checkoutConfig.bold.isPhoneRequired,
-                        fastlane: window.checkoutConfig.bold.fastlane,
+                        shopName: window.checkoutConfig.bold?.shopName ?? '',
+                        isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
+                        fastlane: window.checkoutConfig.bold?.fastlane,
                         allowedCountryCodes: allowedCountries
                     };
 

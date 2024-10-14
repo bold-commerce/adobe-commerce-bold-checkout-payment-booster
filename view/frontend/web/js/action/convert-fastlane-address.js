@@ -2,11 +2,13 @@ define(
     [
         'Magento_Checkout/js/model/new-customer-address',
         'Magento_Customer/js/customer-data',
-        'Bold_CheckoutPaymentBooster/js/model/fastlane'
+        'Bold_CheckoutPaymentBooster/js/model/fastlane',
+        'checkoutData'
     ], function (
         NewCustomerAddressModel,
         customerData,
-        fastlane
+        fastlane,
+        checkoutData
     ) {
         'use strict';
         /**
@@ -43,6 +45,7 @@ define(
                     });
                 }
                 const convertedAddress = {
+                    email: checkoutData.getValidatedEmailValue(),
                     firstname: fastlaneAddress.firstName,
                     lastname: fastlaneAddress.lastName,
                     street: [fastlaneAddress.streetAddress, fastlaneAddress.extendedAddress],
@@ -87,6 +90,7 @@ define(
                     });
                 }
                 const convertedAddress = {
+                    email: checkoutData.getValidatedEmailValue(),
                     firstname: fastlaneAddress.name.firstName,
                     lastname: fastlaneAddress.name.lastName,
                     street: [fastlaneAddress.address.addressLine1, fastlaneAddress.address.addressLine2],

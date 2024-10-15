@@ -3,7 +3,10 @@ let config = {
         mixins: {
             'Magento_Checkout/js/view/form/element/email': {
                 'Bold_CheckoutPaymentBooster/js/view/form/element/email/fastlane-mixin': true
-            }
+            },
+            'Magento_Checkout/js/model/step-navigator': {
+                'Bold_CheckoutPaymentBooster/js/model/step-navigator-mixin': true
+            },
         },
     },
     paths: {

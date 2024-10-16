@@ -235,7 +235,9 @@ define([
                 quote.shippingMethod(newMethod);
             }
 
-            quote.guestEmail = 'test@test.com';
+            if (quote.guestEmail === null) {
+                quote.guestEmail = 'test@test.com';
+            }
 
             this.saveShippingInformation();
         },

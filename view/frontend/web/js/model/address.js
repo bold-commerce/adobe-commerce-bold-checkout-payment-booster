@@ -33,8 +33,6 @@ define([
                 return null;
             }
             const countryId = this.getFieldValue('countryId');
-            const country = window.checkoutConfig.bold.countries.find(country => country.value === countryId);
-            const countryName = country ? country.label : '';
             let street1 = '';
             let street2 = '';
             if (this.billingAddress.street && this.billingAddress.street[0]) {
@@ -62,20 +60,16 @@ define([
                 }
             }
             const payload = {
-                'id': this.getFieldValue('customerAddressId')
-                    ? Number(this.getFieldValue('customerAddressId')) : null,
-                'business_name': this.getFieldValue('company'),
-                'country_code': countryId,
-                'country': countryName,
+                'email': customerData.email ?? checkoutData.getValidatedEmailValue(),
+                'country_id': countryId,
+                'company': this.getFieldValue('company'),
                 'city': this.getFieldValue('city'),
-                'first_name': this.getFieldValue('firstname'),
-                'last_name': this.getFieldValue('lastname'),
-                'phone_number': this.getFieldValue('telephone'),
-                'postal_code': this.getFieldValue('postcode'),
-                'province': this.getFieldValue('region'),
-                'province_code': this.getFieldValue('regionCode'),
-                'address_line_1': street1,
-                'address_line_2': street2,
+                'firstname': this.getFieldValue('firstname'),
+                'lastname': this.getFieldValue('lastname'),
+                'telephone': this.getFieldValue('telephone'),
+                'postcode': this.getFieldValue('postcode'),
+                'region': this.getFieldValue('region'),
+                'street': [street1, street2],
             }
             try {
                 this.validatePayload(payload);
@@ -114,26 +108,30 @@ define([
          */
         validatePayload(payload) {
             let requiredFields = [
-                'first_name',
-                'last_name',
-                'phone_number',
-                'country',
-                'address_line_1',
+                'firstname',
+                'lastname',
+                'telephone',
+                'email',
+                'country_id',
+                'street1',
                 'city',
             ];
-            const country = window.checkoutConfig.bold.countries.find(country => country.value === payload.country_code);
+            if (payload.street) {
+                payload.street1 = payload.street[0];
+            }
+            const country = window.checkoutConfig.bold.countries.find(country => country.value === payload.country_id);
             if (country && country.is_region_required) {
-                requiredFields.push('province');
-                requiredFields.push('province_code');
+                requiredFields.push('region');
             }
             if (country && country.is_zipcode_optional !== true) {
-                requiredFields.push('postal_code');
+                requiredFields.push('postcode');
             }
             _.each(requiredFields, function (field) {
                 if (!payload[field]) {
                     throw new Error('Missing required field: ' + field);
                 }
             })
+            delete payload.street1;
         },
     }
 });

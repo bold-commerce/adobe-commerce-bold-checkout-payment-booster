@@ -1,0 +1,18 @@
+{
+  "bold_checkout_payment_booster_order": {
+    "column": {
+      "id": true,
+      "order_id": true,
+      "public_id": true,
+      "is_capture_in_progress": true,
+      "is_refund_in_progress": true,
+      "is_cancel_in_progress": true
+    },
+    "index": {
+      "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true
+    },
+    "constraint": {
+      "PRIMARY": true
+    }
+  }
+}

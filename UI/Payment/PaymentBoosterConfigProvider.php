@@ -3,17 +3,13 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
 
-use Bold\Checkout\Api\Http\ClientInterface;
-use Bold\Checkout\Model\Payment\Gateway\Service;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\FileSystemException;
-use Magento\Framework\Exception\ValidatorException;
-use Magento\Framework\Filesystem\Directory\ReadFactory;
-use Magento\Framework\Module\Dir;
-use Magento\Framework\Module\Dir\Reader;
-use Magento\Framework\Serialize\Serializer\Json;
+use Magento\Directory\Model\AllowedCountries;
+use Magento\Directory\Model\Country;
+use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 
 /**
  * Config provider for Payment Booster.
@@ -21,14 +17,9 @@ use Magento\Framework\Serialize\Serializer\Json;
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
     /**
-     * @var Session
+     * @var CheckoutData
      */
-    private $checkoutSession;
-
-    /**
-     * @var ClientInterface
-     */
-    private $client;
+    private $checkoutData;
 
     /**
      * @var Config
@@ -36,18 +27,36 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $config;
 
     /**
-     * @param Session $checkoutSession
-     * @param ClientInterface $client
+     * @var AllowedCountries
+     */
+    private $allowedCountries;
+
+    /**
+     * @var CollectionFactory
+     */
+    private $collectionFactory;
+
+    /**
+     * @var array
+     */
+    private $countries = [];
+
+    /**
+     * @param CheckoutData $checkoutData
      * @param Config $config
+     * @param AllowedCountries $allowedCountries
+     * @param CollectionFactory $collectionFactory
      */
     public function __construct(
-        Session $checkoutSession,
-        ClientInterface $client,
-        Config $config
+        CheckoutData $checkoutData,
+        Config $config,
+        AllowedCountries $allowedCountries,
+        CollectionFactory $collectionFactory
     ) {
-        $this->checkoutSession = $checkoutSession;
-        $this->client = $client;
+        $this->checkoutData = $checkoutData;
         $this->config = $config;
+        $this->allowedCountries = $allowedCountries;
+        $this->collectionFactory = $collectionFactory;
     }
 
     /**
@@ -55,24 +64,35 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      */
     public function getConfig(): array
     {
-        $boldCheckoutData = $this->checkoutSession->getBoldCheckoutData();
-        $quote = $this->checkoutSession->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
-
-        if (!$boldCheckoutData
-            || !$this->config->isPaymentBoosterEnabled($websiteId)
-        ) {
+        if (!$this->checkoutData->getPublicOrderId()) {
             return [];
         }
 
-        $publicOrderId = $boldCheckoutData['data']['public_order_id'] ?? null;
-        $jwtToken = $boldCheckoutData['data']['jwt_token'] ?? null;
-
+        $quote = $this->checkoutData->getQuote();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $shopId = $this->config->getShopId($websiteId);
+        $publicOrderId = $this->checkoutData->getPublicOrderId();
+        $jwtToken = $this->checkoutData->getJwtToken();
+        $epsAuthToken = $this->checkoutData->getEpsAuthToken();
+        $epsGatewayId = $this->checkoutData->getEpsGatewayId();
+        if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
+            return [];
+        }
         return [
             'bold' => [
-                'payment_booster' => [
+                'epsAuthToken' => $epsAuthToken,
+                'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
+                'epsUrl' => $this->config->getEpsUrl($websiteId),
+                'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
+                'gatewayId' => $epsGatewayId,
+                'jwtToken' => $jwtToken,
+                'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
+                'shopId' => $shopId,
+                'publicOrderId' => $publicOrderId,
+                'countries' => $this->getAllowedCountries(),
+                'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
+                'paymentBooster' => [
                     'payment' => [
-                        'iframeSrc' => $this->getIframeSrc($publicOrderId, $jwtToken, $websiteId),
                         'method' => Service::CODE,
                     ],
                 ],
@@ -81,22 +101,34 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     }
 
     /**
-     * Get iframe src.
+     * Get Bold Storefront URL.
      *
-     * @param string|null $publicOrderId
-     * @param string|null $jwtToken
      * @param int $websiteId
-     * @return string|null
+     * @return string
      */
-    private function getIframeSrc(
-        ?string $publicOrderId,
-        ?string $jwtToken,
-        int $websiteId
-    ): ?string {
-        if (!$publicOrderId || !$jwtToken) {
-            return null;
-        }
+    private function getBoldStorefrontUrl(int $websiteId, string $publicOrderId): string
+    {
+        $apiUrl = $this->config->getApiUrl($websiteId) . 'checkout/storefront/';
+        return $apiUrl . $this->config->getShopId($websiteId) . '/' . $publicOrderId . '/';
+    }
 
-        return $this->client->getUrl($websiteId, 'payments/iframe?token=' . $jwtToken);
+    /**
+     * Get allowed countries for Billing address mapping.
+     *
+     * @return Country[]
+     */
+    private function getAllowedCountries(): array
+    {
+        if ($this->countries) {
+            return $this->countries;
+        }
+        $allowedCountries = $this->allowedCountries->getAllowedCountries();
+        $countriesCollection = $this->collectionFactory->create()->addFieldToFilter(
+            'country_id',
+            ['in' => $allowedCountries]
+        );
+        $this->countries = $countriesCollection->toOptionArray(false);
+
+        return $this->countries;
     }
 }

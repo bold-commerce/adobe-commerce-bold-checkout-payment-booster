@@ -3,15 +3,18 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
-use Bold\CheckoutPaymentBooster\Model\Order\Payment\Authorize;
-use Bold\CheckoutPaymentBooster\Model\Order\Payment\CheckPaymentMethod;
-use Magento\Checkout\Model\Session;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
+use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Model\Order\Payment\Transaction;
+use Magento\Sales\Api\Data\TransactionInterface;
 
 /**
  * Authorize Bold payments before placing order.
@@ -24,9 +27,19 @@ class BeforePlaceObserver implements ObserverInterface
     private $authorize;
 
     /**
-     * @var Session
+     * @var CartRepositoryInterface
      */
-    private $checkoutSession;
+    private $cartRepository;
+
+    /**
+     * @var CheckoutData
+     */
+    private $checkoutData;
+
+    /**
+     * @var HydrateOrderFromQuote
+     */
+    private $hydrateOrderFromQuote;
 
     /**
      * @var CheckPaymentMethod
@@ -34,18 +47,31 @@ class BeforePlaceObserver implements ObserverInterface
     private $checkPaymentMethod;
 
     /**
+     * @var SerializerInterface
+     */
+    private $serializer;
+
+    /**
      * @param Authorize $authorize
-     * @param Session $checkoutSession
+     * @param CartRepositoryInterface $cartRepository
+     * @param CheckoutData $checkoutData
+     * @param HydrateOrderFromQuote $hydrateOrderFromQuote
      * @param CheckPaymentMethod $checkPaymentMethod
      */
     public function __construct(
         Authorize $authorize,
-        Session $checkoutSession,
-        CheckPaymentMethod $checkPaymentMethod
+        CartRepositoryInterface $cartRepository,
+        CheckoutData $checkoutData,
+        HydrateOrderFromQuote $hydrateOrderFromQuote,
+        CheckPaymentMethod $checkPaymentMethod,
+        SerializerInterface $serializer
     ) {
         $this->authorize = $authorize;
-        $this->checkoutSession = $checkoutSession;
+        $this->cartRepository = $cartRepository;
+        $this->checkoutData = $checkoutData;
+        $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->checkPaymentMethod = $checkPaymentMethod;
+        $this->serializer = $serializer;
     }
 
     /**
@@ -62,10 +88,13 @@ class BeforePlaceObserver implements ObserverInterface
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
             return;
         }
-        $publicOrderId = $this->checkoutSession->getBoldCheckoutData()['data']['public_order_id'] ?? '';
-        $websiteId = (int)$order->getStore()->getWebsiteId();
-        $response = $this->authorize->execute($publicOrderId, $websiteId);
-        $this->saveTransaction($order, $response['data'] ?? []);
+        $quoteId = $order->getQuoteId();
+        $quote = $this->cartRepository->get($quoteId);
+        $publicOrderId = $this->checkoutData->getPublicOrderId();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
+        $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
+        $this->saveTransactionData($order, $transactionData);
     }
 
     /**
@@ -75,25 +104,18 @@ class BeforePlaceObserver implements ObserverInterface
      * @param array $transactionData
      * @return void
      */
-    private function saveTransaction(OrderInterface $order, array $transactionData)
+    private function saveTransactionData(OrderInterface $order, array $transactionData)
     {
-        if (!isset($transactionData['transactions'][0]['transaction_id'])) {
+        $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
+        if (!$transactionId) {
             return;
         }
-        $order->getPayment()->setTransactionId($transactionData['transactions'][0]['transaction_id']);
+        $order->getPayment()->setTransactionId($transactionId);
         $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->addTransaction(Transaction::TYPE_AUTH);
-        $cardDetails = $transactionData['transactions'][0]['tender_details'] ?? null;
-        if (!$cardDetails) {
-            return;
+        $order->getPayment()->addTransaction(TransactionInterface::TYPE_AUTH);
+        $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;
+        if ($cardDetails) {
+            $order->getPayment()->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
         }
-        $brand = $cardDetails['brand'] ?? '';
-        $lastFour = $cardDetails['last_four'] ?? '';
-        if (!$lastFour && isset($cardDetails['line_text'])) {
-            preg_match('/\b(\d{4})\b(?=\s*\(Transaction ID)/', $cardDetails['line_text'], $matches);
-            $lastFour = $matches[1] ?? $cardDetails['line_text'];
-        }
-        $order->getPayment()->setCcType($brand);
-        $order->getPayment()->setCcLast4($lastFour);
     }
 }

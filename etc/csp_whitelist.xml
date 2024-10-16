@@ -12,14 +12,23 @@
                 <value id="bold_paypal" type="host">*.paypal.com</value>
                 <value id="bold_braintreegateway" type="host">*.braintreegateway.com</value>
                 <value id="bold_paypal_objects" type="host">www.paypalobjects.com</value>
+                <value id="bold_eps" type="host">eps.secure.boldcommerce.com</value>
+                <value id="bold_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
+                <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
+                <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
+                <value id="allow_inline_resource" type="host">unsafe-inline</value>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_paypal" type="host">*.paypal.com</value>
+                <value id="bold_paypal_objects" type="host">*.paypalobjects.com</value>
+                <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
+                <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
+                <value id="bold_paypal_script" type="hash" algorithm="sha256">1ozuCt5fPv779wJQEWXLF2gXag+V1bnu3hmAhDbY0Cg=</value>
             </values>
         </policy>
         <policy id="frame-src">
@@ -45,6 +54,12 @@
             <values>
                 <value id="bold_commerce_static" type="host">static.boldcommerce.com</value>
                 <value id="bold_paypal_images" type="host">*.paypal.com</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="bold_eps_static" type="host">static-eps.secure.boldcommerce.com</value>
+                <value id="bold_staging_eps_static" type="host">static-eps.secure.staging.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="font-src">

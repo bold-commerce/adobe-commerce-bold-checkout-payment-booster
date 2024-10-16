@@ -10,8 +10,7 @@ define(
         'checkoutData',
         'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address',
         'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address',
-        'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/view/billing-address',
+        'Magento_Checkout/js/model/quote'
     ], function (
         fastlane,
         addressList,
@@ -23,8 +22,7 @@ define(
         checkoutData,
         setQuoteShippingAddressAction,
         resetShippingAddressAction,
-        quote,
-        billingAddress
+        quote
     ) {
         'use strict';
 
@@ -42,7 +40,7 @@ define(
                     /** @inheritdoc */
                     initConfig: function () {
                         this._super();
-                        if (!fastlane.isEnabled()) {
+                        if (!fastlane.isAvailable()) {
                             return;
                         }
                         this.template = 'Bold_CheckoutPaymentBooster/form/element/email';
@@ -66,11 +64,12 @@ define(
                      */
                     checkEmailAvailability: function () {
                         this._super();
-                        if (!fastlane.isEnabled() || !this.email()) {
+                        if (!fastlane.isAvailable() || !this.email()) {
                             return;
                         }
                         this.lookupEmail().then(() => {
                             fullScreenLoader.stopLoader();
+                            this.isPasswordVisible(false);
                         }).catch((error) => {
                             fullScreenLoader.stopLoader();
                             console.log(error);
@@ -84,14 +83,12 @@ define(
                      * @return {Promise<void>}
                      */
                     lookupEmail: async function () {
-                        fullScreenLoader.startLoader();
-                        const fastlaneInstance = await fastlane.getFastlaneInstance();
-                        if (!fastlaneInstance) {
-                            fullScreenLoader.stopLoader();
-                            return;
-                        }
-
                         try {
+                            fullScreenLoader.startLoader();
+                            const fastlaneInstance = await fastlane.getFastlaneInstance();
+                            if (!fastlaneInstance) {
+                                return;
+                            }
                             const {identity} = fastlaneInstance;
                             const {customerContextId} = await identity.lookupCustomerByEmail(this.email());
                             fullScreenLoader.stopLoader();
@@ -101,20 +98,19 @@ define(
                                     profileData
                                 } = await identity.triggerAuthenticationFlow(customerContextId);
                                 if (authenticationState === 'succeeded') {
-                                    fastlane.memberAuthenticated(true);
-                                    fastlane.profileData(profileData);
                                     fullScreenLoader.startLoader();
                                     this.setShippingAddress(profileData);
-                                    this.isPasswordVisible(false);
+                                    fastlane.memberAuthenticated(true);
+                                    fastlane.profileData = profileData;
                                 }
                                 return;
                             }
                             fastlane.memberAuthenticated(false);
+                            resetShippingAddressAction();
                         } catch (error) {
                             fullScreenLoader.stopLoader();
                             console.error("Error:", error);
                         }
-                        resetShippingAddressAction();
                     },
 
                     /**
@@ -133,7 +129,6 @@ define(
                             return;
                         }
                         setQuoteShippingAddressAction(shippingAddress);
-                        billingAddress().useShippingAddress();
                     }
                 }
             );

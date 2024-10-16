@@ -74,39 +74,7 @@ define([
             this.requestInProgress = true;
             const nextRequest = this.requestQueue.shift();
             let requestData;
-            let skipRequest = false;
-
-            switch (nextRequest.path) {
-                case 'addresses/billing':
-                    try {
-                        requestData = boldAddress.getAddress();
-                    } catch (e) {
-                        requestData = null;
-                    }
-                    if (!requestData || _.isEqual(requestData, this.synchronizedAddressData)) {
-                        skipRequest = true;
-                    }
-                    break;
-                case 'customer/guest':
-                    try {
-                        requestData = boldCustomer.getCustomer();
-                    } catch (e) {
-                        requestData = null;
-                    }
-                    if (!requestData || _.isEqual(requestData, this.synchronizedGuestData)) {
-                        skipRequest = true;
-                    }
-                    break;
-                default:
-                    requestData = nextRequest.body;
-                    break;
-            }
-
-            if (skipRequest) {
-                nextRequest.resolve();
-                this.requestInProgress = false;
-                return this.processNextRequest();
-            }
+            requestData = nextRequest.body;
             $.ajax({
                 url: window.checkoutConfig.bold.url + nextRequest.path,
                 type: nextRequest.method,
@@ -114,20 +82,10 @@ define([
                     'Authorization': 'Bearer ' + window.checkoutConfig.bold.jwtToken,
                     'Content-Type': 'application/json',
                 },
-                data: JSON.stringify(requestData),
+                data: JSON.stringify(requestData)
             }).done(function (result) {
                 nextRequest.resolve(result);
                 this.requestInProgress = false;
-                switch (nextRequest.path) {
-                    case 'addresses/billing':
-                        this.synchronizedAddressData = requestData;
-                        break;
-                    case 'customer/guest':
-                        this.synchronizedGuestData = requestData;
-                        break;
-                    default:
-                        break;
-                }
                 this.processNextRequest();
             }.bind(this)).fail(function (error) {
                 nextRequest.reject(error);

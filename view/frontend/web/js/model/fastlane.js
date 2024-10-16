@@ -1,8 +1,9 @@
 define([
     'ko',
-    'prototype'
+    'Bold_CheckoutPaymentBooster/js/model/spi',
 ], function (
     ko,
+    spi,
 ) {
     'use strict';
 
@@ -13,17 +14,16 @@ define([
      */
     return {
         memberAuthenticated: ko.observable(false),
-        profileData: ko.observable(null),
+        profileData: null,
+        gatewayData: null,
 
         /**
          * Check if Fastlane flow is enabled and active.
          *
          * @return {Boolean}
          */
-        isEnabled: function () {
-            return window.checkoutConfig.bold
-                && window.checkoutConfig.bold.fastlane
-                && !window.isCustomerLoggedIn;
+        isAvailable: function () {
+            return window.checkoutConfig.bold?.fastlane && !window.isCustomerLoggedIn;
         },
         /**
          * Retrieve Fastlane type (PPCP / Braintree).
@@ -31,22 +31,10 @@ define([
          * @return {string}
          */
         getType: function () {
-            if (!window.checkoutConfig.bold.fastlane.gatewayData) {
+            if (!this.gatewayData) {
                 throw new Error('Fastlane instance is not initialized');
             }
-            return window.checkoutConfig.bold.fastlane.gatewayData.type;
-        },
-
-        /**
-         * Retrieve Gateway public ID.
-         *
-         * @returns {string}
-         */
-        getGatewayPublicId: function () {
-            if (!window.checkoutConfig.bold.fastlane.gatewayData) {
-                throw new Error('Fastlane instance is not initialized');
-            }
-            return window.checkoutConfig.bold.fastlane.gatewayData.gateway_public_id;
+            return this.gatewayData.type;
         },
 
         /**
@@ -55,7 +43,7 @@ define([
          * @return {Promise<{profile: {showShippingAddressSelector: function}, identity: {lookupCustomerByEmail: function, triggerAuthenticationFlow: function}, FastlanePaymentComponent: function}>}
          */
         getFastlaneInstance: async function () {
-            if (!this.isEnabled()) {
+            if (!this.isAvailable()) {
                 return null;
             }
             if (window.boldFastlaneInstance) {
@@ -73,20 +61,28 @@ define([
             }
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
-                const gatewayData = window.checkoutConfig.bold.fastlane.gatewayData;
-                if (gatewayData.is_test_mode) {
+                if (!this.gatewayData) {
+                    const boldPaymentsInstance = await spi.getPaymentsClient();
+                    boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
+                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.gatewayId] || null;
+                }
+                if (!this.gatewayData) {
+                    window.boldFastlaneInstanceCreateInProgress = false;
+                    return null;
+                }
+                if (this.gatewayData.is_test_mode) {
                     window.localStorage.setItem('axoEnv', 'sandbox');
                     window.localStorage.setItem('fastlaneEnv', 'sandbox');
                 }
                 if (!window.braintree) {
                     window.braintree = {};
                 }
-                switch (gatewayData.type) {
+                switch (this.gatewayData.type) {
                     case 'braintree':
-                        await this.buildBraintreeFastlaneInstance(gatewayData);
+                        await this.buildBraintreeFastlaneInstance(this.gatewayData);
                         break;
                     case 'ppcp':
-                        await this.buildPPCPFastlaneInstance(gatewayData);
+                        await this.buildPPCPFastlaneInstance(this.gatewayData);
                         break;
                 }
                 this.setLocale();

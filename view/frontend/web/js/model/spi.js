@@ -95,7 +95,7 @@ define([
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
                         console.log('onUpdatePaymentOrder', {paymentType}, {paymentPayload});
                         const paymentData = paymentPayload['payment_data'];
-                        this.updateShippingAddress(paymentData['shipping_address']);
+                        this.updateAddress('shipping', paymentData['shipping_address']);
                         this.updateShippingMethod(paymentData['shipping_options']);
 
                         try {
@@ -158,9 +158,10 @@ define([
         /**
          * Update express pay order
          *
+         * @param {String} addressType
          * @param addressData
          */
-        updateShippingAddress: function(addressData) {
+        updateAddress: function(addressType, addressData) {
             const directoryData = customerData.get('directory-data');
             let regions;
 
@@ -182,7 +183,7 @@ define([
             }
 
             let newAddress = addressConverter.formAddressDataToQuoteAddress({
-                address_type: 'shipping',
+                address_type: addressType,
                 city: addressData['city'],
                 region: {
                     region: regionName,
@@ -194,7 +195,11 @@ define([
                 country_id: addressData['country_code']
             });
 
-            quote.shippingAddress(newAddress);
+            if (addressType === 'shipping') {
+                quote.shippingAddress(newAddress);
+            } else {
+                quote.billingAddress(newAddress);
+            }
         },
 
         /**
@@ -233,7 +238,7 @@ define([
          *
          * @returns {*}
          */
-        saveShippingInformation: function () {
+        saveShippingInformation: function (saveBillingAddress = false) {
             let payload;
 
             payload = {
@@ -243,6 +248,10 @@ define([
                     'shipping_carrier_code': quote.shippingMethod()['carrier_code']
                 }
             };
+
+            if (saveBillingAddress) {
+                payload.addressInformation.billing_address = quote.billingAddress();
+            }
 
             payloadExtender(payload);
 

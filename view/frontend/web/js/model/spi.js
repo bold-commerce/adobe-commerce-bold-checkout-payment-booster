@@ -264,7 +264,7 @@ define([
 
             payloadExtender(payload);
 
-            storage.post(
+            return storage.post(
                 resourceUrlManager.getUrlForSetShippingInformation(quote),
                 JSON.stringify(payload)
             ).fail((response) => {

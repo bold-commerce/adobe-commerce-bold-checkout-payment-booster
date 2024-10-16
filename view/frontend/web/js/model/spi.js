@@ -79,12 +79,10 @@ define([
                 ],
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        // console.log('onCreatePaymentOrder', {paymentType}, {paymentPayload});
                         if (paymentType !== 'ppcp') {
                             return;
                         }
                         try {
-                            console.log('PAYMENT PAYLOAD', paymentPayload);
                             const walletPayResult = await createOrderAction(paymentPayload);
 
                             return { payment_data: { id: walletPayResult[0] }};
@@ -93,7 +91,6 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
-                        console.log('onUpdatePaymentOrder', {paymentType}, {paymentPayload});
                         const paymentData = paymentPayload['payment_data'];
                         this.updateAddress('shipping', paymentData['shipping_address']);
                         this.updateShippingMethod(paymentData['shipping_options']);
@@ -105,7 +102,6 @@ define([
                         }
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        console.log('onApprovePaymentOrder', {paymentType}, paymentInformation, {paymentPayload});
                         const spi = registry.get('index = bold') ?? registry.get('index = bold-express-pay');
 
                         if (!spi) {

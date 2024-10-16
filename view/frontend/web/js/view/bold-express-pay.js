@@ -46,10 +46,8 @@ define([
          * @private
          */
         _setVisibility: function () {
-            console.log('SET VISIBILITY');
             this.isVisible(window.location.hash === '#shipping');
             const onShippingStep = window.location.hash === '#shipping';
-            // this.isVisible(window.location.hash === '#shipping' && expressPay.isEnabled());
 
             // On step change remove any other instance, can only have one on a page
             const ppcpExpressContainer = document.getElementById('ppcp-express-payment');

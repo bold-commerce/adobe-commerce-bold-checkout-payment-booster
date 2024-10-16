@@ -1,19 +1,25 @@
 define([
     'uiComponent',
     'ko',
+    'jquery',
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Magento_Checkout/js/model/quote',
     'checkoutData',
+    'uiRegistry',
+    'Bold_CheckoutPaymentBooster/js/action/get-express-pay-order-action',
     'Magento_Checkout/js/action/place-order',
-    'Magento_Checkout/js/model/payment/additional-validators'
+    'Magento_Checkout/js/action/redirect-on-success'
 ], function (
     Component,
     ko,
+    $,
     spi,
     quote,
     checkoutData,
+    registry,
+    getExpressPayOrderAction,
     placeOrderAction,
-    additionalValidators
+    redirectOnSuccessAction
 ) {
     'use strict';
 
@@ -23,7 +29,6 @@ define([
     return Component.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/express-pay',
-            paymentId: ko.observable(null)
             paymentId: ko.observable(null),
             paymentApprovalData: ko.observable(null)
         },
@@ -94,42 +99,53 @@ define([
             });
         },
 
-        placeOrder: function (data, event) {
-            console.log('EXPRESS PLACE ORDER', this.paymentId);
+        placeOrder: async function () {
+            const paymentApprovalData = this.paymentApprovalData();
+            const paymentMethodData = {
+                method: 'bold',
+                additional_data: {
+                    order_id: paymentApprovalData?.payment_data.order_id
+                }
+            };
+            const messageContainer = registry.get('checkout.errors').messageContainer;
+            let order;
 
-            console.log('Registered Validators:', additionalValidators.getValidators());
+            if (paymentApprovalData === null) {
+                console.error('Express Pay payment data is not set.');
 
-            additionalValidators.getValidators().forEach(function (item) {
-                console.log({item});
-                console.log('Validator:' + item + ' Result:' + item.validate())
-            });
+                return;
+            }
 
-            // if (additionalValidators.validate()) {
-            //     console.log('ADDITIONAL VALIDATORS VALIDATED', quote.paymentMethod);
-                placeOrderAction('bold');
-            //
-            // } else {
-            //     console.log('VALIDATION FAILED');
-            // }
-            // placeOrderAction();
-            // fullscreenLoader.startLoader();
-            // const callback = this._super.bind(this);
-            // if (this.paymentId()) {
-            //     callback(data, event);
-            //     return;
-            // }
+            try {
+                order = await getExpressPayOrderAction(
+                    paymentApprovalData.gateway_id,
+                    paymentApprovalData.payment_data.order_id
+                );
+            } catch (error) {
+                console.error('Could not retrieve Express Pay order.', error);
 
-            // const containerId = 'express-pay-buttons';
-            // const observer = new MutationObserver(async () => {
-            //     if (document.getElementById(containerId)) {
-            //         observer.disconnect();
-            //         window.bold.paymentsInstance.renderPayments(containerId);
-            //     }
-            // });
-            // observer.observe(document.documentElement, {
-            //     childList: true,
-            //     subtree: true
-            // });
+                return;
+            }
+
+            quote.guestEmail = order.email;
+
+            spi.updateAddress('shipping', this._convertAddress(order.shipping_address, order));
+            spi.updateAddress('billing', this._convertAddress(order.billing_address, order));
+
+            try {
+                await spi.saveShippingInformation(true);
+            } catch (error) {
+                console.error('Could not save shipping information for Express Pay order.', error);
+
+                return;
+            }
+
+            $.when(placeOrderAction(paymentMethodData, messageContainer))
+                .done(
+                    function () {
+                        redirectOnSuccessAction.execute();
+                    }
+                );
         },
 
         // NOTE: The tokenize and subscribeToSpiEvents are copied over directly from bold-spi.js
@@ -216,6 +232,25 @@ define([
                         break;
                 }
             });
+        },
+
+        /**
+         * @param {Object} order
+         * @param {Object} address
+         * @returns {Object}
+         * @private
+         */
+        _convertAddress: function (address, order) {
+            address.first_name = order.first_name;
+            address.last_name = order.last_name;
+            address.state = address.province;
+            address.country_code = address.country;
+            address.email = order.email;
+
+            delete address.province;
+            delete address.country;
+
+            return address;
         },
     });
 });

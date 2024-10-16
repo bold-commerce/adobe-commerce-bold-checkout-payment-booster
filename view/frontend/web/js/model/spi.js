@@ -184,6 +184,12 @@ define([
 
             let newAddress = addressConverter.formAddressDataToQuoteAddress({
                 address_type: addressType,
+                firstname: addressData['first_name'] ?? null,
+                lastname: addressData['last_name'] ?? null,
+                street: [
+                    addressData['address_line1'] ?? null,
+                    addressData['address_line2'] ?? null,
+                ],
                 city: addressData['city'],
                 region: {
                     region: regionName,
@@ -192,7 +198,8 @@ define([
                 },
                 region_id: regionId,
                 postcode: addressData['postal_code'],
-                country_id: addressData['country_code']
+                country_id: addressData['country_code'],
+                email: addressData['email'] ?? null
             });
 
             if (addressType === 'shipping') {

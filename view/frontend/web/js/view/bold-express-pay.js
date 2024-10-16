@@ -24,6 +24,8 @@ define([
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/express-pay',
             paymentId: ko.observable(null)
+            paymentId: ko.observable(null),
+            paymentApprovalData: ko.observable(null)
         },
         isVisible: ko.observable(false),
         /** @inheritdoc */

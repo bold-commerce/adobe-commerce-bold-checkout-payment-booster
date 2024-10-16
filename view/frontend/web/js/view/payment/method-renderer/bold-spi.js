@@ -34,6 +34,7 @@ define([
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/spi',
             paymentId: ko.observable(null),
+            paymentApprovalData: ko.observable(null),
             isVisible: ko.observable(false),
             isSpiLoading: ko.observable(true),
             isBillingAddressRequired: ko.observable(true),

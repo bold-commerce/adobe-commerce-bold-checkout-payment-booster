@@ -112,6 +112,7 @@ define([
                             throw new Error('SPI component is not found');
                         }
                         spi.paymentId(paymentInformation.payment_id);
+                        spi.paymentApprovalData(paymentPayload);
                         spi.placeOrder({}, jQuery.Event());
                     },
                     'onScaPaymentOrder': async function (type, payload) {

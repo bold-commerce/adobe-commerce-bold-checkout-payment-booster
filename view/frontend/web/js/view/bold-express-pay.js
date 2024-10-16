@@ -38,8 +38,6 @@ define([
         initialize: async function () {
             this._super();
 
-            // this._setVisibility();
-            this.subscribeToSpiEvents();
             this._setVisibility();
             window.addEventListener('hashchange', this._setVisibility.bind(this));
         },

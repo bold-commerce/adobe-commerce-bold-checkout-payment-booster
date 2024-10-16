@@ -104,14 +104,14 @@ define([
                             throw new Error(`Update Payment Order Error ${e.message}`);
                         }
                     },
-                    'onApprovePaymentOrder': async (paymentType, paymentPayload) => {
-                        console.log('onApprovePaymentOrder', {paymentType}, {paymentPayload});
+                    'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
+                        console.log('onApprovePaymentOrder', {paymentType}, paymentInformation, {paymentPayload});
                         const spi = registry.get('index = bold') ?? registry.get('index = bold-express-pay');
 
                         if (!spi) {
                             throw new Error('SPI component is not found');
                         }
-                        spi.paymentId(paymentPayload.payment_id);
+                        spi.paymentId(paymentInformation.payment_id);
                         spi.placeOrder({}, jQuery.Event());
                     },
                     'onScaPaymentOrder': async function (type, payload) {

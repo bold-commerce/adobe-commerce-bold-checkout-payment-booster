@@ -17,6 +17,7 @@
                 <value id="bold_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
+                <value id="bold_local" type="host">*.bold.ninja</value>
             </values>
         </policy>
         <policy id="script-src">
@@ -31,6 +32,7 @@
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
                 <value id="bold_paypal_script" type="hash" algorithm="sha256">1ozuCt5fPv779wJQEWXLF2gXag+V1bnu3hmAhDbY0Cg=</value>
+                <value id="bold_local" type="host">*.bold.ninja</value>
             </values>
         </policy>
         <policy id="frame-src">
@@ -38,6 +40,7 @@
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="bold_paypal_frame" type="host">*.paypal.com</value>
+                <value id="bold_local" type="host">*.bold.ninja</value>
             </values>
         </policy>
         <policy id="object-src">

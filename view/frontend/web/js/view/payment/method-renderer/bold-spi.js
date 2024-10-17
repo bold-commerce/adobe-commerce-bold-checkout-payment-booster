@@ -13,6 +13,8 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
+    'Bold_CheckoutPaymentBooster/js/action/render-wallet-payments-action',
+    'uiRegistry'
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -28,6 +30,8 @@ define([
     platformClient,
     fastlane,
     hydrateOrderAction,
+    renderWalletPaymentsAction,
+    registry
 ) {
     'use strict';
     return DefaultPaymentComponent.extend({
@@ -44,14 +48,18 @@ define([
         /** @inheritdoc */
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
+            this.subscribeToSpiEvents();
             this.isVisible.subscribe((isVisible) => {
                 if (isVisible) {
-                    this.subscribeToSpiEvents();
                     this.initPaymentForm();
-                    this.removeFullScreenLoaderOnError();
                 }
             });
             this.isVisible(window.checkoutConfig.bold?.paymentBooster);
+            registry.async('checkout.steps.billing-step.payment')((paymentComponent) => {
+                paymentComponent.isVisible.subscribe(async function (isVisible) {
+                    this.isVisible(isVisible && window.checkoutConfig.bold?.paymentBooster);
+                }.bind(this));
+            });
             const delayedHydrateOrder = _.debounce(
                 async function () {
                     try {
@@ -90,26 +98,27 @@ define([
             });
         },
         /**
-         * Load SPI SDK.
+         * Render SPI payments.
          *
          * @returns {Promise<void>}
          */
         renderPayments: async function () {
-            const paymentsInstance = await spi.getPaymentsClient();
-            const boldPaymentsForm = document.getElementById('SPI');
             if (fastlane.isAvailable()) {
-                await paymentsInstance.renderWalletPayments('SPI');
+                try {
+                    await renderWalletPaymentsAction('SPI');
+                } catch (e) {
+                    console.error('Could not render wallet payments.', error);
+                    this.isVisible(false);
+                }
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
                 this.isSpiLoading(false);
-                if (boldPaymentsForm.getHTML().trim() === '') {
-                    this.isVisible(false);
-                }
                 return;
             }
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
-            paymentsInstance.renderPayments('SPI');
+            const paymentsClient = await spi.getPaymentsClient();
+            await paymentsClient.renderPayments('SPI');
         },
 
         /** @inheritdoc */
@@ -120,32 +129,7 @@ define([
                 callback(data, event);
                 return;
             }
-
-            const containerId = 'SPI';
-            const observer = new MutationObserver(async () => {
-                if (document.getElementById(containerId)) {
-                    observer.disconnect();
-                    window.bold.paymentsInstance.renderPayments(containerId);
-                }
-            });
-            observer.observe(document.documentElement, {
-                childList: true,
-                subtree: true
-            });
-        },
-
-        /**
-         * Remove full-screen loader in case place order returns error from backend.
-         *
-         * @private
-         * @returns {void}
-         */
-        removeFullScreenLoaderOnError: function () {
-            this.messageContainer.errorMessages.subscribe(function (errorMessages) {
-                if (errorMessages.length > 0) {
-                    fullscreenLoader.stopLoader();
-                }
-            });
+            this.tokenize();
         },
 
         /**

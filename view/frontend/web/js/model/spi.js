@@ -10,8 +10,11 @@ define([
     'Magento_Checkout/js/model/shipping-service',
     'Magento_Checkout/js/model/shipping-save-processor/payload-extender',
     'Magento_Customer/js/customer-data',
+    'Bold_CheckoutPaymentBooster/js/action/get-express-pay-order-action',
+    'Magento_Checkout/js/action/place-order',
+    'Magento_Checkout/js/action/redirect-on-success',
     'mage/storage',
-    'prototype'
+    'jquery',
 ], function (
     registry,
     createOrderAction,
@@ -24,7 +27,11 @@ define([
     shippingService,
     payloadExtender,
     customerData,
-    storage
+    getExpressPayOrderAction,
+    placeOrderAction,
+    redirectOnSuccessAction,
+    storage,
+    $
 ) {
     'use strict';
 
@@ -84,8 +91,7 @@ define([
                         }
                         try {
                             const walletPayResult = await createOrderAction(paymentPayload);
-
-                            return { payment_data: { id: walletPayResult[0] }};
+                            return {payment_data: {id: walletPayResult[0]}};
                         } catch (e) {
                             throw 'Unable to create order';
                         }
@@ -98,18 +104,14 @@ define([
                         try {
                             await this.updateOrder(paymentData['order_id']);
                         } catch (e) {
-                            throw new Error(`Update Payment Order Error ${e.message}`);
+                            if (e instanceof Error) {
+                                throw new Error(`Update Payment Order Error ${e.message}`)
+                            }
+                            throw new Error('Update Payment Order Error');
                         }
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        const spi = registry.get('index = bold') ?? registry.get('index = bold-express-pay');
-
-                        if (!spi) {
-                            throw new Error('SPI component is not found');
-                        }
-                        spi.paymentId(paymentInformation.payment_id);
-                        spi.paymentApprovalData(paymentPayload);
-                        spi.placeOrder({}, jQuery.Event());
+                        await this.placeWalletPayOrder(paymentPayload);
                     },
                     'onScaPaymentOrder': async function (type, payload) {
                         if (type === 'ppcp') {
@@ -139,7 +141,7 @@ define([
         updateOrder: async function (orderId) {
             let url = 'rest/V1/express_pay/order/update';
 
-            return new Promise ((resolve, reject) => {
+            return new Promise((resolve, reject) => {
                 platformClient.post(
                     url,
                     {
@@ -150,14 +152,55 @@ define([
                 ).done(() => resolve()).fail(() => reject());
             });
         },
+        placeWalletPayOrder: async function (paymentApprovalData) {
+            if (paymentApprovalData === null) {
+                console.error('Express Pay payment data is not set.');
+                return;
+            }
+            const paymentMethodData = {
+                method: 'bold',
+                additional_data: {
+                    order_id: paymentApprovalData?.payment_data.order_id
+                }
+            };
+            const messageContainer = registry.get('checkout.errors').messageContainer;
 
+            let order;
+
+            try {
+                order = await getExpressPayOrderAction(
+                    paymentApprovalData.gateway_id,
+                    paymentApprovalData.payment_data.order_id
+                );
+            } catch (error) {
+                console.error('Could not retrieve Express Pay order.', error);
+
+                return;
+            }
+            quote.guestEmail = order.email;
+            this.updateAddress('shipping', this._convertAddress(order.shipping_address, order));
+            this.updateAddress('billing', this._convertAddress(order.billing_address, order));
+            try {
+                await this.saveShippingInformation(true);
+            } catch (error) {
+                console.error('Could not save shipping information for Express Pay order.', error);
+
+                return;
+            }
+            $.when(placeOrderAction(paymentMethodData, messageContainer))
+                .done(
+                    function () {
+                        redirectOnSuccessAction.execute();
+                    }
+                );
+        },
         /**
          * Update express pay order
          *
          * @param {String} addressType
          * @param addressData
          */
-        updateAddress: function(addressType, addressData) {
+        updateAddress: function (addressType, addressData) {
             const directoryData = customerData.get('directory-data');
             let regions;
 
@@ -244,9 +287,7 @@ define([
          * @returns {*}
          */
         saveShippingInformation: function (saveBillingAddress = false) {
-            let payload;
-
-            payload = {
+            const payload = {
                 addressInformation: {
                     'shipping_address': quote.shippingAddress(),
                     'shipping_method_code': quote.shippingMethod()['method_code'],
@@ -266,6 +307,24 @@ define([
             ).fail((response) => {
                 errorProcessor.process(response);
             });
-        }
+        },
+        /**
+         * @param {Object} order
+         * @param {Object} address
+         * @returns {Object}
+         * @private
+         */
+        _convertAddress: function (address, order) {
+            address.first_name = order.first_name;
+            address.last_name = order.last_name;
+            address.state = address.province;
+            address.country_code = address.country;
+            address.email = order.email;
+
+            delete address.province;
+            delete address.country;
+
+            return address;
+        },
     };
 });

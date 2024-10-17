@@ -92,7 +92,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
-                'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
                 'shopUrl' => $quote->getStore()->getBaseUrl(),
                 'shopName' => $quote->getStore()->getFrontendName(),
                 'isPhoneRequired' => $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED,

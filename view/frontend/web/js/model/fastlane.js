@@ -1,6 +1,7 @@
 define([
     'ko',
     'Bold_CheckoutPaymentBooster/js/model/spi',
+    'prototype'
 ], function (
     ko,
     spi,

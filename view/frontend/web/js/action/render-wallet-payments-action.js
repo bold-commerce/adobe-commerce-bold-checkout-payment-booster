@@ -1,8 +1,10 @@
 define([
-        'Bold_CheckoutPaymentBooster/js/model/spi'
+        'Bold_CheckoutPaymentBooster/js/model/spi',
+        'Bold_CheckoutPaymentBooster/js/model/fastlane'
     ],
     function (
-        spi
+        spi,
+        fastlane
     ) {
         'use strict';
 
@@ -13,6 +15,16 @@ define([
          * @returns {void}
          */
         return async function (containerId) {
+            await new Promise((resolve) => {
+                const interval = setInterval(() => {
+                    if (!window.boldWalletPayRenderInProgress) {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 100);
+            });
+            window.boldWalletPayRenderInProgress = true;
+            await fastlane.getFastlaneInstance(); // todo: investigate why express pay is getting destroyed in case fastlane is initialized after render.
             const boldPaymentsInstance = await spi.getPaymentsClient();
             const allowedCountries = window.checkoutConfig.bold?.countries ?? [];
             const walletOptions = {
@@ -25,5 +37,6 @@ define([
                 boldPaymentsInstance.walletPaymentsContainer.innerHTML = '';
             }
             await boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
+            window.boldWalletPayRenderInProgress = false;
         };
     });

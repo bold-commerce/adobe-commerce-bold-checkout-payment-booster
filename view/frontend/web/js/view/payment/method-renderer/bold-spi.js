@@ -209,6 +209,7 @@ define([
                         break;
                     case 'EVENT_SPI_TOKENIZED':
                         this.paymentId(data.payload?.payload?.data?.payment_id);
+                        this.placeOrder();
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

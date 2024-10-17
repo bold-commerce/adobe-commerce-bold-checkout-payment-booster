@@ -177,10 +177,10 @@ class QuoteConverter
             ];
         }
 
-        if ($shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
+        if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
-                'label' => $shippingAddress->getShippingDescription(),
+                'label' => $shippingAddress->getShippingDescription() ?? $shippingAddress->getShippingMethod(),
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',

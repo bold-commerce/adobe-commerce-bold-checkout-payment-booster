@@ -104,7 +104,7 @@ class Update
         $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
 
         if (!$hasShippingData) {
-            unset($expressPayData['shipping_address']);
+            unset($expressPayData['order_data']['shipping_address']);
         }
 
         try {

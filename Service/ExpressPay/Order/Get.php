@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\Order\AddressInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
@@ -28,46 +31,37 @@ class Get
      * @var ClientInterface
      */
     private $httpClient;
+    /**
+     * @var OrderInterfaceFactory
+     */
+    private $orderFactory;
+    /**
+     * @var AddressInterfaceFactory
+     */
+    private $addressFactory;
 
-    public function __construct(StoreManagerInterface $storeManager, ClientInterface $httpClient)
-    {
+    public function __construct(
+        StoreManagerInterface $storeManager,
+        ClientInterface $httpClient,
+        OrderInterfaceFactory $orderFactory,
+        AddressInterfaceFactory $addressFactory
+    ) {
         $this->storeManager = $storeManager;
         $this->httpClient = $httpClient;
+        $this->orderFactory = $orderFactory;
+        $this->addressFactory = $addressFactory;
     }
 
     /**
-     * @param string $paypalOrderId
+     * @param string $orderId
      * @param string $gatewayId
-     * @return array
-     * @phpstan-return array{
-     *     first_name: string,
-     *     last_name: string,
-     *     email: string,
-     *     shipping_address: array{
-     *         address_line_1: string,
-     *         address_line_2: string,
-     *         city: string,
-     *         country: string,
-     *         province: string,
-     *         postal_code: string,
-     *         phone: string
-     *     },
-     *     billing_address: array{
-     *         address_line_1: string,
-     *         address_line_2: string,
-     *         city: string,
-     *         country: string,
-     *         province: string,
-     *         postal_code: string,
-     *         phone: string
-     *     }
-     * }
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($paypalOrderId, $gatewayId): array
+    public function execute($orderId, $gatewayId): OrderInterface
     {
         $websiteId = (int)$this->storeManager->getStore()->getWebsiteId();
-        $uri = "checkout/orders/{{shopId}}/wallet_pay/$paypalOrderId?gateway_id=$gatewayId";
+        $uri = "checkout/orders/{{shopId}}/wallet_pay/$orderId?gateway_id=$gatewayId";
 
         try {
             $result = $this->httpClient->get($websiteId, $uri);
@@ -125,6 +119,23 @@ class Get
             );
         }
 
-        return $resultBody['data'];
+        $orderData = $resultBody['data'];
+        $orderData['shipping_address'] = $this->addressFactory->create(
+            [
+                'data' => $orderData['shipping_address']
+            ]
+        );
+        $orderData['billing_address'] = $this->addressFactory->create(
+            [
+                'data' => $orderData['billing_address']
+            ]
+        );
+        $order = $this->orderFactory->create(
+            [
+                'data' => $orderData
+            ]
+        );
+
+        return $order;
     }
 }

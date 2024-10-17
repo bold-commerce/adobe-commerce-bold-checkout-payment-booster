@@ -69,10 +69,13 @@ class GetTest extends TestCase
         $boldClientMock->method('get')
             ->willReturn($boldApiResultMock);
 
-        $actualExpressPayOrderData = $getExpressPayOrderService->execute(
+        $expressPayOrder = $getExpressPayOrderService->execute(
             'c7215964-94b5-4a64-8e5d-152ad284cedf',
             '87ef83fe-b43c-4c40-9c96-1413b9d11b79'
         );
+        $actualExpressPayOrderData = $expressPayOrder->getData();
+        $actualExpressPayOrderData['shipping_address'] = $expressPayOrder->getShippingAddress()->getData();
+        $actualExpressPayOrderData['billing_address'] = $expressPayOrder->getBillingAddress()->getData();
 
         self::assertSame($expressPayOrderData['data'], $actualExpressPayOrderData);
     }

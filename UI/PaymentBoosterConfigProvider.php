@@ -10,6 +10,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
+use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
 
 /**
  * Config provider for Payment Booster.
@@ -93,6 +94,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
                 'shopUrl' => $quote->getStore()->getBaseUrl(),
+                'shopName' => $quote->getStore()->getFrontendName(),
+                'isPhoneRequired' => $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED,
                 'paymentBooster' => [
                     'payment' => [
                         'method' => Service::CODE,

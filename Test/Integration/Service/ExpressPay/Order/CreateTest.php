@@ -70,7 +70,8 @@ class CreateTest extends TestCase
         ];
         $actualResultData = $createExpressPayOrderService->execute(
             $quoteMaskId,
-            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb'
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
+            'dynamic'
         );
 
         self::assertSame($expectedResultData, $actualResultData);
@@ -90,7 +91,8 @@ class CreateTest extends TestCase
 
         $createExpressPayOrderService->execute(
             'bb567af9f9d44983971981a6e8eacfd6',
-            '525f40b7-c512-4e5b-aa82-cc7276a48de9'
+            '525f40b7-c512-4e5b-aa82-cc7276a48de9',
+            'dynamic'
         );
     }
 
@@ -104,7 +106,7 @@ class CreateTest extends TestCase
         /** @var Create $createExpressPayOrderService */
         $createExpressPayOrderService = $objectManager->create(Create::class);
 
-        $createExpressPayOrderService->execute(42, '525f40b7-c512-4e5b-aa82-cc7276a48de9');
+        $createExpressPayOrderService->execute(42, '525f40b7-c512-4e5b-aa82-cc7276a48de9', 'dynamic');
     }
 
     /**
@@ -130,7 +132,7 @@ class CreateTest extends TestCase
         $boldClientMock->method('post')
             ->willThrowException(new Exception('HTTP 503 Service Unavailable'));
 
-        $createExpressPayOrderService->execute($quoteMaskId, 'ae066eda-f88a-4c13-938f-e8bd4e496144');
+        $createExpressPayOrderService->execute($quoteMaskId, 'ae066eda-f88a-4c13-938f-e8bd4e496144', 'dynamic');
     }
 
     /**
@@ -163,7 +165,7 @@ class CreateTest extends TestCase
         $boldClientMock->method('post')
             ->willReturn($boldApiResultMock);
 
-        $createExpressPayOrderService->execute($quoteMaskId, 'ae066eda-f88a-4c13-938f-e8bd4e496144');
+        $createExpressPayOrderService->execute($quoteMaskId, 'ae066eda-f88a-4c13-938f-e8bd4e496144', 'dynamic');
     }
 
     /**
@@ -195,7 +197,7 @@ class CreateTest extends TestCase
         $boldClientMock->method('post')
             ->willReturn($boldApiResultMock);
 
-        $createExpressPayOrderService->execute($quoteMaskId, '182011ba-9d43-47b7-9b74-8c234531ce20');
+        $createExpressPayOrderService->execute($quoteMaskId, '182011ba-9d43-47b7-9b74-8c234531ce20', 'dynamic');
     }
 
     /**

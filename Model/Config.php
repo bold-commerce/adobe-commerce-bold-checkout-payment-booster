@@ -311,7 +311,7 @@ class Config
      */
     public function isExpressPayEnabled(int $websiteId): bool
     {
-        return (bool)$this->scopeConfig->getValue(
+        return $this->scopeConfig->isSetFlag(
             self::PATH_IS_EXPRESS_PAY_ENABLED,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId

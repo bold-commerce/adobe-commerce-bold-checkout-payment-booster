@@ -15,7 +15,7 @@ function (
             {
                 quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                 gatewayId: paymentPayload.gateway_id,
-                shippingStrategy: paymentPayload.shipping_strategy
+                shippingStrategy: paymentPayload.shipping_strategy || 'dynamic'
             }
         );
     };

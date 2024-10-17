@@ -18,7 +18,7 @@ define([
                 {
                     quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                     gatewayId: paymentPayload.gateway_id,
-                    shippingStrategy: paymentPayload.shipping_strategy //todo: Check if it is a required param as there is no such property in paymentPayload fir the PPCP credit card.
+                    shippingStrategy: paymentPayload.shipping_strategy || 'dynamic',
                 }
             );
         };

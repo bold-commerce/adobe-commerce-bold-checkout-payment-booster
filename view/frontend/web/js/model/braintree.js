@@ -11,7 +11,7 @@ define([
     'use strict';
 
     /**
-     * Fastlane init model.
+     * Braintree buttons model.
      *
      * @type {object}
      */
@@ -19,7 +19,7 @@ define([
         gatewayData: null,
 
         /**
-         * Check if Braintree PayPal flow is enabled and active.
+         * Check if Braintree PayPal buttons are available.
          *
          * @return {Boolean}
          */

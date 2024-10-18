@@ -111,7 +111,7 @@ define([
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
             paymentsInstance.renderPayments('SPI');
-            await braintree.renderButtons('bold_paypal_buttons_container');
+           // await braintree.renderButtons('bold_paypal_buttons_container');
         },
 
         /** @inheritdoc */

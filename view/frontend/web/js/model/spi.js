@@ -102,10 +102,10 @@ define([
                     }.bind(this)
                 }
             };
-            const paymentInstance = new window.bold.Payments(initialData);
-            this.fastlaneInstance = await fastlane.getFastlaneInstance(paymentInstance);
+            const paymentsInstance = new window.bold.Payments(initialData);
+            this.fastlaneInstance = await fastlane.getFastlaneInstance(paymentsInstance);
             await paymentsInstance.initialize;
-            this.paymentsInstance = paymentInstance;
+            this.paymentsInstance = paymentsInstance;
             this.createPaymentsInstanceInProgress = false;
             return this.paymentsInstance;
         },

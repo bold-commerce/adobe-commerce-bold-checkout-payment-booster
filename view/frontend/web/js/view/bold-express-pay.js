@@ -46,8 +46,9 @@ define([
          * @private
          */
         _setVisibility: function () {
-            this.isVisible(window.location.hash === '#shipping');
+            const expressPayEnabled = window.checkoutConfig.bold.isExpressPayEnabled;
             const onShippingStep = window.location.hash === '#shipping';
+            this.isVisible(onShippingStep && expressPayEnabled);
 
             // On step change remove any other instance, can only have one on a page
             const ppcpExpressContainer = document.getElementById('ppcp-express-payment');
@@ -55,11 +56,9 @@ define([
                 ppcpExpressContainer.remove();
             }
 
-            if (onShippingStep) {
+            if (this.isVisible()) {
                 this._renderExpressPayments();
             }
-
-            this.isVisible(onShippingStep);
         },
 
         _renderExpressPayments: function() {

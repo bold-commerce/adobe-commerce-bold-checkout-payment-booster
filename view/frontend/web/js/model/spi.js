@@ -104,6 +104,7 @@ define([
             };
             const paymentInstance = new window.bold.Payments(initialData);
             this.fastlaneInstance = await fastlane.getFastlaneInstance(paymentInstance);
+            await paymentsInstance.initialize;
             this.paymentsInstance = paymentInstance;
             this.createPaymentsInstanceInProgress = false;
             return this.paymentsInstance;

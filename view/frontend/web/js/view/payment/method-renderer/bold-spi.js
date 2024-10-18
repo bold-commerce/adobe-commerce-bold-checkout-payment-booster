@@ -10,6 +10,7 @@ define([
     'ko',
     'mage/translate',
     'Bold_CheckoutPaymentBooster/js/model/spi',
+    'Bold_CheckoutPaymentBooster/js/model/braintree',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
@@ -25,6 +26,7 @@ define([
     ko,
     $t,
     spi,
+    braintree,
     platformClient,
     fastlane,
     hydrateOrderAction,
@@ -109,6 +111,7 @@ define([
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
             paymentsInstance.renderPayments('SPI');
+            await braintree.renderButtons('bold_paypal_buttons_container');
         },
 
         /** @inheritdoc */

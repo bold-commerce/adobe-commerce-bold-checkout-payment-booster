@@ -3,12 +3,14 @@ define([
     'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
     'Bold_CheckoutPaymentBooster/js/action/payment-sca-action',
     'Magento_Checkout/js/model/quote',
+    'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'prototype'
 ], function (
     registry,
     createOrderAction,
     paymentScaAction,
-    quote
+    quote,
+    fastlane
 ) {
     'use strict';
 
@@ -100,9 +102,18 @@ define([
                     }.bind(this)
                 }
             };
-            this.paymentsInstance = new window.bold.Payments(initialData);
+            const paymentInstance = new window.bold.Payments(initialData);
+            this.fastlaneInstance = await fastlane.getFastlaneInstance(paymentInstance);
+            this.paymentsInstance = paymentInstance;
             this.createPaymentsInstanceInProgress = false;
             return this.paymentsInstance;
+        },
+        getFastlaneInstance: async function () {
+            if (this.fastlaneInstance) {
+                return this.fastlaneInstance;
+            }
+            await this.getPaymentsClient();
+            return this.fastlaneInstance;
         },
     };
 });

@@ -97,8 +97,13 @@ define([
         renderPayments: async function () {
             const paymentsInstance = await spi.getPaymentsClient();
             const boldPaymentsForm = document.getElementById('SPI');
-            if (fastlane.isAvailable()) {
-                await paymentsInstance.renderWalletPayments('SPI');
+            const isFastlaneAvailable = fastlane.isAvailable();
+            if (isFastlaneAvailable) {
+                const paymentOptions = {
+                    fastlane: isFastlaneAvailable,
+                    shouldRenderSpiFrame: false
+                };
+                paymentsInstance.renderPayments('SPI', paymentOptions);
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
                 this.isSpiLoading(false);

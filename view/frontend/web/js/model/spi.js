@@ -129,34 +129,34 @@ define([
                     'onRequireOrderData' : async function (requirements) {
                         const payload = {};
 
-                        for (const rq of requirements) {
-                            switch (rq) {
+                        for (const requirement of requirements) {
+                            switch (requirement) {
                                 case 'customer':
                                     let billingAddress = quote.billingAddress();
                                     const email = checkoutData.getValidatedEmailValue()
                                         ? checkoutData.getValidatedEmailValue()
                                         : window.checkoutConfig.customerData.email;
 
-                                    payload[rq] = {
+                                    payload[requirement] = {
                                         first_name: billingAddress.firstname,
                                         last_name: billingAddress.lastname,
                                         email_address: email,
                                     };
                                     break;
                                 case 'items':
-                                    payload[rq] = quote.getItems().map(item => ({
+                                    payload[requirement] = quote.getItems().map(item => ({
                                         amount: parseInt(parseFloat(item.base_price) * 100),
                                         label: item.name
                                     }));
                                     break;
                                 case 'billing_address':
-                                    payload[rq] = convertMagentoAddress(quote.billingAddress());
+                                    payload[requirement] = convertMagentoAddress(quote.billingAddress());
                                     break;
                                 case 'shipping_address':
-                                    payload[rq] = convertMagentoAddress(quote.shippingAddress());
+                                    payload[requirement] = convertMagentoAddress(quote.shippingAddress());
                                     break;
                                 case 'shipping_options':
-                                    payload[rq] = shippingService.getShippingRates().map(option => ({
+                                    payload[requirement] = shippingService.getShippingRates().map(option => ({
                                         label: `${option.carrier_title} - ${option.method_title}`,
                                         amount: option.amount,
                                         id: `${option.carrier_code}_${option.method_code}`
@@ -164,7 +164,7 @@ define([
                                     break;
                                 case 'totals':
                                     const totals = quote.getTotals();
-                                    payload[rq] = {
+                                    payload[requirement] = {
                                         order_total: totals()['grand_total'],
                                         order_balance: totals()['grand_total'],
                                         shipping_total: totals()['shipping_amount'],

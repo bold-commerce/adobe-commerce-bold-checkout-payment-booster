@@ -126,16 +126,11 @@ define([
                 return;
             }
 
-            const containerId = 'SPI';
-            const observer = new MutationObserver(async () => {
-                if (document.getElementById(containerId)) {
-                    observer.disconnect();
-                    window.bold.paymentsInstance.renderPayments(containerId);
+            this.tokenize()
+            this.paymentId.subscribe((id) => {
+                if (id != null) {
+                    callback(data, event);
                 }
-            });
-            observer.observe(document.documentElement, {
-                childList: true,
-                subtree: true
             });
         },
 

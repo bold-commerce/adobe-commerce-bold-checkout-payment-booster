@@ -3,9 +3,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\HTTP\ClientInterface;
 
 /**
@@ -14,7 +14,7 @@ use Magento\Framework\HTTP\ClientInterface;
 class GetCommand
 {
     /**
-     * @var ResultFactory
+     * @var ResultInterfaceFactory
      */
     private $resultFactory;
 
@@ -29,12 +29,12 @@ class GetCommand
     private $logger;
 
     /**
-     * @param ResultFactory $resultFactory
+     * @param ResultInterfaceFactory $resultFactory
      * @param ClientInterface $client
      * @param RequestsLogger $logger
      */
     public function __construct(
-        ResultFactory $resultFactory,
+        ResultInterfaceFactory $resultFactory,
         ClientInterface $client,
         RequestsLogger $logger
     ) {
@@ -49,9 +49,9 @@ class GetCommand
      * @param int $websiteId
      * @param string $url
      * @param array $headers
-     * @return Result
+     * @return ResultInterface
      */
-    public function execute(int $websiteId, string $url, array $headers): Result
+    public function execute(int $websiteId, string $url, array $headers): ResultInterface
     {
         $this->logger->logRequest($websiteId, $url, 'GET');
         $this->client->setHeaders($headers);

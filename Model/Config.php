@@ -28,6 +28,7 @@ class Config
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
     private const PATH_CONFIGURATION_GROUP_LABEL = 'checkout/bold_checkout_payment_booster/configuration_group_label';
     private const PATH_BOLD_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/bold_booster_flow_id';
+    private const PATH_IS_EXPRESS_PAY_ENABLED = 'checkout/bold_checkout_payment_booster/is_express_pay_enabled';
 
     /**
      * @var ScopeConfigInterface
@@ -297,6 +298,21 @@ class Config
     {
         return $this->scopeConfig->getValue(
             self::PATH_CONFIGURATION_GROUP_LABEL,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if Express Pay buttons are enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isExpressPayEnabled(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_EXPRESS_PAY_ENABLED,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

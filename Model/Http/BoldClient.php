@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\DeleteCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\GetCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PatchCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PostCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PutCommand;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\Result;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\UserAgent;
 
 /**
  * Client to perform http request to Bold.
  */
-class BoldClient
+class BoldClient implements ClientInterface
 {
     private const BOLD_API_VERSION_DATE = '2022-10-14';
 
@@ -87,9 +88,9 @@ class BoldClient
      *
      * @param int $websiteId
      * @param string $path
-     * @return Result
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function get(int $websiteId, string $path): Result
+    public function get(int $websiteId, string $path): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
@@ -102,9 +103,9 @@ class BoldClient
      * @param int $websiteId
      * @param string $path
      * @param array $data
-     * @return Result
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function post(int $websiteId, string $path, array $data): Result
+    public function post(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
@@ -117,9 +118,9 @@ class BoldClient
      * @param int $websiteId
      * @param string $path
      * @param array $data
-     * @return Result
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function put(int $websiteId, string $path, array $data): Result
+    public function put(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
@@ -132,9 +133,9 @@ class BoldClient
      * @param int $websiteId
      * @param string $path
      * @param array $data
-     * @return Result
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function patch(int $websiteId, string $path, array $data): Result
+    public function patch(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
@@ -147,9 +148,9 @@ class BoldClient
      * @param int $websiteId
      * @param string $path
      * @param array $data
-     * @return Result
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
-    public function delete(int $websiteId, string $path, array $data): Result
+    public function delete(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);

@@ -34,6 +34,7 @@ define([
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/spi',
             paymentId: ko.observable(null),
+            paymentApprovalData: ko.observable(null),
             isVisible: ko.observable(false),
             isSpiLoading: ko.observable(true),
             isBillingAddressRequired: ko.observable(true),
@@ -96,8 +97,13 @@ define([
         renderPayments: async function () {
             const paymentsInstance = await spi.getPaymentsClient();
             const boldPaymentsForm = document.getElementById('SPI');
-            if (fastlane.isAvailable()) {
-                await paymentsInstance.renderWalletPayments('SPI');
+            const isFastlaneAvailable = fastlane.isAvailable();
+            if (isFastlaneAvailable) {
+                const paymentOptions = {
+                    fastlane: isFastlaneAvailable,
+                    shouldRenderSpiFrame: false
+                };
+                paymentsInstance.renderPayments('SPI', paymentOptions);
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
                 this.isSpiLoading(false);
@@ -119,6 +125,7 @@ define([
                 callback(data, event);
                 return;
             }
+
             this.tokenize()
             this.paymentId.subscribe((id) => {
                 if (id != null) {
@@ -202,6 +209,7 @@ define([
                         break;
                     case 'EVENT_SPI_TOKENIZED':
                         this.paymentId(data.payload?.payload?.data?.payment_id);
+                        this.placeOrder();
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

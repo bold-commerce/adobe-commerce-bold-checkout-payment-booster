@@ -1,8 +1,10 @@
 define([
     'uiRegistry',
+    'Bold_CheckoutPaymentBooster/js/action/convert-magento-address',
     'Bold_CheckoutPaymentBooster/js/action/create-wallet-pay-order-action',
     'Bold_CheckoutPaymentBooster/js/action/payment-sca-action',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
+    'checkoutData',
     'Magento_Checkout/js/model/address-converter',
     'Magento_Checkout/js/model/error-processor',
     'Magento_Checkout/js/model/quote',
@@ -14,9 +16,11 @@ define([
     'prototype'
 ], function (
     registry,
+    convertMagentoAddress,
     createOrderAction,
     paymentScaAction,
     platformClient,
+    checkoutData,
     addressConverter,
     errorProcessor,
     quote,
@@ -121,7 +125,57 @@ define([
                             return {card: scaResult};
                         }
                         throw new Error('Unsupported payment type');
-                    }.bind(this)
+                    }.bind(this),
+                    'onRequireOrderData' : async function (requirements) {
+                        const payload = {};
+
+                        for (const rq of requirements) {
+                            switch (rq) {
+                                case 'customer':
+                                    let billingAddress = quote.billingAddress();
+                                    const email = checkoutData.getValidatedEmailValue()
+                                        ? checkoutData.getValidatedEmailValue()
+                                        : window.checkoutConfig.customerData.email;
+
+                                    payload[rq] = {
+                                        first_name: billingAddress.firstname,
+                                        last_name: billingAddress.lastname,
+                                        email_address: email,
+                                    };
+                                    break;
+                                case 'items':
+                                    payload[rq] = quote.getItems().map(item => ({
+                                        amount: parseInt(parseFloat(item.base_price) * 100),
+                                        label: item.name
+                                    }));
+                                    break;
+                                case 'billing_address':
+                                    payload[rq] = convertMagentoAddress(quote.billingAddress());
+                                    break;
+                                case 'shipping_address':
+                                    payload[rq] = convertMagentoAddress(quote.shippingAddress());
+                                    break;
+                                case 'shipping_options':
+                                    payload[rq] = shippingService.getShippingRates().map(option => ({
+                                        label: `${option.carrier_title} - ${option.method_title}`,
+                                        amount: option.amount,
+                                        id: `${option.carrier_code}_${option.method_code}`
+                                    }));
+                                    break;
+                                case 'totals':
+                                    const totals = quote.getTotals();
+                                    payload[rq] = {
+                                        order_total: totals()['grand_total'],
+                                        order_balance: totals()['grand_total'],
+                                        shipping_total: totals()['shipping_amount'],
+                                        discounts_total: totals()['discount_amount'],
+                                        taxes_total: totals()['tax'],
+                                    };
+                                    break;
+                            }
+                        }
+                        return payload;
+                    },
                 }
             };
             this.paymentsInstance = new window.bold.Payments(initialData);

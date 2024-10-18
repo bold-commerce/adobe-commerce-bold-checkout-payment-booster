@@ -1,5 +1,6 @@
 define(
     [
+        'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/view/shipping-address/list',
         'Magento_Customer/js/model/address-list',
@@ -12,6 +13,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/reset-shipping-address',
         'Magento_Checkout/js/model/quote'
     ], function (
+        spi,
         fastlane,
         addressList,
         customerAddressList,
@@ -44,7 +46,7 @@ define(
                             return;
                         }
                         this.template = 'Bold_CheckoutPaymentBooster/form/element/email';
-                        fastlane.getFastlaneInstance().then((fastlaneInstance) => {
+                        spi.getFastlaneInstance().then((fastlaneInstance) => {
                             if (!fastlaneInstance) {
                                 return;
                             }
@@ -85,7 +87,7 @@ define(
                     lookupEmail: async function () {
                         try {
                             fullScreenLoader.startLoader();
-                            const fastlaneInstance = await fastlane.getFastlaneInstance();
+                            const fastlaneInstance = await spi.getFastlaneInstance();
                             if (!fastlaneInstance) {
                                 return;
                             }

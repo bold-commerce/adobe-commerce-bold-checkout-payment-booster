@@ -1,9 +1,8 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/model/spi',
+    'prototype'
 ], function (
     ko,
-    spi,
 ) {
     'use strict';
 
@@ -42,7 +41,7 @@ define([
          *
          * @return {Promise<{profile: {showShippingAddressSelector: function}, identity: {lookupCustomerByEmail: function, triggerAuthenticationFlow: function}, FastlanePaymentComponent: function}>}
          */
-        getFastlaneInstance: async function () {
+        getFastlaneInstance: async function (boldPaymentsInstance) {
             if (!this.isAvailable()) {
                 return null;
             }
@@ -62,7 +61,6 @@ define([
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
                 if (!this.gatewayData) {
-                    const boldPaymentsInstance = await spi.getPaymentsClient();
                     boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
                     this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.gatewayId] || null;
                 }

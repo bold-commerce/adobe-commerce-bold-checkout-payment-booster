@@ -5,6 +5,7 @@ define(
         'Magento_Checkout/js/action/select-payment-method',
         'Magento_Checkout/js/action/select-billing-address',
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
+        'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
         'Magento_Checkout/js/model/quote',
@@ -21,6 +22,7 @@ define(
         selectPaymentMethodAction,
         selectBillingAddressAction,
         boldFrontendClient,
+        spi,
         fastlane,
         convertFastlaneAddressAction,
         quote,
@@ -100,7 +102,7 @@ define(
              */
             renderCardComponent: async function () {
                 try {
-                    const fastlaneInstance = await fastlane.getFastlaneInstance();
+                    const fastlaneInstance = await spi.getFastlaneInstance();
                     if (!fastlaneInstance) {
                         this.isPlaceOrderActionAllowed(false);
                         this.isVisible(false);

@@ -1,9 +1,9 @@
 define(
     [
-        'Bold_CheckoutPaymentBooster/js/model/fastlane',
+        'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address'
     ], function (
-        fastlane,
+        spi,
         setQuoteShippingAddressAction
     ) {
         'use strict';
@@ -21,7 +21,7 @@ define(
              * @private
              */
             const showFastlaneAddressModal = async function () {
-                const fastlaneInstance = await fastlane.getFastlaneInstance();
+                const fastlaneInstance = await spi.getFastlaneInstance();
                 if (!fastlaneInstance) {
                     return {selectionChanged: false, selectedAddress: {}};
                 }

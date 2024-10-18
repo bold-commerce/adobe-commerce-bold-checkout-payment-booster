@@ -11,6 +11,7 @@ define([
     'Magento_Checkout/js/model/shipping-save-processor/payload-extender',
     'Magento_Customer/js/customer-data',
     'mage/storage',
+    'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'prototype'
 ], function (
     registry,
@@ -24,7 +25,8 @@ define([
     shippingService,
     payloadExtender,
     customerData,
-    storage
+    storage,
+    fastlane
 ) {
     'use strict';
 
@@ -124,9 +126,20 @@ define([
                     }.bind(this)
                 }
             };
-            this.paymentsInstance = new window.bold.Payments(initialData);
+
+            const paymentInstance = new window.bold.Payments(initialData);
+            this.fastlaneInstance = await fastlane.getFastlaneInstance(paymentInstance);
+            this.paymentsInstance = paymentInstance;
             this.createPaymentsInstanceInProgress = false;
             return this.paymentsInstance;
+        },
+
+        getFastlaneInstance: async function () {
+            if (this.fastlaneInstance) {
+                return this.fastlaneInstance;
+            }
+            await this.getPaymentsClient();
+            return this.fastlaneInstance;
         },
 
         // TODO: Abstract these functions into action components

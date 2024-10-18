@@ -42,7 +42,7 @@ define([
          *
          * @return {Promise<{profile: {showShippingAddressSelector: function}, identity: {lookupCustomerByEmail: function, triggerAuthenticationFlow: function}, FastlanePaymentComponent: function}>}
          */
-        getFastlaneInstance: async function () {
+        getFastlaneInstance: async function (boldPaymentsInstance) {
             if (!this.isAvailable()) {
                 return null;
             }
@@ -62,7 +62,6 @@ define([
             window.boldFastlaneInstanceCreateInProgress = true;
             try {
                 if (!this.gatewayData) {
-                    const boldPaymentsInstance = await spi.getPaymentsClient();
                     boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
                     this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.gatewayId] || null;
                 }
@@ -162,7 +161,7 @@ define([
             if (!require.defined('bold_paypal_fastlane')){
                 require.config({
                     paths: {
-                        bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=buttons,fastlane&disable-funding=card&intent=authorize${debugMode}`,
+                        bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,
                     },
                 });
                 this.addAuthorizationAttributesToPayPalScript(gatewayData);

@@ -17,7 +17,7 @@ define(
                 return;
             }
 
-            const path = '{{configuration-group-label}}/tokenize'
+            const path = '/{{configuration-group-label}}/tokenize'
             const body = {
                 'version': 1,
                 'auth_token': window.checkoutConfig.bold.epsAuthToken,

@@ -4,6 +4,7 @@ define(
         'Magento_Checkout/js/view/shipping-address/list',
         'Magento_Customer/js/model/address-list',
         'Bold_CheckoutPaymentBooster/js/action/show-shipping-address-form',
+        'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Magento_Checkout/js/model/quote'
     ],
@@ -12,6 +13,7 @@ define(
         shippingAddressList,
         customerAddressList,
         showShippingAddressFormAction,
+        spi,
         fastlane,
         quote
     ) {
@@ -61,7 +63,7 @@ define(
                     return;
                 }
                 this.visible(true);
-                fastlane.getFastlaneInstance().then((fastlaneInstance) => {
+                spi.getFastlaneInstance().then((fastlaneInstance) => {
                     if (!fastlaneInstance) {
                         return;
                     }

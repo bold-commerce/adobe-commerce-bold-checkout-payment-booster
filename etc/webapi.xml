@@ -1,6 +1,50 @@
 <?xml version="1.0"?>
-<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/express_pay/order/create" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/express_pay/order/mine/create" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
+        </data>
+    </route>
+    <route url="/V1/express_pay/order/update" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/express_pay/order/mine/update" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
+        </data>
+    </route>
+    <route url="/V1/express_pay/order/get" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get" method="execute"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/express_pay/order/mine/get" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get" method="execute"/>
+        <resources>
+            <resource ref="self"/>
+        </resources>
+        <data>
+            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
+        </data>
+    </route>
     <route url="/V1/shops/:shopId/guest-cart/:cartId/hydrate/:publicOrderId" method="PUT">
         <service class="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" method="hydrate"/>
         <resources>

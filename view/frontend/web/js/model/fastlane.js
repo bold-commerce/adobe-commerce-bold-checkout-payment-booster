@@ -1,8 +1,9 @@
 define([
     'ko',
-    'prototype'
+    'Bold_CheckoutPaymentBooster/js/model/spi',
 ], function (
     ko,
+    spi,
 ) {
     'use strict';
 
@@ -157,15 +158,17 @@ define([
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';
             }
-            require.config({
-                paths: {
-                    bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,
-                },
-            });
-            this.addAuthorizationAttributesToPayPalScript(gatewayData);
-            await new Promise((resolve, reject) => {
-                require(['bold_paypal_fastlane'], resolve, reject);
-            });
+            if (!require.defined('bold_paypal_fastlane')){
+                require.config({
+                    paths: {
+                        bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,
+                    },
+                });
+                this.addAuthorizationAttributesToPayPalScript(gatewayData);
+                await new Promise((resolve, reject) => {
+                    require(['bold_paypal_fastlane'], resolve, reject);
+                });
+            }
 
             window.boldFastlaneInstance = await window.paypal.Fastlane();
         },
@@ -183,7 +186,8 @@ define([
                         element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
                     }
                     return appendChild(element);
-                });
+                }
+            );
         },
         /**
          * Set Fastlane locale.

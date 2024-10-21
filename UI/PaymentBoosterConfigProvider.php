@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\UI\Payment;
+namespace Bold\CheckoutPaymentBooster\UI;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -10,6 +10,7 @@ use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
+use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
 
 /**
  * Config provider for Payment Booster.
@@ -91,6 +92,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'publicOrderId' => $publicOrderId,
                 'countries' => $this->getAllowedCountries(),
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
+                'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
+                'shopUrl' => $quote->getStore()->getBaseUrl(),
+                'shopName' => $quote->getStore()->getFrontendName(),
+                'isPhoneRequired' => $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED,
+                'isExpressPayEnabled' => $this->config->isExpressPayEnabled($websiteId),
                 'paymentBooster' => [
                     'payment' => [
                         'method' => Service::CODE,

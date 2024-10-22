@@ -6,7 +6,6 @@ namespace Bold\CheckoutPaymentBooster\Model\Order\Address;
 
 use Magento\Directory\Model\CountryFactory;
 use Magento\Directory\Model\RegionFactory;
-use Magento\Framework\Locale\ResolverInterface;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 
 /**
@@ -26,7 +25,7 @@ class Converter
 
     /**
      * @param CountryFactory $countryFactory
-     * @param ResolverInterface $resolver
+     * @param RegionFactory $regionFactory
      */
     public function __construct(CountryFactory $countryFactory, RegionFactory $regionFactory)
     {

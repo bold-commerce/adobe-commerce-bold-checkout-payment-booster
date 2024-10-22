@@ -5,9 +5,12 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValidator;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Hydrate order for guest.
@@ -35,6 +38,11 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
     private $shopIdValidator;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @param CartRepositoryInterface $cartRepository
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param HydrateOrderFromQuote $hydrateOrderFromQuote
@@ -44,12 +52,14 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
         CartRepositoryInterface $cartRepository,
         QuoteIdMaskFactory $quoteIdMaskFactory,
         HydrateOrderFromQuote $hydrateOrderFromQuote,
-        ShopIdValidator $shopIdValidator
+        ShopIdValidator $shopIdValidator,
+        LoggerInterface $logger
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->shopIdValidator = $shopIdValidator;
+        $this->logger = $logger;
     }
 
     /**
@@ -57,11 +67,19 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
      */
     public function hydrate(string $shopId, string $cartId, string $publicOrderId, AddressInterface $address): void
     {
-        $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
-        $quote = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
-        $storeId = (int)$quote->getStoreId();
-        $this->shopIdValidator->validate($shopId, $storeId);
-        $quote->getBillingAddress()->addData($address->getData());
-        $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
+        try {
+            $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+            $quote = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
+            $storeId = (int)$quote->getStoreId();
+            $this->shopIdValidator->validate($shopId, $storeId);
+            $quote->getBillingAddress()->addData($address->getData());
+            $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
+        } catch (Throwable $e) {
+            $this->logger->error(
+                'Payment Booster: Not able to hydrate order data for quote with masked ID: '
+                . $cartId . ' and public order ID: ' . $publicOrderId . ' Error: ' . $e->getMessage()
+            );
+            throw new LocalizedException(__('An error occurred during order hydration.'));
+        }
     }
 }

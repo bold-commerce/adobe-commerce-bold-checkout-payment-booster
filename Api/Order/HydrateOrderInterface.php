@@ -18,6 +18,7 @@ interface HydrateOrderInterface
      * @param string $publicOrderId
      * @param \Magento\Quote\Api\Data\AddressInterface $address
      * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function hydrate(string $shopId, string $publicOrderId, AddressInterface $address): void;
 }

@@ -170,6 +170,7 @@ class BoldClient implements ClientInterface
             'Content-Type' => 'application/json',
             'User-Agent' => $this->userAgent->getUserAgentData(),
             'Bold-API-Version-Date' => self::BOLD_API_VERSION_DATE,
+            'Expect' => '',
         ];
     }
 

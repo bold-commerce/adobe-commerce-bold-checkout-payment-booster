@@ -63,7 +63,7 @@ class DeleteCommand
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
-        $this->logger->logRequest($websiteId, $url, 'POST', $data);
+        $this->logger->logRequest($websiteId, $url, 'DELETE', $data);
         $this->client->setHeaders($headers);
         $this->client->delete($url, $this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);

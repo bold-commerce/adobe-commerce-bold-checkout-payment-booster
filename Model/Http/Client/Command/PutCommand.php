@@ -63,7 +63,7 @@ class PutCommand
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
-        $this->logger->logRequest($websiteId, $url, 'POST', $data);
+        $this->logger->logRequest($websiteId, $url, 'PUT', $data);
         $this->client->setHeaders($headers);
         $this->client->put($url, $this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);

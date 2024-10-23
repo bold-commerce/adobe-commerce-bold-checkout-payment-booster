@@ -109,7 +109,8 @@ class HydrateOrderFromQuote
         $cartItems = $this->getCartLineItems->getItems($quote);
         $formattedCartItems = $this->formatCartItems($cartItems);
         $subtotal = $totals['subtotal']['value_excl_tax'] ?? $totals['subtotal']['value'];
-        $shippingTotal = $totals['shipping']['value_excl_tax'] ?? $totals['shipping']['value'];
+        $shippingTotal = $totals['shipping']['value'] ?? 0;
+        $shippingTotalNoTax = $totals['shipping']['value_excl_tax'] ?? $shippingTotal;
         $grandTotal = $totals['grand_total']['value_incl_tax'] ?? $totals['grand_total']['value'];
         $body = [
             'billing_address' => $this->addressConverter->convert($billingAddress),
@@ -126,7 +127,7 @@ class HydrateOrderFromQuote
                 'sub_total' => $this->convertToCents((float)$subtotal),
                 'tax_total' => $this->convertToCents($totals['tax']['value']),
                 'discount_total' => $discountTotal ?? 0,
-                'shipping_total' => $this->convertToCents((float)$shippingTotal),
+                'shipping_total' => $this->convertToCents((float)$shippingTotalNoTax),
                 'order_total' => $this->convertToCents((float)$grandTotal),
             ],
         ];

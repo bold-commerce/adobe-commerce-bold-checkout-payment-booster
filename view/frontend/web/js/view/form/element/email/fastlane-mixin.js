@@ -9,8 +9,8 @@ define(
         'uiRegistry',
         'Magento_Checkout/js/model/full-screen-loader',
         'checkoutData',
-        'Bold_CheckoutPaymentBooster/js/action/fastlane/set-quote-shipping-address',
-        'Bold_CheckoutPaymentBooster/js/action/fastlane/reset-shipping-address',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/set-quote-shipping-address-action',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/reset-shipping-address-action',
         'Magento_Checkout/js/model/quote'
     ], function (
         spi,

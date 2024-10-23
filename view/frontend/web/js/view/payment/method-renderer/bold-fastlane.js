@@ -7,7 +7,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
-        'Bold_CheckoutPaymentBooster/js/action/fastlane/convert-fastlane-address',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/convert-fastlane-address-action',
         'Magento_Checkout/js/model/quote',
         'checkoutData',
         'Magento_Checkout/js/model/full-screen-loader',

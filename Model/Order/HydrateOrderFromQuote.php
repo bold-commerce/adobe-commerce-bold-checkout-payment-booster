@@ -89,6 +89,7 @@ class HydrateOrderFromQuote
      */
     public function hydrate(CartInterface $quote, string $publicOrderId): void
     {
+        $quote->collectTotals();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
         $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
@@ -107,7 +108,10 @@ class HydrateOrderFromQuote
 
         $cartItems = $this->getCartLineItems->getItems($quote);
         $formattedCartItems = $this->formatCartItems($cartItems);
-
+        $subtotal = $totals['subtotal']['value_excl_tax'] ?? $totals['subtotal']['value'];
+        $shippingTotal = $totals['shipping']['value'] ?? 0;
+        $shippingTotalNoTax = $totals['shipping']['value_excl_tax'] ?? $shippingTotal;
+        $grandTotal = $totals['grand_total']['value_incl_tax'] ?? $totals['grand_total']['value'];
         $body = [
             'billing_address' => $this->addressConverter->convert($billingAddress),
             'shipping_address' => $this->addressConverter->convert($shippingAddress),
@@ -120,11 +124,11 @@ class HydrateOrderFromQuote
                 'cost' => $this->convertToCents($totals['shipping']['value']),
             ],
             'totals' => [
-                'sub_total' => $this->convertToCents($totals['subtotal']['value']),
+                'sub_total' => $this->convertToCents((float)$subtotal),
                 'tax_total' => $this->convertToCents($totals['tax']['value']),
                 'discount_total' => $discountTotal ?? 0,
-                'shipping_total' => $this->convertToCents($totals['shipping']['value']),
-                'order_total' => $this->convertToCents($totals['grand_total']['value']),
+                'shipping_total' => $this->convertToCents((float)$shippingTotalNoTax),
+                'order_total' => $this->convertToCents((float)$grandTotal),
             ],
         ];
 

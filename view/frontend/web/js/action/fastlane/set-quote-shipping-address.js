@@ -1,10 +1,10 @@
 define(
     [
         'checkoutData',
-        'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/convert-fastlane-address',
         'Magento_Checkout/js/action/select-shipping-address',
         'Magento_Checkout/js/action/select-billing-address',
-        'Bold_CheckoutPaymentBooster/js/action/hide-shipping-address-form',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/hide-shipping-address-form',
         'Magento_Checkout/js/model/quote'
     ], function (
         checkoutData,

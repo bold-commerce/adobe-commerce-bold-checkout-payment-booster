@@ -7,7 +7,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/model/bold-frontend-client',
         'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
-        'Bold_CheckoutPaymentBooster/js/action/convert-fastlane-address',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/convert-fastlane-address',
         'Magento_Checkout/js/model/quote',
         'checkoutData',
         'Magento_Checkout/js/model/full-screen-loader',
@@ -15,7 +15,7 @@ define(
         'underscore',
         'ko',
         'mage/translate',
-        'Bold_CheckoutPaymentBooster/js/action/eps-tokenize-action',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/eps-tokenize-action',
     ], function (
         MagentoPayment,
         errorProcessor,

@@ -1,7 +1,7 @@
 define(
     [
         'Magento_Checkout/js/model/quote',
-        'Bold_CheckoutPaymentBooster/js/action/show-shipping-address-form'
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/show-shipping-address-form'
     ], function (
         quote,
         showShippingAddressForm,

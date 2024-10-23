@@ -1,9 +1,10 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/model/spi',
+    'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
+    'prototype'
 ], function (
     ko,
-    spi,
+    loadScriptAction,
 ) {
     'use strict';
 
@@ -40,7 +41,7 @@ define([
         /**
          * Build Fastlane instance (PPCP / Braintree).
          *
-         * @return {Promise<{profile: {showShippingAddressSelector: function}, identity: {lookupCustomerByEmail: function, triggerAuthenticationFlow: function}, FastlanePaymentComponent: function}>}
+         * @return {Promise<null|{}>}
          */
         getFastlaneInstance: async function (boldPaymentsInstance) {
             if (!this.isAvailable()) {
@@ -100,10 +101,10 @@ define([
          * @return {Promise<void>}
          */
         buildBraintreeFastlaneInstance: async function (gatewayData) {
-            await this.loadScript('bold_braintree_fastlane_hosted_fields', 'hostedFields');
-            const client = await this.loadScript('bold_braintree_fastlane_client');
-            const dataCollector = await this.loadScript('bold_braintree_fastlane_data_collector');
-            const fastlane = await this.loadScript('bold_braintree_fastlane');
+            await loadScriptAction('bold_braintree_fastlane_hosted_fields', 'braintree.hostedFields');
+            const client = await loadScriptAction('bold_braintree_fastlane_client', 'braintree.client');
+            const dataCollector = await loadScriptAction('bold_braintree_fastlane_data_collector');
+            const fastlane = await loadScriptAction('bold_braintree_fastlane', 'braintree.fastlane');
             const clientInstance = await client.create(
                 {
                     authorization: gatewayData.client_token,
@@ -128,37 +129,19 @@ define([
             );
         },
         /**
-         * Load given script with require js.
-         *
-         * @param type
-         * @param variable
-         * @return {Promise<unknown>}
-         */
-        loadScript: async function (type, variable = null) {
-            return new Promise((resolve, reject) => {
-                require([type], (src) => {
-                    if (variable) {
-                        window.braintree[variable] = src;
-                    }
-                    resolve(src);
-                }, reject);
-            });
-        },
-
-        /**
          * Build PPCP Fastlane instance.
          *
          * @param {{is_test_mode: boolean, client_id: string, client_token: string}} gatewayData
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
-            await this.loadScript('bold_braintree_fastlane_hosted_fields', 'hostedFields');
-            await this.loadScript('bold_braintree_fastlane_client', 'client');
+            await loadScriptAction('bold_ppcp_fastlane_hosted_fields', 'braintree.hostedFields');
+            await loadScriptAction('bold_ppcp_fastlane_client', 'braintree.client');
             let debugMode = '';
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';
             }
-            if (!require.defined('bold_paypal_fastlane')){
+            if (!require.defined('bold_paypal_fastlane')) {
                 require.config({
                     paths: {
                         bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,

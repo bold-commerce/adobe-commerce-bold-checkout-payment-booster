@@ -1,6 +1,6 @@
 define([
     'Magento_Checkout/js/view/shipping-address/address-renderer/default',
-    'Bold_CheckoutPaymentBooster/js/action/show-fastlane-shipping-address-form'
+    'Bold_CheckoutPaymentBooster/js/action/fastlane/show-fastlane-shipping-address-form'
 ], function (
     MagentoAddressRenderer,
     showFastlaneAddressFormAction

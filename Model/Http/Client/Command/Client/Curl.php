@@ -53,6 +53,7 @@ class Curl extends CurlCore
         $this->curlOption(CURLOPT_URL, $uri);
         $this->curlOption(CURLOPT_CUSTOMREQUEST, $method);
         $this->curlOption(CURLOPT_POSTFIELDS, $params);
+        $this->curlOption(CURLOPT_HTTPHEADER, ['Expect:']);
         if (count($this->_headers)) {
             $heads = [];
             foreach ($this->_headers as $k => $v) {

@@ -5,7 +5,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
-    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approved-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
 ], function (
     quote,
@@ -14,7 +14,7 @@ define([
     onCreatePaymentOrderCallback,
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
-    onApprovedPaymentOrderCallback,
+    onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback
 ) {
     'use strict';
@@ -73,7 +73,7 @@ define([
                         return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        return await onApprovedPaymentOrderCallback(paymentType, paymentPayload);
+                        return await onApprovePaymentOrderCallback(paymentType, paymentPayload);
                     },
                     'onScaPaymentOrder': async function (paymentType, paymentPayload) {
                         return await onScaPaymentOrderCallback(paymentType, paymentPayload);

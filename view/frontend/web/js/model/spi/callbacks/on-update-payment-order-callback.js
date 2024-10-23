@@ -1,16 +1,11 @@
 define(
     [
-        'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/model/shipping-service',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-address-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-shipping-method-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-wallet-pay-order-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/get-required-order-data-action',
-        ''
     ],
     function (
-        quote,
-        shippingService,
         updateQuoteAddressAction,
         updateQuoteShippingMethodAction,
         updateWalletPayOrderAction,

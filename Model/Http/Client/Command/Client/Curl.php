@@ -60,7 +60,6 @@ class Curl extends CurlCore
             }
             $this->curlOption(CURLOPT_HTTPHEADER, $heads);
         }
-        $this->curlOption(CURLOPT_HTTPHEADER, ['Expect:']);
         if (count($this->_cookies)) {
             $cookies = [];
             foreach ($this->_cookies as $k => $v) {

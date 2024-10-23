@@ -87,6 +87,13 @@ class Curl extends CurlCore
         if ($err) {
             $this->doError(curl_error($this->_ch));
         }
+        $httpCode = curl_getinfo($this->_ch, CURLINFO_HTTP_CODE);
+        if ($httpCode == 100) {
+            $this->_responseBody = curl_exec($this->_ch);
+            $httpCode = curl_getinfo($this->_ch, CURLINFO_HTTP_CODE);
+        }
+
+        $this->_responseStatus = $httpCode;
         curl_close($this->_ch);
     }
 }

@@ -49,6 +49,9 @@ class QuoteConverter
      */
     public function convertFullQuote(Quote $quote, string $gatewayId): array
     {
+        if (!$quote->isVirtual()) {
+            $quote->getShippingAddress()->setCollectShippingRates(true);
+        }
         $quote->collectTotals();
         return array_merge_recursive(
             $this->convertGatewayIdentifier($gatewayId),
@@ -125,9 +128,6 @@ class QuoteConverter
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        $shippingAddress->setCollectShippingRates(true);
-        $shippingAddress->collectShippingRates();
 
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */

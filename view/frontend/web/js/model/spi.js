@@ -1,5 +1,6 @@
 define([
     'Magento_Checkout/js/model/quote',
+    'Magento_Checkout/js/model/full-screen-loader',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
@@ -9,6 +10,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
 ], function (
     quote,
+    fullScreenLoader,
     fastlane,
     loadScriptAction,
     onCreatePaymentOrderCallback,
@@ -67,19 +69,49 @@ define([
                 ],
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
+                        try {
+                            return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
-                        return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
+                        try {
+                            return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        return await onApprovePaymentOrderCallback(paymentType, paymentInformation, paymentPayload);
+                        try {
+                            return await onApprovePaymentOrderCallback(paymentType, paymentInformation, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onScaPaymentOrder': async function (paymentType, paymentPayload) {
-                        return await onScaPaymentOrderCallback(paymentType, paymentPayload);
+                        try {
+                            return await onScaPaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onRequireOrderData': async function (requirements) {
-                        return onRequireOrderDataCallback(requirements);
+                        try {
+                            return onRequireOrderDataCallback(requirements);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                 }
             };

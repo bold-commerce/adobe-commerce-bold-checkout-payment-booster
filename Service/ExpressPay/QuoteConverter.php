@@ -35,11 +35,10 @@ class QuoteConverter
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
-    /**
-     * @var bool
-     */
-    private $areTotalsCollected = false;
 
+    /**
+     * @param ScopeConfigInterface $scopeConfig
+     */
     public function __construct(ScopeConfigInterface $scopeConfig)
     {
         $this->scopeConfig = $scopeConfig;
@@ -50,6 +49,10 @@ class QuoteConverter
      */
     public function convertFullQuote(Quote $quote, string $gatewayId): array
     {
+        if (!$quote->isVirtual()) {
+            $quote->getShippingAddress()->setCollectShippingRates(true);
+        }
+        $quote->collectTotals();
         return array_merge_recursive(
             $this->convertGatewayIdentifier($gatewayId),
             $this->convertLocale($quote),
@@ -65,17 +68,17 @@ class QuoteConverter
     /**
      * @return array<string, string>
      */
-    public function convertGatewayIdentifier(string $gatewayId): array
+    private function convertGatewayIdentifier(string $gatewayId): array
     {
         return [
-            'gateway_id' => $gatewayId
+            'gateway_id' => $gatewayId,
         ];
     }
 
     /**
      * @return array<string, array<string, string>>
      */
-    public function convertLocale(Quote $quote): array
+    private function convertLocale(Quote $quote): array
     {
         /** @var string|null $locale */
         $locale = $this->scopeConfig->getValue(
@@ -86,15 +89,15 @@ class QuoteConverter
 
         return [
             'order_data' => [
-                'locale' => str_replace('_', '-', $locale ?? '')
-            ]
+                'locale' => str_replace('_', '-', $locale ?? ''),
+            ],
         ];
     }
 
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertCustomer(Quote $quote): array
+    private function convertCustomer(Quote $quote): array
     {
         $billingAddress = $quote->getBillingAddress();
 
@@ -107,16 +110,16 @@ class QuoteConverter
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
                     'last_name' => $billingAddress->getLastname() ?? '',
-                    'email' => $billingAddress->getEmail() ?? ''
-                ]
-            ]
+                    'email' => $billingAddress->getEmail() ?? '',
+                ],
+            ],
         ];
     }
 
     /**
      * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
      */
-    public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
+    private function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
     {
         $shippingAddress = $quote->getShippingAddress();
 
@@ -125,9 +128,6 @@ class QuoteConverter
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        $shippingAddress->setCollectShippingRates(true);
-        $shippingAddress->collectShippingRates();
 
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
@@ -155,13 +155,13 @@ class QuoteConverter
                             'type' => 'SHIPPING',
                             'amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' => number_format((float)$rate->getPrice(), 2)
-                            ]
+                                'value' => number_format((float)$rate->getPrice(), 2),
+                            ],
                         ];
                     },
                     $shippingRates
-                )
-            ]
+                ),
+            ],
         ];
 
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
@@ -173,7 +173,7 @@ class QuoteConverter
                 'city' => $shippingAddress->getCity() ?? '',
                 'country_code' => $shippingAddress->getCountryId() ?? '',
                 'postal_code' => $shippingAddress->getPostcode() ?? '',
-                'state' => $shippingAddress->getRegion() ?? ''
+                'state' => $shippingAddress->getRegion() ?? '',
             ];
         }
 
@@ -184,7 +184,7 @@ class QuoteConverter
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
+                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2),
                 ],
             ];
         }
@@ -195,7 +195,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>>
      */
-    public function convertQuoteItems(Quote $quote): array
+    private function convertQuoteItems(Quote $quote): array
     {
         $quoteItems = $quote->getItems();
 
@@ -213,7 +213,7 @@ class QuoteConverter
                             'sku' => $cartItem->getSku() ?? '',
                             'unit_amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' => number_format((float)$cartItem->getPrice(), 2)
+                                'value' => number_format((float)$cartItem->getPrice(), 2),
                             ],
                             'quantity' => (int)(ceil($cartItem->getQty()) ?: $cartItem->getQty()),
                             'is_shipping_required' => !in_array(
@@ -241,9 +241,9 @@ class QuoteConverter
                             )
                         ),
                         2
-                    )
-                ]
-            ]
+                    ),
+                ],
+            ],
         ];
 
         $this->convertCustomTotals($quote, $convertedQuote);
@@ -254,39 +254,32 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertTotal(Quote $quote): array
+    private function convertTotal(Quote $quote): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        if (!$this->areTotalsCollected) {
-            $quote->collectTotals(); // Ensure that we have the correct grand total for the quote
-
-            $this->areTotalsCollected = true;
-        }
-
         return [
             'order_data' => [
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$quote->getGrandTotal(), 2)
-                ]
-            ]
+                    'value' => number_format((float)$quote->getGrandTotal(), 2),
+                ],
+            ],
         ];
     }
 
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertTaxes(Quote $quote): array
+    private function convertTaxes(Quote $quote): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
         $convertedQuote = [
             'order_data' => [
                 'tax_total' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => ''
-                ]
-            ]
+                    'value' => '',
+                ],
+            ],
         ];
 
         if ($quote->getIsVirtual()) {
@@ -316,7 +309,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertDiscount(Quote $quote): array
+    private function convertDiscount(Quote $quote): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
 
@@ -324,9 +317,9 @@ class QuoteConverter
             'order_data' => [
                 'discount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()), 2)
-                ]
-            ]
+                    'value' => number_format((float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()), 2),
+                ],
+            ],
         ];
     }
 
@@ -337,12 +330,6 @@ class QuoteConverter
      */
     private function convertCustomTotals(Quote $quote, array &$convertedQuote): void
     {
-        if (!$this->areTotalsCollected) {
-            $quote->collectTotals();
-
-            $this->areTotalsCollected = true;
-        }
-
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
         $excludedTotals = ['subtotal', 'shipping', 'tax', 'grand_total'];
         $customTotals = array_filter(
@@ -376,10 +363,10 @@ class QuoteConverter
                         'sku' => $total->getCode() ?? '',
                         'unit_amount' => [
                             'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$value, 2)
+                            'value' => number_format((float)$value, 2),
                         ],
                         'quantity' => 1,
-                        'is_shipping_required' => false
+                        'is_shipping_required' => false,
                     ];
                 },
                 array_values($customTotals)

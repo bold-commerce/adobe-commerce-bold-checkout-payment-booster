@@ -121,7 +121,7 @@ class HydrateOrderFromQuote
             'fees' => $fees,
             'shipping_line' => [
                 'rate_name' => $shippingDescription ?? '',
-                'cost' => $this->convertToCents($totals['shipping']['value']),
+                'cost' => $this->convertToCents((float)$shippingTotalNoTax),
             ],
             'totals' => [
                 'sub_total' => $this->convertToCents((float)$subtotal),

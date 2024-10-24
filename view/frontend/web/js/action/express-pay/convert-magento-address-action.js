@@ -1,10 +1,8 @@
 define(
     [
-        'Magento_Checkout/js/model/new-customer-address',
         'Magento_Customer/js/customer-data',
         'checkoutData'
     ], function (
-        NewCustomerAddressModel,
         customerData,
         checkoutData
     ) {
@@ -12,7 +10,7 @@ define(
         /**
          * Convert Magento address to Bold address.
          *
-         * @param {Object} boldAddress
+         * @param {Object} magentoAddress
          * @return {Object}
          */
         return function (magentoAddress) {

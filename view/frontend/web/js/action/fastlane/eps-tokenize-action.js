@@ -4,7 +4,7 @@ define(
         'Magento_Checkout/js/model/quote'
     ],
     function (
-        epsClient,
+        fastlaneEpsClient,
         quote
     ) {
         'use strict';
@@ -30,7 +30,7 @@ define(
                 }
             };
 
-            return await epsClient.post(
+            return await fastlaneEpsClient.post(
                 path,
                 body,
             );

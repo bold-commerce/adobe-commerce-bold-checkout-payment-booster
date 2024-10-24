@@ -2,24 +2,14 @@ define([
     'uiComponent',
     'ko',
     'jquery',
+    'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
-    'Magento_Checkout/js/model/quote',
-    'checkoutData',
-    'uiRegistry',
-    'Bold_CheckoutPaymentBooster/js/action/get-express-pay-order-action',
-    'Magento_Checkout/js/action/place-order',
-    'Magento_Checkout/js/action/redirect-on-success'
 ], function (
     Component,
     ko,
     $,
+    _,
     spi,
-    quote,
-    checkoutData,
-    registry,
-    getExpressPayOrderAction,
-    placeOrderAction,
-    redirectOnSuccessAction
 ) {
     'use strict';
 
@@ -61,7 +51,7 @@ define([
             }
         },
 
-        _renderExpressPayments: function() {
+        _renderExpressPayments: function () {
             const containerId = 'express-pay-buttons';
             const observer = new MutationObserver(async () => {
                 let boldPaymentsInstance;
@@ -77,7 +67,7 @@ define([
                         return;
                     }
 
-                    const allowedCountries = window.checkoutConfig.bold?.countries ?? [];
+                    const allowedCountries = this._getAllowedCountryCodes();
                     const walletOptions = {
                         shopName: window.checkoutConfig.bold?.shopName ?? '',
                         isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
@@ -93,73 +83,12 @@ define([
                 subtree: true
             });
         },
-
-        placeOrder: async function () {
-            const paymentApprovalData = this.paymentApprovalData();
-            const paymentMethodData = {
-                method: 'bold',
-                additional_data: {
-                    order_id: paymentApprovalData?.payment_data.order_id
-                }
-            };
-            const messageContainer = registry.get('checkout.errors').messageContainer;
-            let order;
-
-            if (paymentApprovalData === null) {
-                console.error('Express Pay payment data is not set.');
-
-                return;
-            }
-
-            try {
-                order = await getExpressPayOrderAction(
-                    paymentApprovalData.gateway_id,
-                    paymentApprovalData.payment_data.order_id
-                );
-            } catch (error) {
-                console.error('Could not retrieve Express Pay order.', error);
-
-                return;
-            }
-
-            quote.guestEmail = order.email;
-
-            spi.updateAddress('shipping', this._convertAddress(order.shipping_address, order));
-            spi.updateAddress('billing', this._convertAddress(order.billing_address, order));
-
-            try {
-                await spi.saveShippingInformation(true);
-            } catch (error) {
-                console.error('Could not save shipping information for Express Pay order.', error);
-
-                return;
-            }
-
-            $.when(placeOrderAction(paymentMethodData, messageContainer))
-                .done(
-                    function () {
-                        redirectOnSuccessAction.execute();
-                    }
-                );
-        },
-
-        /**
-         * @param {Object} order
-         * @param {Object} address
-         * @returns {Object}
-         * @private
-         */
-        _convertAddress: function (address, order) {
-            address.first_name = order.first_name;
-            address.last_name = order.last_name;
-            address.state = address.province;
-            address.country_code = address.country;
-            address.email = order.email;
-
-            delete address.province;
-            delete address.country;
-
-            return address;
+        _getAllowedCountryCodes: function () {
+            const countryCodes = [];
+            _.each(window.checkoutConfig.bold?.countries, function (countryData) {
+                countryCodes.push(countryData.value);
+            });
+            return countryCodes;
         },
     });
 });

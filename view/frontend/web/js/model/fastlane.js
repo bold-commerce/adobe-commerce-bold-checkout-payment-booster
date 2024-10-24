@@ -1,9 +1,8 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/model/spi',
+    'prototype',
 ], function (
     ko,
-    spi,
 ) {
     'use strict';
 
@@ -158,7 +157,7 @@ define([
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';
             }
-            if (!require.defined('bold_paypal_fastlane')){
+            if (!require.defined('bold_paypal_fastlane')) {
                 require.config({
                     paths: {
                         bold_paypal_fastlane: `https://www.paypal.com/sdk/js?client-id=${gatewayData.client_id}&components=fastlane${debugMode}`,

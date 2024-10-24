@@ -14,7 +14,7 @@ define([
     'Magento_Customer/js/customer-data',
     'mage/storage',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
-    'prototype'
+    'Magento_Checkout/js/model/full-screen-loader',
 ], function (
     registry,
     convertMagentoAddress,
@@ -30,7 +30,8 @@ define([
     payloadExtender,
     customerData,
     storage,
-    fastlane
+    fastlane,
+    fullScreenLoader
 ) {
     'use strict';
 
@@ -93,6 +94,7 @@ define([
 
                             return { payment_data: { id: walletPayResult[0] }};
                         } catch (e) {
+                            fullScreenLoader.stopLoader();
                             throw 'Unable to create order';
                         }
                     },
@@ -104,6 +106,7 @@ define([
                         try {
                             await this.updateOrder(paymentData['order_id']);
                         } catch (e) {
+                            fullScreenLoader.stopLoader();
                             throw new Error(`Update Payment Order Error ${e.message}`);
                         }
                     },
@@ -126,6 +129,7 @@ define([
                             });
                             return {card: scaResult};
                         }
+                        fullScreenLoader.stopLoader();
                         throw new Error('Unsupported payment type');
                     }.bind(this),
                     'onRequireOrderData' : async function (requirements) {

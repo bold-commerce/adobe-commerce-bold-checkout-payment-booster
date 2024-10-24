@@ -61,6 +61,7 @@ define(
                             order_balance: parseFloat(totals()['grand_total'] || 0) * 100,
                             shipping_total: parseFloat(totals()['shipping_amount'] || 0) * 100,
                             discounts_total: parseFloat(totals()['discount_amount'] || 0) * 100,
+                            fees_total: parseFloat(totals()['fee_amount'] || 0) * 100,
                             taxes_total: parseFloat(totals()['tax'] || 0) * 100,
                         };
                         break;

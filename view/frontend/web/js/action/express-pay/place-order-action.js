@@ -24,9 +24,12 @@ define(
         /**
          * Place express-order action.
          *
+         * @param {string} paymentType
+         * @param {{}} paymentInformation
+         * @param {{}} paymentApprovalData
          * @return {Promise}
          */
-        return async function (paymentType, paymentApprovalData) {
+        return async function (paymentType, paymentInformation, paymentApprovalData) {
             if (paymentApprovalData === null) {
                 console.error('Express Pay payment data is not set.');
                 return;
@@ -38,11 +41,9 @@ define(
                 paymentMethodData['additional_data'] = {
                     order_id: paymentApprovalData?.payment_data.order_id
                 };
-            }
-            if (paymentType === 'ppcp') {
                 await processPpcpOrderAction(paymentApprovalData);
             } else {
-                await processBraintreeOrderAction(paymentApprovalData);
+                await processBraintreeOrderAction(paymentInformation, paymentApprovalData);
             }
             try {
                 await saveShippingInformationAction(true);

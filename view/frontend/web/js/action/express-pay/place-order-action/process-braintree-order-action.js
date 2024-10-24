@@ -12,14 +12,22 @@ define(
         /**
          * Process braintree order action.
          *
+         * @param {{}} paymentInformation
+         * @param {{}} paymentApprovalData
          * @return {void}
          */
-        return async function (paymentApprovalData) {
-            quote.guestEmail = paymentApprovalData.payment_data.email;
-            paymentApprovalData.payment_data.shipping_address['email'] = paymentApprovalData.payment_data.email;
-            paymentApprovalData.payment_data.billing_address['email'] = paymentApprovalData.payment_data.email;
-            updateQuoteAddressAction('shipping', paymentApprovalData.payment_data.shipping_address);
-            updateQuoteAddressAction('billing', paymentApprovalData.payment_data.billing_address);
+        return async function (paymentInformation, paymentApprovalData) {
+            if (paymentApprovalData.payment_data.email) {
+                quote.guestEmail = paymentApprovalData.payment_data.email;
+                paymentApprovalData.payment_data.shipping_address['email'] = paymentApprovalData.payment_data.email;
+                paymentApprovalData.payment_data.billing_address['email'] = paymentApprovalData.payment_data.email;
+            }
+            if (paymentApprovalData.payment_data.shipping_address) {
+                updateQuoteAddressAction('shipping', paymentApprovalData.payment_data.shipping_address);
+            }
+            if (paymentApprovalData.payment_data.billing_address) {
+                updateQuoteAddressAction('billing', paymentApprovalData.payment_data.billing_address);
+            }
         };
     }
 );

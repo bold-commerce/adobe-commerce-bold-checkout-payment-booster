@@ -73,7 +73,7 @@ define([
                         return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        return await onApprovePaymentOrderCallback(paymentType, paymentPayload);
+                        return await onApprovePaymentOrderCallback(paymentType, paymentInformation, paymentPayload);
                     },
                     'onScaPaymentOrder': async function (paymentType, paymentPayload) {
                         return await onScaPaymentOrderCallback(paymentType, paymentPayload);
@@ -109,6 +109,7 @@ define([
          * Load Braintree scripts via require js.
          *
          * @return {Promise<void>}
+         * @private
          */
         _loadBraintreeScripts: async function (paymentsInstance) {
             await loadScriptAction('bold_braintree_client', 'braintree.client');
@@ -117,8 +118,11 @@ define([
             if (!gatewayData) {
                 return;
             }
+            if (gatewayData.is_paypal_enabled) {
+                await loadScriptAction('bold_braintree_paypal_checkout', 'braintree.paypalCheckout');
+            }
             if (gatewayData.is_google_pay_enabled) {
-                await loadScriptAction('bold_braintree_data_google_payment', 'braintree.googlePayment');
+                await loadScriptAction('bold_braintree_google_payment', 'braintree.googlePayment');
                 await loadScriptAction('bold_google_pay');
             }
             if (gatewayData.is_apple_pay_enabled) {

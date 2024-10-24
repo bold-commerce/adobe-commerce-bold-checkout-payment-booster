@@ -10,9 +10,13 @@ define(
         /**
          * Callback function for approving payment order.
          *
+         * @param {string} paymentType
+         * @param {{}} paymentInformation
+         * @param {{}} paymentPayload
+         * @return {Promise}
          */
-        return async function (paymentType, paymentPayload) {
-            return placeOrderAction(paymentType, paymentPayload);
+        return async function (paymentType, paymentInformation, paymentPayload) {
+            return placeOrderAction(paymentType, paymentInformation, paymentPayload);
         };
     }
 );

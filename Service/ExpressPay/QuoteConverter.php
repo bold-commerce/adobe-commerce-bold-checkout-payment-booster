@@ -19,6 +19,7 @@ use function array_merge_recursive;
 use function array_sum;
 use function array_values;
 use function ceil;
+use function count;
 use function in_array;
 use function number_format;
 use function str_replace;
@@ -124,11 +125,22 @@ class QuoteConverter
             return [];
         }
 
+        if (!$this->areTotalsCollected) {
+            $shippingAddress->setCollectShippingRates(true);
+
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
+        $convertedQuote = [
+            'order_data' => [
+                'shipping_address' => [],
+                'selected_shipping_option' => [],
+                'shipping_options' => []
+            ]
+        ];
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        $shippingAddress->setCollectShippingRates(true);
-        $shippingAddress->collectShippingRates();
-
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
         $shippingRates = array_values(array_filter(
@@ -144,27 +156,24 @@ class QuoteConverter
                 return true;
             }
         )); // Work-around for Magento bug causing duplicated shipping rates
-
-        $convertedQuote = [
-            'order_data' => [
-                'shipping_options' => array_map(
-                    static function (Rate $rate) use ($currencyCode): array {
-                        return [
-                            'id' => $rate->getCode(),
-                            'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
-                            'type' => 'SHIPPING',
-                            'amount' => [
-                                'currency_code' => $currencyCode ?? '',
-                                'value' => number_format((float)$rate->getPrice(), 2)
-                            ]
-                        ];
-                    },
-                    $shippingRates
-                )
-            ]
-        ];
-
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
+
+        if ($hasRequiredAddressData && count($shippingRates) > 0) {
+            $convertedQuote['order_data']['shipping_options'] = array_map(
+                static function (Rate $rate) use ($currencyCode): array {
+                    return [
+                        'id' => $rate->getCode(),
+                        'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
+                        'type' => 'SHIPPING',
+                        'amount' => [
+                            'currency_code' => $currencyCode ?? '',
+                            'value' => number_format((float)$rate->getPrice(), 2)
+                        ]
+                    ];
+                },
+                $shippingRates
+            );
+        }
 
         if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [
@@ -188,6 +197,8 @@ class QuoteConverter
                 ],
             ];
         }
+
+        $convertedQuote['order_data'] = array_filter($convertedQuote['order_data']);
 
         return $convertedQuote;
     }

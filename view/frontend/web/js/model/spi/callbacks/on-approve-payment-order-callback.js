@@ -5,8 +5,8 @@ define(
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/action/redirect-on-success',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/process-ppcp-order-action',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/process-braintree-order-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
     ],
     function (
@@ -15,8 +15,8 @@ define(
         quote,
         placeOrderAction,
         redirectOnSuccessAction,
-        processPpcpOrderAction,
-        processBraintreeOrderAction,
+        updateQuotePPCPAction,
+        updateQuoteBraintreeAction,
         saveShippingInformationAction
     ) {
         'use strict';
@@ -41,9 +41,9 @@ define(
                 paymentMethodData['additional_data'] = {
                     order_id: paymentApprovalData?.payment_data.order_id
                 };
-                await processPpcpOrderAction(paymentApprovalData);
+                await updateQuotePPCPAction(paymentApprovalData);
             } else {
-                await processBraintreeOrderAction(paymentInformation, paymentApprovalData);
+                await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
             }
             try {
                 await saveShippingInformationAction(true);

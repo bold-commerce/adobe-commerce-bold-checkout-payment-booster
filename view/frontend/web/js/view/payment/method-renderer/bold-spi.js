@@ -202,7 +202,12 @@ define([
                         this.isSpiLoading(false);
                         break;
                     case 'EVENT_SPI_TOKENIZED':
-                        this.paymentId(data.payload?.payload?.data?.payment_id);
+                        const paymentId = data.payload?.payload?.data?.payment_id;
+                        if (!paymentId) {
+                            fullscreenLoader.stopLoader();
+                            return;
+                        }
+                        this.paymentId(paymentId);
                         this.placeOrder({}, jQuery.Event());
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':

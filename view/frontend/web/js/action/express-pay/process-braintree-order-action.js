@@ -17,16 +17,32 @@ define(
          * @return {void}
          */
         return async function (paymentInformation, paymentApprovalData) {
-            if (paymentApprovalData.payment_data.email) {
-                quote.guestEmail = paymentApprovalData.payment_data.email;
-                paymentApprovalData.payment_data.shipping_address['email'] = paymentApprovalData.payment_data.email;
-                paymentApprovalData.payment_data.billing_address['email'] = paymentApprovalData.payment_data.email;
+            const paymentData = paymentApprovalData.payment_data;
+            if (paymentData.email) {
+                quote.guestEmail = paymentData.email;
+                paymentData.shipping_address['email'] = paymentData.email;
+                paymentData.billing_address['email'] = paymentData.email;
             }
-            if (paymentApprovalData.payment_data.shipping_address) {
-                updateQuoteAddressAction('shipping', paymentApprovalData.payment_data.shipping_address);
+            if (paymentData.customer) {
+                quote.guestEmail = paymentData.customer.email_address;
+                if (paymentData.billing_address) {
+                    paymentData.billing_address['email'] = paymentData.customer.email_address;
+                    paymentData.billing_address['first_name'] = paymentData.customer.first_name;
+                    paymentData.billing_address['last_name'] = paymentData.customer.last_name;
+                    paymentData.billing_address['phone'] = paymentData.customer.phone;
+                }
+                if (paymentData.shipping_address) {
+                    paymentData.shipping_address['email'] = paymentData.customer.email_address;
+                    paymentData.shipping_address['first_name'] = paymentData.customer.first_name;
+                    paymentData.shipping_address['last_name'] = paymentData.customer.last_name;
+                    paymentData.shipping_address['phone'] = paymentData.customer.phone;
+                }
             }
-            if (paymentApprovalData.payment_data.billing_address) {
-                updateQuoteAddressAction('billing', paymentApprovalData.payment_data.billing_address);
+            if (paymentData.shipping_address) {
+                updateQuoteAddressAction('shipping', paymentData.shipping_address);
+            }
+            if (paymentData.billing_address) {
+                updateQuoteAddressAction('billing', paymentData.billing_address);
             }
         };
     }

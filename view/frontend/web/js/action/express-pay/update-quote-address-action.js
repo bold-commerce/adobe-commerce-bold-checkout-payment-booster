@@ -32,7 +32,7 @@ define(
             const state = addressData['state'] || addressData['administrativeArea'];
             if (regions !== null) {
                 Object.entries(regions).forEach(([key, value]) => {
-                    if (value.code === state) {
+                    if (value.code === state || value.name === state) {
                         regionId = key;
                         regionName = value.name;
                     }
@@ -47,8 +47,8 @@ define(
                     lastName = nameParts.slice(1).join(' ');
                 }
             }
-            const street1 = addressData['address1'] || addressData['address_line1'];
-            const street2 = addressData['address2'] || addressData['address_line2'];
+            const street1 = addressData['address1'] || addressData['address_line1'] || addressData['line1'];
+            const street2 = addressData['address2'] || addressData['address_line2'] || addressData['line2'];
             const quoteAddress = magentoAddressConverter.formAddressDataToQuoteAddress(
                 {
                     address_type: addressType,

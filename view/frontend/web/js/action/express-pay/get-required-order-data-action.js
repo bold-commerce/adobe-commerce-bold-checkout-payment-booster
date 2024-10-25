@@ -51,7 +51,9 @@ define(
                         payload[requirement] = shippingService.getShippingRates().map(option => ({
                             label: `${option.carrier_title} - ${option.method_title}`,
                             amount: parseFloat(option.amount) * 100,
-                            id: `${option.carrier_code}_${option.method_code}`
+                            id: `${option.carrier_code}_${option.method_code}`,
+                            is_selected: option.carrier_code === quote.shippingMethod()?.carrier_code &&
+                                option.method_code === quote.shippingMethod()?.method_code
                         }));
                         break;
                     case 'totals':

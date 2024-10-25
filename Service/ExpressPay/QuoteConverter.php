@@ -124,11 +124,15 @@ class QuoteConverter
             return [];
         }
 
+        if (!$this->areTotalsCollected) {
+            $shippingAddress->setCollectShippingRates(true);
+
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-
-        $shippingAddress->setCollectShippingRates(true);
-        $shippingAddress->collectShippingRates();
-
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
         $shippingRates = array_values(array_filter(

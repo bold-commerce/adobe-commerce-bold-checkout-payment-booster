@@ -254,6 +254,8 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
+        $this->cacheTypeList->cleanType('config');
+        $this->scopeConfig->clean();
     }
 
     /**
@@ -271,6 +273,8 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
+        $this->cacheTypeList->cleanType('config');
+        $this->scopeConfig->clean();
     }
 
     /**

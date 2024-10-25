@@ -6,7 +6,6 @@ namespace Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority;
 
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -15,10 +14,7 @@ use Magento\Store\Model\StoreManagerInterface;
  */
 class RegisterSharedSecret
 {
-    private const REGISTER_URL = 'checkout/shop/{{shopId}}/rsa_config';
-
-    // 'Remote State Authority not configured' error code.
-    private const CODE_RSA_NOT_CONFIGURED = '02-89';
+    private const RSA_CONFIG_PATH = 'checkout/shop/{{shopId}}/rsa_config';
 
     /**
      * @var BoldClient
@@ -43,13 +39,12 @@ class RegisterSharedSecret
     }
 
     /**
-     * Update (or register) shared secret.
+     * Register generated shared secret and endpoint URL in RSA configuration.
      *
      * @param int $websiteId
      * @param string $sharedSecret
      * @return void
      * @throws LocalizedException
-     * @throws NoSuchEntityException
      */
     public function execute(int $websiteId, string $sharedSecret): void
     {
@@ -58,13 +53,8 @@ class RegisterSharedSecret
             'url' => $this->storeManager->getStore($storeId)->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'rest/V1',
             'shared_secret' => $sharedSecret,
         ];
-        $result = $this->boldClient->patch($websiteId, self::REGISTER_URL, $body);
-        if ($result->getErrors()
-            && isset($result->getErrors()[0]['code'])
-            && $result->getErrors()[0]['code'] === self::CODE_RSA_NOT_CONFIGURED
-        ) {
-            $result = $this->boldClient->post($websiteId, self::REGISTER_URL, $body);
-        }
+        $this->boldClient->delete($websiteId, self::RSA_CONFIG_PATH, []);
+        $result = $this->boldClient->post($websiteId, self::RSA_CONFIG_PATH, $body);
         if ($result->getErrors()) {
             $message = isset(current($result->getErrors())['message'])
                 ? __(current($result->getErrors())['message'])

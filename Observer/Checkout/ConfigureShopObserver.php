@@ -123,12 +123,9 @@ class ConfigureShopObserver implements ObserverInterface
      */
     private function saveSharedSecret(int $websiteId): void
     {
-        $sharedSecret = $this->config->getSharedSecret($websiteId);
-        if (!$sharedSecret) {
-            $sharedSecret = $this->generateSharedSecret->execute();
-            $this->config->setSharedSecret($websiteId, $sharedSecret);
-        }
+        $sharedSecret = $this->generateSharedSecret->execute();
         $this->registerSharedSecret->execute($websiteId, $sharedSecret);
+        $this->config->setSharedSecret($websiteId, $sharedSecret);
     }
 
     /**

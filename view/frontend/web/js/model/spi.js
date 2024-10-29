@@ -8,6 +8,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
+    'Magento_Ui/js/model/messageList'
 ], function (
     quote,
     fullScreenLoader,
@@ -17,7 +18,8 @@ define([
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
-    onScaPaymentOrderCallback
+    onScaPaymentOrderCallback,
+    messageList
 ) {
     'use strict';
 
@@ -112,6 +114,10 @@ define([
                             fullScreenLoader.stopLoader();
                             throw e;
                         }
+                    },
+                    'onErrorPaymentOrder': function (errors) {
+                        console.error('An unexpected PayPal error occurred', errors);
+                        messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
                     },
                 }
             };

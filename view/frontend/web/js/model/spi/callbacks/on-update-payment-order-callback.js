@@ -21,7 +21,9 @@ define(
          */
         return async function (paymentType, paymentPayload) {
             const paymentData = paymentPayload['payment_data'];
-            updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+            if (paymentPayload['shipping_address']) {
+                updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+            }
             updateQuoteShippingMethodAction(paymentData['shipping_options']);
             if (paymentType === 'ppcp') {
                 await updateWalletPayOrderAction(paymentData['order_id']);

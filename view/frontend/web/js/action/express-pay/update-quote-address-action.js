@@ -30,7 +30,7 @@ define(
             let regionId = null;
             let regionName = null;
             const state = addressData['state'] || addressData['administrativeArea'];
-            if (regions !== null) {
+            if (regions) {
                 Object.entries(regions).forEach(([key, value]) => {
                     if (value.code === state || value.name === state) {
                         regionId = key;
@@ -38,8 +38,8 @@ define(
                     }
                 });
             }
-            let firstName = addressData['first_name'] ?? null;
-            let lastName = addressData['last_name'] ?? null;
+            let firstName = addressData['first_name'] || addressData['givenName'] || null;
+            let lastName = addressData['last_name'] || addressData['familyName'] || null;
             if (!firstName && !lastName) {
                 const nameParts = (addressData['name'] || '').split(' ');
                 if (nameParts.length > 1) {
@@ -47,8 +47,17 @@ define(
                     lastName = nameParts.slice(1).join(' ');
                 }
             }
-            const street1 = addressData['address1'] || addressData['address_line1'] || addressData['line1'];
-            const street2 = addressData['address2'] || addressData['address_line2'] || addressData['line2'];
+            let street1 = addressData['address1'] || addressData['address_line1'] || addressData['line1'];
+            let street2 = addressData['address2'] || addressData['address_line2'] || addressData['line2'];
+            if (addressData['addressLines']) {
+                street1 = addressData['addressLines'][0] || street1;
+                street2 = addressData['addressLines'][1] || street2;
+            }
+            const region = regionId ? {
+                region: regionName,
+                region_code: state,
+                region_id: regionId
+            } : regionName;
             const quoteAddress = magentoAddressConverter.formAddressDataToQuoteAddress(
                 {
                     address_type: addressType,
@@ -59,11 +68,7 @@ define(
                         street2 || null,
                     ],
                     city: addressData['city'] || addressData['locality'],
-                    region: {
-                        region: regionName,
-                        region_code: state,
-                        region_id: regionId
-                    },
+                    region: region,
                     region_id: regionId,
                     telephone: addressData['phoneNumber'] ?? null,
                     postcode: addressData['postal_code'] || addressData['postalCode'],

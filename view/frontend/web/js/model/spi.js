@@ -146,6 +146,7 @@ define([
         _loadBraintreeScripts: async function (paymentsInstance) {
             await loadScriptAction('bold_braintree_client', 'braintree.client');
             await loadScriptAction('bold_braintree_data_collector', 'braintree.dataCollector');
+            //await loadScriptAction('bold_braintree_fastlane', 'braintree.fastlane');
             const gatewayData = paymentsInstance.paymentGateways[0].credentials || null;
             if (!gatewayData) {
                 return;

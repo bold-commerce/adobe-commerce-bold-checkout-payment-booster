@@ -23,6 +23,12 @@ define(
                 paymentData.shipping_address['email'] = paymentData.email;
                 paymentData.billing_address['email'] = paymentData.email;
             }
+            if (!quote.guestEmail && paymentData.billing_address.email) {
+                quote.guestEmail = paymentData.billing_address.email;
+            }
+            if (!quote.guestEmail && paymentData.shipping_address.email) {
+                quote.guestEmail = paymentData.shipping_address.email;
+            }
             if (paymentData.customer) {
                 quote.guestEmail = paymentData.customer.email_address;
                 if (paymentData.billing_address) {

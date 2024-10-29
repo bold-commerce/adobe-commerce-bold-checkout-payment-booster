@@ -26,8 +26,8 @@ define(
             payload = {
                 addressInformation: {
                     'shipping_address': quote.shippingAddress(),
-                    'shipping_method_code': quote.shippingMethod()['method_code'],
-                    'shipping_carrier_code': quote.shippingMethod()['carrier_code']
+                    'shipping_method_code': quote.shippingMethod() ? quote.shippingMethod()['method_code'] : null,
+                    'shipping_carrier_code': quote.shippingMethod() ? quote.shippingMethod()['carrier_code'] : null,
                 }
             };
             if (saveBillingAddress) {

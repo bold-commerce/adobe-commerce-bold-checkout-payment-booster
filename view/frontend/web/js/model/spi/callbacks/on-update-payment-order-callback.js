@@ -21,7 +21,7 @@ define(
          */
         return async function (paymentType, paymentPayload) {
             const paymentData = paymentPayload['payment_data'];
-            if (paymentPayload['shipping_address']) {
+            if (paymentData['shipping_address']) {
                 updateQuoteAddressAction('shipping', paymentData['shipping_address']);
             }
             updateQuoteShippingMethodAction(paymentData['shipping_options']);

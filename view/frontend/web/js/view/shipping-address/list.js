@@ -3,7 +3,7 @@ define(
         'ko',
         'Magento_Checkout/js/view/shipping-address/list',
         'Magento_Customer/js/model/address-list',
-        'Bold_CheckoutPaymentBooster/js/action/show-shipping-address-form',
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/show-shipping-address-form-action',
         'Bold_CheckoutPaymentBooster/js/model/spi',
         'Bold_CheckoutPaymentBooster/js/model/fastlane',
         'Magento_Checkout/js/model/quote'

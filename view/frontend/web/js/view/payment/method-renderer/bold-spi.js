@@ -12,7 +12,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
-    'Bold_CheckoutPaymentBooster/js/action/hydrate-order-action',
+    'Bold_CheckoutPaymentBooster/js/action/general/hydrate-order-action',
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -120,18 +120,12 @@ define([
         /** @inheritdoc */
         placeOrder: function (data, event) {
             fullscreenLoader.startLoader();
-            const callback = this._super.bind(this);
+            const placeMagentoOrder = this._super.bind(this);
             if (this.paymentId()) {
-                callback(data, event);
-                return;
+                return placeMagentoOrder(data, event);
             }
-
-            this.tokenize()
-            this.paymentId.subscribe((id) => {
-                if (id != null) {
-                    callback(data, event);
-                }
-            });
+            this.tokenize();
+            return false;
         },
 
         /**
@@ -208,8 +202,13 @@ define([
                         this.isSpiLoading(false);
                         break;
                     case 'EVENT_SPI_TOKENIZED':
-                        this.paymentId(data.payload?.payload?.data?.payment_id);
-                        this.placeOrder();
+                        const paymentId = data.payload?.payload?.data?.payment_id;
+                        if (!paymentId) {
+                            fullscreenLoader.stopLoader();
+                            return;
+                        }
+                        this.paymentId(paymentId);
+                        this.placeOrder({}, jQuery.Event());
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

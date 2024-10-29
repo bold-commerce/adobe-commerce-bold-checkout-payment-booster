@@ -59,6 +59,7 @@
             <values>
                 <value id="bold_commerce_static" type="host">static.boldcommerce.com</value>
                 <value id="bold_paypal_images" type="host">*.paypal.com</value>
+                <value id="bold-google-static" type="host">www.gstatic.com</value>
             </values>
         </policy>
         <policy id="style-src">

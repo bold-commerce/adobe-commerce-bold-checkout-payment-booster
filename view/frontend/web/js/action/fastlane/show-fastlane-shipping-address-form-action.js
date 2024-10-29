@@ -1,7 +1,7 @@
 define(
     [
         'Bold_CheckoutPaymentBooster/js/model/spi',
-        'Bold_CheckoutPaymentBooster/js/action/set-quote-shipping-address'
+        'Bold_CheckoutPaymentBooster/js/action/fastlane/set-quote-shipping-address-action'
     ], function (
         spi,
         setQuoteShippingAddressAction

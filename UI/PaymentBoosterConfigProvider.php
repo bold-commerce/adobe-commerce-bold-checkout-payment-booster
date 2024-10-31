@@ -11,6 +11,7 @@ use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Psr\Log\LoggerInterface;
 
 /**
  * Config provider for Payment Booster.
@@ -38,6 +39,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $collectionFactory;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @var array
      */
     private $countries = [];
@@ -52,12 +58,14 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         CheckoutData $checkoutData,
         Config $config,
         AllowedCountries $allowedCountries,
-        CollectionFactory $collectionFactory
+        CollectionFactory $collectionFactory,
+        LoggerInterface $logger
     ) {
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
+        $this->logger = $logger;
     }
 
     /**
@@ -66,6 +74,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     public function getConfig(): array
     {
         if (!$this->checkoutData->getPublicOrderId()) {
+            $errorMsg = "No public order ID.";
+            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.$errorMsg);
             return [];
         }
 
@@ -77,6 +87,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $epsGatewayId = $this->checkoutData->getEpsGatewayId();
         if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
+            $errorMsgs = [];
+            if ($jwtToken === null) $errorMsgs[] = '$jwtToken is null.';
+            if ($epsAuthToken === null) $errorMsgs[] = '$epsAuthToken is null.';
+            if ($epsGatewayId === null) $errorMsgs[] = '$epsGatewayId is null.';
+            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.implode(', ', $errorMsgs));
             return [];
         }
         return [

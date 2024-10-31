@@ -58,6 +58,8 @@ define(
                 region_code: state,
                 region_id: regionId
             } : regionName;
+            const email = addressData['email'] || quote.shippingAddress.email || quote.billingAddress.email;
+            const phone = addressData['phone'] || quote.shippingAddress.telephone || quote.billingAddress.telephone;
             const quoteAddress = magentoAddressConverter.formAddressDataToQuoteAddress(
                 {
                     address_type: addressType,
@@ -70,10 +72,10 @@ define(
                     city: addressData['city'] || addressData['locality'],
                     region: region,
                     region_id: regionId,
-                    telephone: addressData['phoneNumber'] ?? null,
+                    telephone: phone ?? null,
                     postcode: addressData['postal_code'] || addressData['postalCode'],
                     country_id: countryCode,
-                    email: addressData['email'] ?? null
+                    email: email ?? null
                 }
             );
 

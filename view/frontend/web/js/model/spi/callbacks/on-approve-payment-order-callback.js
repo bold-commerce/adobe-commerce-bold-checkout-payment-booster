@@ -30,26 +30,37 @@ define(
          * @return {Promise}
          */
         return async function (paymentType, paymentInformation, paymentApprovalData) {
+            const paymentData = paymentApprovalData['payment_data'];
+            const availableWalletTypes = ['apple', 'google'];
+            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+
             if (paymentApprovalData === null) {
                 console.error('Express Pay payment data is not set.');
                 return;
             }
             const paymentMethodData = {
-                method: 'bold',
+                method: window.checkoutConfig?.bold?.paymentBooster?.payment?.method ?? 'bold',
             };
-            if (paymentType === 'ppcp') {
+
+            if (paymentType === 'ppcp' || isWalletPayment) {
                 paymentMethodData['additional_data'] = {
                     order_id: paymentApprovalData?.payment_data.order_id
                 };
+            }
+
+            if (paymentType === 'ppcp') {
                 await updateQuotePPCPAction(paymentApprovalData);
             } else {
                 await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
             }
-            try {
-                await saveShippingInformationAction(true);
-            } catch (error) {
-                console.error('Could not save shipping information for Express Pay order.', error);
-                return;
+
+            if (!isWalletPayment) {
+                try {
+                    await saveShippingInformationAction(true);
+                } catch (error) {
+                    console.error('Could not save shipping information for Express Pay order.', error);
+                    return;
+                }
             }
             const messageContainer = registry.get('checkout.errors').messageContainer;
             $.when(placeOrderAction(paymentMethodData, messageContainer))

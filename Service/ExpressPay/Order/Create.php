@@ -84,9 +84,11 @@ class Create
             throw new LocalizedException(__('Could not create Express Pay order. Invalid quote ID "%1".', $quoteId));
         }
 
-        if (!empty($quote->getShippingAddress()->getShippingMethod())) {
-            $quote->getShippingAddress()->setShippingMethod('');
-        }
+       $hasBillingData = $quote->getBillingAddress()->getFirstname() && $quote->getBillingAddress()->getStreet();
+
+       if (!$hasBillingData && !empty($quote->getShippingAddress()->getShippingMethod())) {
+           $quote->getShippingAddress()->setShippingMethod('');
+       }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = 'checkout/orders/{{shopId}}/wallet_pay';

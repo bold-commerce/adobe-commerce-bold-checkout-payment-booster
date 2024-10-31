@@ -56,6 +56,7 @@ class QuoteConverter
             $this->convertLocale($quote),
             $this->convertCustomer($quote),
             $this->convertShippingInformation($quote),
+            $this->convertBillingInformation($quote),
             $this->convertQuoteItems($quote),
             $this->convertTotal($quote),
             $this->convertTaxes($quote),
@@ -98,6 +99,7 @@ class QuoteConverter
     public function convertCustomer(Quote $quote): array
     {
         $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
 
         if ($billingAddress->getId() === null) {
             return [];
@@ -108,7 +110,7 @@ class QuoteConverter
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
                     'last_name' => $billingAddress->getLastname() ?? '',
-                    'email' => $billingAddress->getEmail() ?? ''
+                    'email' => $billingAddress->getEmail() ?? $shippingAddress->getEmail() ?? ''
                 ]
             ]
         ];
@@ -177,6 +179,8 @@ class QuoteConverter
 
         if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [
+                'first_name' => $shippingAddress->getFirstname() ?? '',
+                'last_name' => $shippingAddress->getLastname() ?? '',
                 'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
                 'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
                 'city' => $shippingAddress->getCity() ?? '',
@@ -186,6 +190,9 @@ class QuoteConverter
             ];
         }
 
+        if ($shippingAddress->getTelephone()) {
+            $convertedQuote['order_data']['shipping_address']['phone_number'] = $shippingAddress->getTelephone();
+        }
         if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
@@ -197,6 +204,41 @@ class QuoteConverter
                 ],
             ];
         }
+
+        $convertedQuote['order_data'] = array_filter($convertedQuote['order_data']);
+
+        return $convertedQuote;
+    }
+
+    /**
+     * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
+     */
+    public function convertBillingInformation(Quote $quote): array
+    {
+        $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
+        $isAddressComplete = $billingAddress->getCity() && $billingAddress->getCountry();
+
+        if (!$isAddressComplete) {
+            return [];
+        }
+
+        $convertedQuote = [
+            'order_data' => [
+                'billing_address' => []
+            ]
+        ];
+
+        $convertedQuote['order_data']['billing_address'] = [
+            'first_name' => $billingAddress->getFirstname() ?? '',
+            'last_name' => $billingAddress->getLastname() ?? '',
+            'address_line_1' => $billingAddress->getStreet()[0] ?? '',
+            'address_line_2' => $billingAddress->getStreet()[1] ?? '',
+            'city' => $billingAddress->getCity() ?? '',
+            'country_code' => $billingAddress->getCountryId() ?? '',
+            'postal_code' => $billingAddress->getPostcode() ?? '',
+            'state' => $billingAddress->getRegion() ?? ''
+        ];
 
         $convertedQuote['order_data'] = array_filter($convertedQuote['order_data']);
 

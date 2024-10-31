@@ -18,6 +18,7 @@
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
                 <value id="bold_local" type="host">*.bold.ninja</value>
+                <value id="bold_applepay" type="host">*.cdn-apple.com</value>
             </values>
         </policy>
         <policy id="script-src">
@@ -33,6 +34,8 @@
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
                 <value id="bold_paypal_script" type="hash" algorithm="sha256">1ozuCt5fPv779wJQEWXLF2gXag+V1bnu3hmAhDbY0Cg=</value>
                 <value id="bold_local" type="host">*.bold.ninja</value>
+                <value id="bold_applepay_script" type="host">*.cdn-apple.com</value>
+                <value id="bold_stripe" type="host">*.stripe.com</value>
             </values>
         </policy>
         <policy id="frame-src">

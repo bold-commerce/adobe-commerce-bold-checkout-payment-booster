@@ -98,6 +98,7 @@ class QuoteConverter
     public function convertCustomer(Quote $quote): array
     {
         $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
 
         if ($billingAddress->getId() === null) {
             return [];
@@ -108,7 +109,7 @@ class QuoteConverter
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
                     'last_name' => $billingAddress->getLastname() ?? '',
-                    'email' => $billingAddress->getEmail() ?? ''
+                    'email' => $billingAddress->getEmail() ?? $shippingAddress->getEmail() ?? ''
                 ]
             ]
         ];
@@ -177,6 +178,8 @@ class QuoteConverter
 
         if ($includeAddress && $hasRequiredAddressData) {
             $convertedQuote['order_data']['shipping_address'] = [
+                'first_name' => $shippingAddress->getFirstname() ?? '',
+                'last_name' => $shippingAddress->getLastname() ?? '',
                 'address_line_1' => $shippingAddress->getStreet()[0] ?? '',
                 'address_line_2' => $shippingAddress->getStreet()[1] ?? '',
                 'city' => $shippingAddress->getCity() ?? '',
@@ -186,6 +189,9 @@ class QuoteConverter
             ];
         }
 
+        if ($shippingAddress->getTelephone()) {
+            $convertedQuote['order_data']['shipping_address']['phone_number'] = $shippingAddress->getTelephone();
+        }
         if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),

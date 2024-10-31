@@ -25,6 +25,10 @@ define(
          * @return {Promise}
          */
         return async function (paymentApprovalData) {
+            const paymentData = paymentApprovalData['payment_data'];
+            const availableWalletTypes = ['apple', 'google'];
+            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+
             let order;
             try {
                 order = await getExpressPayOrderAction(
@@ -41,7 +45,10 @@ define(
                 address.last_name = order.last_name;
                 address.state = address.province;
                 address.country_code = address.country;
-                address.email = order.email;
+
+                if (!address.email && order.email) {
+                    address.email = order.email;
+                }
 
                 delete address.province;
                 delete address.country;
@@ -49,9 +56,11 @@ define(
                 return address;
             }
 
-            quote.guestEmail = order.email;
-            updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
-            updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
+            if (!isWalletPayment) {
+                quote.guestEmail = order.email;
+                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+                updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
+            }
         };
     }
 );

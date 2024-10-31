@@ -35,9 +35,11 @@ define(
                 if (paymentData['billing_address']) {
                     updateQuoteAddressAction('billing', paymentData['billing_address']);
                 }
-                updateQuoteShippingMethodAction(paymentData['shipping_options']);
-                saveShippingInformationAction(true);
+            } else {
+                await updateQuoteShippingMethodAction(paymentData['shipping_options']);
             }
+
+            await saveShippingInformationAction(true);
 
             const walletPayResult = await createWalletPayOrderAction(paymentPayload);
             return {

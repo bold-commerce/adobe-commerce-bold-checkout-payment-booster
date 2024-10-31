@@ -21,7 +21,7 @@ define(
          * @param {Boolean} saveBillingAddress - Save billing address with shipping information.
          * @return {Deferred}
          */
-        return function (saveBillingAddress = false) {
+        return async function (saveBillingAddress = false) {
             let payload;
             payload = {
                 addressInformation: {
@@ -37,6 +37,10 @@ define(
             return storage.post(
                 resourceUrlManager.getUrlForSetShippingInformation(quote),
                 JSON.stringify(payload)
+            ).done(
+                function (response) {
+                    quote.setTotals(response.totals);
+                }
             ).fail((response) => {
                 errorProcessor.process(response);
             });

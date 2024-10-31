@@ -31,17 +31,11 @@ define(
             if (paymentData['shipping_address']) {
                 updateQuoteAddressAction('shipping', paymentData['shipping_address']);
             }
-            updateQuoteShippingMethodAction(paymentData['shipping_options']);
+            await updateQuoteShippingMethodAction(paymentData['shipping_options']);
 
             if (paymentType === 'ppcp' && !isWalletPayment) {
                 await updateWalletPayOrderAction(paymentData['order_id']);
             }
-
-            await new Promise((resolve) => {
-                const deferred = $.Deferred();
-                getTotalsAction([], deferred);
-                $.when(deferred).done(resolve);
-            });
 
             return getRequiredOrderDataAction(
                 paymentPayload['require_order_data'] || []

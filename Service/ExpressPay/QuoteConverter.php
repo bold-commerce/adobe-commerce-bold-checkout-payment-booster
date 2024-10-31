@@ -104,15 +104,22 @@ class QuoteConverter
             return [];
         }
 
-        return [
+        $email = $billingAddress->getEmail() ?? $shippingAddress->getEmail();
+
+        $convertedQuote = [
             'order_data' => [
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
-                    'last_name' => $billingAddress->getLastname() ?? '',
-                    'email' => $billingAddress->getEmail() ?? $shippingAddress->getEmail() ?? ''
+                    'last_name' => $billingAddress->getLastname() ?? ''
                 ]
             ]
         ];
+
+        if ($email) {
+            $convertedQuote['order_data']['customer']['email'] = $email;
+        }
+
+        return $convertedQuote;
     }
 
     /**
@@ -192,7 +199,7 @@ class QuoteConverter
         if ($shippingAddress->getTelephone()) {
             $convertedQuote['order_data']['shipping_address']['phone_number'] = $shippingAddress->getTelephone();
         }
-        if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod()) { // @phpstan-ignore method.notFound
+        if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod() && $shippingAddress->getShippingMethod() !== '') { // @phpstan-ignore method.notFound
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
                 'label' => $shippingAddress->getShippingDescription() ?? $shippingAddress->getShippingMethod(),

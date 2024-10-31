@@ -56,7 +56,6 @@ class QuoteConverter
             $this->convertLocale($quote),
             $this->convertCustomer($quote),
             $this->convertShippingInformation($quote),
-            $this->convertBillingInformation($quote),
             $this->convertQuoteItems($quote),
             $this->convertTotal($quote),
             $this->convertTaxes($quote),
@@ -204,41 +203,6 @@ class QuoteConverter
                 ],
             ];
         }
-
-        $convertedQuote['order_data'] = array_filter($convertedQuote['order_data']);
-
-        return $convertedQuote;
-    }
-
-    /**
-     * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
-     */
-    public function convertBillingInformation(Quote $quote): array
-    {
-        $billingAddress = $quote->getBillingAddress();
-        $shippingAddress = $quote->getShippingAddress();
-        $isAddressComplete = $billingAddress->getCity() && $billingAddress->getCountry();
-
-        if (!$isAddressComplete) {
-            return [];
-        }
-
-        $convertedQuote = [
-            'order_data' => [
-                'billing_address' => []
-            ]
-        ];
-
-        $convertedQuote['order_data']['billing_address'] = [
-            'first_name' => $billingAddress->getFirstname() ?? '',
-            'last_name' => $billingAddress->getLastname() ?? '',
-            'address_line_1' => $billingAddress->getStreet()[0] ?? '',
-            'address_line_2' => $billingAddress->getStreet()[1] ?? '',
-            'city' => $billingAddress->getCity() ?? '',
-            'country_code' => $billingAddress->getCountryId() ?? '',
-            'postal_code' => $billingAddress->getPostcode() ?? '',
-            'state' => $billingAddress->getRegion() ?? ''
-        ];
 
         $convertedQuote['order_data'] = array_filter($convertedQuote['order_data']);
 

@@ -25,7 +25,6 @@ define(
          * @return {Promise}
          */
         return async function (paymentApprovalData) {
-            console.log('HERE 4 INSIDE UPDATE PPCP ACTION', paymentApprovalData);
             const paymentData = paymentApprovalData['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);

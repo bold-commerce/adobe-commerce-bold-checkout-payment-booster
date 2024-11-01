@@ -88,9 +88,18 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $epsGatewayId = $this->checkoutData->getEpsGatewayId();
         if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
             $errorMsgs = [];
-            if ($jwtToken === null) $errorMsgs[] = '$jwtToken is null.';
-            if ($epsAuthToken === null) $errorMsgs[] = '$epsAuthToken is null.';
-            if ($epsGatewayId === null) $errorMsgs[] = '$epsGatewayId is null.';
+            if ($jwtToken === null) {
+                $errorMsgs[] = '$jwtToken is null.';
+            }
+
+            if ($epsAuthToken === null) {
+                $errorMsgs[] = '$epsAuthToken is null.';
+            }
+
+            if ($epsGatewayId === null) {
+                $errorMsgs[] = '$epsGatewayId is null.';
+            }
+            
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.implode(', ', $errorMsgs));
             return [];
         }

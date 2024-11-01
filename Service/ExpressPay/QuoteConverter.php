@@ -168,14 +168,16 @@ class QuoteConverter
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {
             $convertedQuote['order_data']['shipping_options'] = array_map(
-                static function (Rate $rate) use ($currencyCode): array {
+                static function (Rate $rate) use ($currencyCode, $shippingAddress): array {
+                    $price = ($rate->getCode() === $shippingAddress->getShippingMethod())
+                        ? $shippingAddress->getShippingAmount() : $rate->getPrice();
                     return [
                         'id' => $rate->getCode(),
                         'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
                         'type' => 'SHIPPING',
                         'amount' => [
                             'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$rate->getPrice(), 2)
+                            'value' => number_format((float)$price, 2)
                         ]
                     ];
                 },

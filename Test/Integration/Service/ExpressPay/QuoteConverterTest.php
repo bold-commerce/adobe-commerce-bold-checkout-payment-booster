@@ -50,12 +50,15 @@ class QuoteConverterTest extends TestCase
                     'email' => 'customer@example.com'
                 ],
                 'shipping_address' => [
+                    'first_name' => 'John',
+                    'last_name' => 'Smith',
                     'address_line_1' => 'Green str, 67',
                     'address_line_2' => '',
                     'city' => 'CityM',
                     'country_code' => 'US',
                     'postal_code' => '75477',
-                    'state' => 'Alabama'
+                    'state' => 'Alabama',
+                    'phone_number' => '3468676'
                 ],
                 'selected_shipping_option' => [
                     'id' => 'flatrate_flatrate',

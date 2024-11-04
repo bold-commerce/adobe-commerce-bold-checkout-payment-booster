@@ -177,7 +177,7 @@ class QuoteConverter
                         'type' => 'SHIPPING',
                         'amount' => [
                             'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$price, 2)
+                            'value' => number_format((float)$price, 2, '.', '')
                         ]
                     ];
                 },
@@ -208,7 +208,7 @@ class QuoteConverter
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2)
+                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2, '.', '')
                 ],
             ];
         }
@@ -239,7 +239,7 @@ class QuoteConverter
                             'sku' => $cartItem->getSku() ?? '',
                             'unit_amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' => number_format((float)$cartItem->getPrice(), 2)
+                                'value' => number_format((float)$cartItem->getPrice(), 2, '.', '')
                             ],
                             'quantity' => (int)(ceil($cartItem->getQty()) ?: $cartItem->getQty()),
                             'is_shipping_required' => !in_array(
@@ -266,7 +266,9 @@ class QuoteConverter
                                 $quoteItems
                             )
                         ),
-                        2
+                        2,
+                        '.',
+                        ''
                     )
                 ]
             ]
@@ -294,7 +296,7 @@ class QuoteConverter
             'order_data' => [
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$quote->getGrandTotal(), 2)
+                    'value' => number_format((float)$quote->getGrandTotal(), 2, '.', '')
                 ]
             ]
         ];
@@ -327,12 +329,16 @@ class QuoteConverter
                         $items
                     )
                 ),
-                2
+                2,
+                '.',
+                ''
             );
         } else {
             $convertedQuote['order_data']['tax_total']['value'] = number_format(
                 (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
-                2
+                2,
+                '.',
+                ''
             );
         }
 
@@ -350,7 +356,12 @@ class QuoteConverter
             'order_data' => [
                 'discount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()), 2)
+                    'value' => number_format(
+                        (float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()),
+                        2,
+                        '.',
+                        ''
+                    )
                 ]
             ]
         ];
@@ -402,7 +413,7 @@ class QuoteConverter
                         'sku' => $total->getCode() ?? '',
                         'unit_amount' => [
                             'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$value, 2)
+                            'value' => number_format((float)$value, 2, '.', '')
                         ],
                         'quantity' => 1,
                         'is_shipping_required' => false
@@ -419,7 +430,9 @@ class QuoteConverter
         $convertedQuote['order_data']['items'] = array_merge($convertedQuote['order_data']['items'], $totalItems);
         $convertedQuote['order_data']['item_total']['value'] = number_format(
             ((float)$convertedQuote['order_data']['item_total']['value']) + $customTotalsValue,
-            2
+            2,
+            '.',
+            ''
         );
     }
 }

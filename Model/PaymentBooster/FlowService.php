@@ -13,7 +13,6 @@ class FlowService
     private const FLOW_CREATE_URL = 'checkout/shop/{{shopId}}/flows';
     private const DEFAULT_FLOW_NAME = 'Bold Booster for Paypal';
     private const DEFAULT_FLOW_ID = 'bold-booster-m2';
-
     private const FLOW_ALREADY_EXISTS_ERROR = 'flow.flow_already_exists';
     private const DEFAULT_FLOW_TYPE = 'custom';
 

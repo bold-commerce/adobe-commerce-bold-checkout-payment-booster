@@ -55,7 +55,7 @@ class FlowService
         $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
 
         if ($result->getErrors()) {
-            if ($result->getErrors()[0]['type'] = self::FLOW_ALREADY_EXISTS_ERROR) {
+            if ($result->getErrors()[0]['type'] === self::FLOW_ALREADY_EXISTS_ERROR) {
                 $this->config->setBoldBoosterFlowID($websiteId, self::DEFAULT_FLOW_ID);
                 return self::DEFAULT_FLOW_ID;
             }

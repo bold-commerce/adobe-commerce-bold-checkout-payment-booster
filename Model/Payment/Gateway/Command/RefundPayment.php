@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Command;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
@@ -27,14 +28,21 @@ class RefundPayment implements CommandInterface
     private $orderExtensionDataRepository;
 
     /**
+     * @var ResourceConnection
+     */
+    private $connection;
+
+    /**
      * @param Service $gatewayService
      */
     public function __construct(
         Service $gatewayService,
-        OrderExtensionDataRepository $orderExtensionDataRepository
+        OrderExtensionDataRepository $orderExtensionDataRepository,
+        ResourceConnection $connection
     ) {
         $this->gatewayService = $gatewayService;
         $this->orderExtensionDataRepository = $orderExtensionDataRepository;
+        $this->connection = $connection;
     }
 
     /**
@@ -59,6 +67,11 @@ class RefundPayment implements CommandInterface
         }
         $orderExtensionData->setIsRefundInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
+        // The save() call above doesn't commit the change because Magento starts a transaction in CreditmemoService
+        // before calling this function. We have to manually commit the change to the database so that the value is
+        // set before calling Bold Checkout which calls back to the Magento module to update payments.
+        $this->connection->getConnection()->commit()->beginTransaction();
+
         try {
             if ((float)$order->getGrandTotal() <= $amount) {
                 $transactionId = $this->gatewayService->refundFull($order);

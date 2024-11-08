@@ -13,6 +13,7 @@ class FlowService
     private const FLOW_CREATE_URL = 'checkout/shop/{{shopId}}/flows';
     private const DEFAULT_FLOW_NAME = 'Bold Booster for Paypal';
     private const DEFAULT_FLOW_ID = 'bold-booster-m2';
+    private const FLOW_ALREADY_EXISTS_ERROR = 'flow.flow_already_exists';
     private const DEFAULT_FLOW_TYPE = 'custom';
 
     /**
@@ -54,6 +55,10 @@ class FlowService
         $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
 
         if ($result->getErrors()) {
+            if ($result->getErrors()[0]['type'] === self::FLOW_ALREADY_EXISTS_ERROR) {
+                $this->config->setBoldBoosterFlowID($websiteId, self::DEFAULT_FLOW_ID);
+                return self::DEFAULT_FLOW_ID;
+            }
             $message = isset(current($result->getErrors())['message'])
                 ? __(current($result->getErrors())['message'])
                 : __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.');

@@ -7,7 +7,6 @@ namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\GetOrderPublicIdByOrderId;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
-use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
@@ -72,6 +71,7 @@ class Service
         $body = [
             'reauth' => true,
             'idempotent_key' => $this->random->getRandomString(10),
+            'source' => 'platform',
         ];
         $url = sprintf(self::CAPTURE_FULL_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendCaptureRequest($websiteId, $url, $body);
@@ -93,6 +93,7 @@ class Service
             'reauth' => true,
             'amount' => $amount * 100,
             'idempotent_key' => $this->random->getRandomString(10),
+            'source' => 'platform',
         ];
         $url = sprintf(self::CAPTURE_PARTIALLY_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendCaptureRequest($websiteId, $url, $body);
@@ -146,6 +147,7 @@ class Service
         $body = [
             'email_notification' => false,
             'reason' => 'Magento credit memo created.',
+            'source' => 'platform',
         ];
         $url = sprintf(self::REFUND_FULL_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));
         return $this->sendRefundRequest($websiteId, $url, $body);
@@ -166,6 +168,7 @@ class Service
         $body = [
             'email_notification' => false,
             'reason' => 'Magento credit memo created.',
+            'source' => 'platform',
             'amount' => $amount * 100,
         ];
         $url = sprintf(self::REFUND_PARTIALLY_URL, $this->getOrderPublicId->execute((int)$order->getEntityId()));

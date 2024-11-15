@@ -21,6 +21,7 @@ define(
          */
         return async function (shippingMethod = null) {
             let newMethod = null;
+            shippingMethod = shippingMethod ?? quote.shippingMethod();
             if (shippingMethod !== null) {
                 let availableMethods = shippingService.getShippingRates().filter((method) => {
                     let methodId = `${method.carrier_code}_${method.method_code}`;

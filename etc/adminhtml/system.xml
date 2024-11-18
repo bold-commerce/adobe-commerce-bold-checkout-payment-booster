@@ -59,6 +59,10 @@
             </group>
             <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
                 <label>Bold Checkout Payment Booster Advanced Settings</label>
+                <field id="iframe_field" translate="label" type="text" sortOrder="1" showInWebsite="1" showInStore="1">
+                    <label>Flows Configuration</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\FlowsIframe</frontend_model>
+                </field>
                 <field id="api_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>API URL</label>
                     <validate>required-url</validate>

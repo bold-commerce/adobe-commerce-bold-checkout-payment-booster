@@ -1,10 +1,12 @@
 define([
     'uiComponent',
+    'ko',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Magento_Customer/js/customer-data'
-], function(
+], function (
     Component,
+    ko,
     _,
     spi,
     customerData
@@ -12,9 +14,14 @@ define([
     'use strict'
 
     return Component.extend({
-        initialize: async function () {
+        defaults: {
+            _pageSource: ko.observable('')
+        },
+
+        initialize: async function (config) {
             this._super();
 
+            this._pageSource(config.pageSource);
             this._initConfig();
             this._setVisibility();
         },
@@ -42,12 +49,10 @@ define([
             const containerId = 'express-pay-buttons';
 
             let boldPaymentsInstance;
-
             try {
-                boldPaymentsInstance = await spi.getPaymentsClient();
+                boldPaymentsInstance = await spi.getPaymentsClient(this._pageSource());
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
-
                 return;
             }
 

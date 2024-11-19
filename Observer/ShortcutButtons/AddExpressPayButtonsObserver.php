@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Observer\ShortcutButtons;
 
 use Bold\CheckoutPaymentBooster\Block\ShortcutButtons\ExpressPayShortcutButtons;
 use Bold\CheckoutPaymentBooster\ViewModel\ExpressPayFactory;
+use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 use Magento\Catalog\Block\ShortcutButtons;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
@@ -32,14 +33,21 @@ class AddExpressPayButtonsObserver implements ObserverInterface
         $event = $observer->getEvent();
         /** @var ShortcutButtons $container */
         $container = $event->getData('container');
+
+        $layout = $container->getLayout();
+
+        if ($layout->getBlock(ExpressPayShortcutButtons::BLOCK_ALIAS) !== false) {
+            return;
+        }
+
         /** @var ExpressPayShortcutButtons $expressPayShortcutButtons */
-        $expressPayShortcutButtons = $container->getLayout()->createBlock(
+        $expressPayShortcutButtons = $layout->createBlock(
             ExpressPayShortcutButtons::class,
             ExpressPayShortcutButtons::BLOCK_ALIAS,
             [
                 'data' => [
                     'express_pay_view_model' => $this->expressPayFactory->create(),
-                    'render_page_source' => 'mini-cart'
+                    'render_page_source' => PaymentBoosterConfigProvider::PAGE_SOURCE_MINICART
                 ]
             ]
         );

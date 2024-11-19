@@ -75,7 +75,7 @@ class InitOrderFromQuote
             'cart_id' => $quote->getId() ?? '',
         ];
         $orderData = $this->client->post(
-            (int)$quote->getStore()->getWebsiteId(),
+            (int)$websiteId,
             self::INIT_SIMPLE_ORDER_URI,
             $body
         );

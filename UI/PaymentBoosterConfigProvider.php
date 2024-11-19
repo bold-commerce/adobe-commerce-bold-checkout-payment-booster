@@ -1,23 +1,35 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI;
 
+use Magento\Directory\Model\AllowedCountries;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
-use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Magento\Framework\Escaper;
 use Psr\Log\LoggerInterface;
+use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\UrlInterface;
+
 
 /**
  * Config provider for Payment Booster.
  */
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
+
+    public const PAGE_SOURCE_PRODUCT = 'product';
+    public const PAGE_SOURCE_CART = 'cart';
+    public const PAGE_SOURCE_MINICART = 'mini-cart';
+
     /**
      * @var CheckoutData
      */
@@ -49,6 +61,26 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $countries = [];
 
     /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var UrlInterface
+     */
+    protected $urlBuilder;
+
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+
+    /**
+     * @var Escaper
+     */
+    private $escaper;
+
+    /**
      * @param CheckoutData $checkoutData
      * @param Config $config
      * @param AllowedCountries $allowedCountries
@@ -59,13 +91,21 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        StoreManagerInterface $storeManager,
+        UrlInterface $urlBuilder,
+        ScopeConfigInterface $scopeConfig,
+        Escaper $escaper
     ) {
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
+        $this->urlBuilder = $urlBuilder;
+        $this->scopeConfig = $scopeConfig;
+        $this->escaper = $escaper;
     }
 
     /**
@@ -75,7 +115,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     {
         if (!$this->checkoutData->getPublicOrderId()) {
             $errorMsg = "No public order ID.";
-            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.$errorMsg);
+            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): ' . $errorMsg);
             return [];
         }
 
@@ -86,6 +126,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $epsGatewayId = $this->checkoutData->getEpsGatewayId();
+        $currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
         if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
             $errorMsgs = [];
             if ($jwtToken === null) {
@@ -99,8 +140,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             if ($epsGatewayId === null) {
                 $errorMsgs[] = '$epsGatewayId is null.';
             }
-            
-            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.implode(', ', $errorMsgs));
+
+            $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): ' . implode(', ', $errorMsgs));
             return [];
         }
         return [
@@ -127,8 +168,22 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                         'method' => Service::CODE,
                     ],
                 ],
+                'currency' => $currency
             ],
         ];
+    }
+
+    public function getConfigWithoutQuote(): array
+    {
+        $result = $this->getConfig();
+        $result['storeCode'] = $this->storeManager->getStore()->getCode();
+        $result['quoteData']['entity_id'] = '';
+        $result['totalsData'] = [];
+        $result['checkoutAgreements']['isEnabled'] = false;
+        $result['defaultSuccessPageUrl'] = $this->getDefaultSuccessPageUrl();
+        $result['shippingPolicy'] = $this->getShippingPolicy();
+
+        return $result;
     }
 
     /**
@@ -161,5 +216,28 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $this->countries = $countriesCollection->toOptionArray(false);
 
         return $this->countries;
+    }
+
+    private function getDefaultSuccessPageUrl()
+    {
+        return $this->urlBuilder->getUrl('checkout/onepage/success/');
+    }
+
+    private function getShippingPolicy()
+    {
+        $policyContent = $this->scopeConfig->getValue(
+            'shipping/shipping_policy/shipping_policy_content',
+            ScopeInterface::SCOPE_STORE
+        );
+        $policyContent = $this->escaper->escapeHtml($policyContent);
+        $result = [
+            'isEnabled' => $this->scopeConfig->isSetFlag(
+                'shipping/shipping_policy/enable_shipping_policy',
+                ScopeInterface::SCOPE_STORE
+            ),
+            'shippingPolicyContent' => $policyContent ? nl2br($policyContent) : ''
+        ];
+
+        return $result;
     }
 }

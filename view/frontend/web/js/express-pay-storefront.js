@@ -1,17 +1,26 @@
 define([
     'uiComponent',
+    'ko'
     // 'Bold_CheckoutPaymentBooster/Model/CheckoutData'
 ], function(
     Component,
+    ko
     // checkoutData
 ) {
     'use strict'
 
     return Component.extend({
+        defaults: {
+            isVisible: ko.observable(false),
+            config: ko.observable(null)
+        },
+
         initialize: async function (config, element) {
             this._super();
 
-            console.debug({config}, {element});
+            console.log({config}, {element});
+
+            this.config(config);
 
             this._setVisibility();
         },
@@ -22,22 +31,15 @@ define([
          */
         _setVisibility: function () {
             console.log('What is up express pay?');
-            // const expressPayEnabled = window.checkoutConfig.bold?.isExpressPayEnabled;
-            // const onShippingStep = window.location.hash === '#shipping';
-            // this.isVisible(onShippingStep && expressPayEnabled);
 
-            // On step change remove any other instance, can only have one on a page
-            // const ppcpExpressContainer = document.getElementById('ppcp-express-payment');
-            // if (ppcpExpressContainer) {
-            //     ppcpExpressContainer.remove();
-            // }
+            this.isVisible(!!this.config().isCartWalletPayEnabled);
 
-            // if (this.isVisible()) {
+            if (this.isVisible()) {
                 this._renderExpressPayments();
-            // }
+            }
         },
 
-        _renderExpressPayments: async function () {
+        _renderExpressPayments: function () {
 
             // const containerId = 'express-pay-buttons';
             //

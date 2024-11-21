@@ -12,44 +12,25 @@ $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
 ?>
 
 <?php if ($isEnabled): ?>
+    <script>
+        if (!window.checkoutConfig) {
+            window.checkoutConfig = {};
+        }
+    
+        const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
+        Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+    </script>
+    <script type="text/x-magento-init">
+    {
+        "#express-pay-container": {
+            "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
+                "boldCheckoutConfig": <?= json_encode($block->escapeHtml($expressPayViewModel->initConfig()))  ?>
+            }
+        }
+    }
+    </script>
     <div id="express-pay-container" data-testid="express-pay-container">
         <p class="step-title"><?= $block->escapeHtml(__('Express Pay')) ?></p>
         <div id="express-pay-buttons"></div>
     </div>
 <?php endif; ?>
-
-<script>
-    if (!window.checkoutConfig) {
-        window.checkoutConfig = {};
-    }
-
-    const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
-    Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
-</script>
-
-<script type="text/x-magento-init">
-{
-    "#express-pay-container": {
-        "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
-            "epsAuthToken": "<?= $block->escapeHtml(__($expressPayViewModel->getEpsAuthToken())) ?>",
-            "configurationGroupLabel": "<?= $block->escapeHtml(__($expressPayViewModel->getConfigurationGroupLabel($websiteId))) ?>",
-            "epsUrl": "<?= $block->escapeHtml(__(rtrim($expressPayViewModel->getEpsUrl($websiteId), '/'))) ?>",
-            "epsStaticUrl": "<?= $block->escapeHtml(__($expressPayViewModel->getStaticEpsUrl($websiteId))) ?>",
-            "gatewayId": "<?= $block->escapeHtml(__($expressPayViewModel->getEpsGatewayId())) ?>",
-            "jwtToken": "<?= $block->escapeHtml(__($expressPayViewModel->getJwtToken())) ?>",
-            "url": "<?= $block->escapeHtml(__($expressPayViewModel->getBoldStorefrontUrl($websiteId))) ?>",
-            "shopId": "<?= $block->escapeHtml(__($expressPayViewModel->getShopId($websiteId))) ?>",
-            "publicOrderId": "<?= $block->escapeHtml(__($expressPayViewModel->getPublicOrderId())) ?>",
-            "origin": "<?= $block->escapeHtml(__(rtrim($expressPayViewModel->getApiUrl($websiteId), '/'))) ?>",
-            "shopUrl": "<?= $block->escapeHtml(__($expressPayViewModel->getStoreUrl())) ?>",
-            "shopName": "<?= $block->escapeHtml(__($expressPayViewModel->getStoreName())) ?>",
-            "isPhoneRequired": "<?= $block->escapeHtml(__($expressPayViewModel->getIsPhoneRequired())) ?>",
-            "isExpressPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isExpressPayEnabled($websiteId))) ?>",
-            "isCartWalletPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isCartWalletPayEnabled($websiteId))) ?>",
-            "isProductWalletPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isProductWalletPayEnabled($websiteId))) ?>",
-            "countries": <?= json_encode($block->escapeHtml($expressPayViewModel->getAllowedCountries())) ?>,
-            "baseCurrency": <?= json_encode($block->escapeHtml($expressPayViewModel->getStoreCurrency($websiteId))) ?>
-        }
-    }
-}
-</script>

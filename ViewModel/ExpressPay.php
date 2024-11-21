@@ -4,19 +4,18 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Checkout\Model\CompositeConfigProvider;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 
 class ExpressPay implements  ArgumentInterface
 {
@@ -69,14 +68,14 @@ class ExpressPay implements  ArgumentInterface
     protected $countries = [];
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
      * @var array
      */
     protected $jsLayout = [];
+
+    /**
+     * @var PaymentBoosterConfigProvider
+     */
+    protected $paymentBoosterConfigProvider;
 
     public function __construct(
         CompositeConfigProvider $configProvider,
@@ -88,7 +87,7 @@ class ExpressPay implements  ArgumentInterface
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
-        ScopeConfigInterface $scopeConfig,
+        PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
     ) {
         $this->configProvider = $configProvider;
         $this->serializer = $serializer;
@@ -99,7 +98,7 @@ class ExpressPay implements  ArgumentInterface
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
-        $this->scopeConfig = $scopeConfig;
+        $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
     }
 
     public function getJsLayout()
@@ -305,5 +304,16 @@ class ExpressPay implements  ArgumentInterface
         $this->countries = $countriesCollection->toOptionArray(false);
 
         return $this->countries;
+    }
+
+    public function initConfig(): array
+    {   
+        //TODO: For pages other than cart
+            //initialize checkout config
+            //initialize quote
+        $this->checkoutData->initCheckoutData();
+        $config = $this->paymentBoosterConfigProvider->getConfig();
+
+        return $config;
     }
 }

@@ -36,7 +36,6 @@ define([
          * @private
          */
         _setVisibility: function () {
-            console.log('What is up express pay?');
             const expressPayEnabled = window.checkoutConfig.bold?.isExpressPayEnabled;
             const onShippingStep = window.location.hash === '#shipping';
             this.isVisible(onShippingStep && expressPayEnabled);

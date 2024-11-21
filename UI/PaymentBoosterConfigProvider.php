@@ -121,6 +121,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'shopName' => $quote->getStore()->getFrontendName(),
                 'isPhoneRequired' => $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED,
                 'isExpressPayEnabled' => $this->config->isExpressPayEnabled($websiteId),
+                'isCartWalletPayEnabled' => $this->config->isCartWalletPayEnabled($websiteId),
                 'paymentBooster' => [
                     'payment' => [
                         'method' => Service::CODE,

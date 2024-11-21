@@ -1,0 +1,26 @@
+<?php
+use Magento\Framework\View\Element\Template;
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
+
+/** @var Template $block */
+
+/** @var ExpressPay $expressPayViewModel */
+$expressPayViewModel = $block->getData('express_pay_view_model');
+?>
+
+<div id="express-pay-container" data-testid="express-pay-container">
+<!--    <h1>HELLO WEBSITE --><?php //= __($expressPayViewModel->getWebsiteId()) ?><!--</h1>-->
+
+    <p class="step-title"><?= $block->escapeHtml(__('Express Pay')) ?></p>
+    <div id="express-pay-buttons"></div>
+</div>
+
+<script type="text/x-magento-init">
+{
+    "#express-pay-container": {
+        "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
+            "test": "cool"
+        }
+    }
+}
+</script>

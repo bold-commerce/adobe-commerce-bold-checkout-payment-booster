@@ -38,7 +38,7 @@
                 <value id="bold_stripe" type="host">*.stripe.com</value>
             </values>
         </policy>
-        <policy id="script-src-elem">
+        <policy id="style-src-elem">
             <values>
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
             </values>

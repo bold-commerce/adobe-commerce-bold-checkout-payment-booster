@@ -7,13 +7,15 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 /** @var ExpressPay $expressPayViewModel */
 $expressPayViewModel = $block->getData('express_pay_view_model');
 $websiteId = $expressPayViewModel->getWebsiteId();
+$isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
 ?>
 
-<!--<div id="express-pay-container" data-testid="express-pay-container" data-bind="visible: isVisible">-->
-<div id="express-pay-container" data-testid="express-pay-container">
-    <p class="step-title"><?= $block->escapeHtml(__('Express Pay')) ?></p>
-    <div id="express-pay-buttons"></div>
-</div>
+<?php if ($isEnabled): ?>
+    <div id="express-pay-container" data-testid="express-pay-container">
+        <p class="step-title"><?= $block->escapeHtml(__('Express Pay')) ?></p>
+        <div id="express-pay-buttons"></div>
+    </div>
+<?php endif; ?>
 
 <script type="text/x-magento-init">
 {

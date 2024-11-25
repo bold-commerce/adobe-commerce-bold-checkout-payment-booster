@@ -11,36 +11,22 @@ define([
 
     return Component.extend({
         defaults: {
-            isVisible: ko.observable(false),
             config: ko.observable(null)
         },
 
         initialize: async function (config, element) {
             this._super();
 
+            this.config(config);
             console.log({config}, {element});
 
-            this.config(config);
-
-            this._setVisibility();
-        },
-
-        /**
-         * Set the visibility of the component.
-         * @private
-         */
-        _setVisibility: function () {
-            console.log('What is up express pay?');
-
-            this.isVisible(!!this.config().isCartWalletPayEnabled);
-
-            if (this.isVisible()) {
+            if (this.config().isCartWalletPayEnabled) {
                 this._renderExpressPayments();
             }
         },
 
         _renderExpressPayments: function () {
-
+            console.log('RENDER');
             // const containerId = 'express-pay-buttons';
             //
             // let boldPaymentsInstance;

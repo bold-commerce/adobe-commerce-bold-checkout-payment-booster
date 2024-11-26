@@ -3,10 +3,11 @@
 namespace Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field;
 
 use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class FlowsIframe extends Field
 {
-    protected function _getElementHtml()
+    protected function _getElementHtml(AbstractElement $element)
     {
         $iframeUrl = 'https://example.com';
 

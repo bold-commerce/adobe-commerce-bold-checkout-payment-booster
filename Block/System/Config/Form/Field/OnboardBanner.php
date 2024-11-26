@@ -80,6 +80,7 @@ class OnboardBanner extends Field
     public function isOnboardComplete()
     {
         $websiteId = $this->storeManager->getWebsite()->getId();
-        return $this->moduleConfig->isPaymentBoosterEnabled($websiteId);
+        // return $this->moduleConfig->isPaymentBoosterEnabled($websiteId);
+        return false;
     }
 }

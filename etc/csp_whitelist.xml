@@ -38,12 +38,20 @@
                 <value id="bold_stripe" type="host">*.stripe.com</value>
             </values>
         </policy>
+        <policy id="style-src-elem">
+            <values>
+                <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
+                <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
+            </values>
+        </policy>
         <policy id="frame-src">
             <values>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="bold_paypal_frame" type="host">*.paypal.com</value>
                 <value id="bold_local" type="host">*.bold.ninja</value>
+                <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
+                <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
             </values>
         </policy>
         <policy id="object-src">

@@ -4,8 +4,10 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
+use Magento\Checkout\Model\Session;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -16,6 +18,14 @@ use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
 
 class ExpressPay implements  ArgumentInterface
 {
+    /**
+     * @var Session
+     */
+    protected $checkoutSession;
+    /**
+     * @var ManagerInterface
+     */
+    protected $eventManager;
     /**
      * @var StoreManagerInterface
      */
@@ -52,6 +62,8 @@ class ExpressPay implements  ArgumentInterface
     private $scopeConfig;
 
     public function __construct(
+        Session $checkoutSession,
+        ManagerInterface $eventManager,
         StoreManagerInterface $storeManager,
         CheckoutData $checkoutData,
         Config $config,
@@ -59,6 +71,8 @@ class ExpressPay implements  ArgumentInterface
         CollectionFactory $collectionFactory,
         ScopeConfigInterface $scopeConfig
     ) {
+        $this->checkoutSession = $checkoutSession;
+        $this->eventManager = $eventManager;
         $this->storeManager = $storeManager;
         $this->checkoutData = $checkoutData;
         $this->config = $config;
@@ -68,12 +82,33 @@ class ExpressPay implements  ArgumentInterface
     }
 
     /**
+     * @return void
+     */
+    public function initializeCheckoutData()
+    {
+        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        echo '<pre>', var_dump(['SESSION TEST1', $this->checkoutSession->getTestData()]), '</pre>';
+        $this->checkoutSession->setTestData('MY DATA');
+        echo '<pre>', var_dump(['SESSION TEST2', $this->checkoutSession->getTestData()]), '</pre>';
+//        var_dump(['CHECKOUT DATA', $checkoutData]);
+//        $publicOrderId = $checkoutData['data']['public_order_id'];
+
+        if (!$checkoutData || !$checkoutData['data']['public_order_id']) {
+            $this->eventManager->dispatch('bold_checkout_data_action');
+        }
+        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        if ($checkoutData) {
+            echo '<pre>', var_dump(['ORDER ID', $checkoutData['data']['public_order_id']]), '</pre>';
+        }
+    }
+
+    /**
      * Get the current website id.
      *
      * @return int
      * @throws NoSuchEntityException
      */
-    public function getWebsiteId(): int
+    public function getWebsiteId()
     {
         return (int) $this->storeManager->getStore()->getWebsiteId();
     }
@@ -82,7 +117,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return string|null
      */
-    public function getEpsUrl($websiteId): ?string
+    public function getEpsUrl($websiteId)
     {
         return $this->config->getEpsUrl($websiteId);
     }
@@ -91,7 +126,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return string|null
      */
-    public function getStaticEpsUrl($websiteId): ?string
+    public function getStaticEpsUrl($websiteId)
     {
         return $this->config->getStaticEpsUrl($websiteId);
     }
@@ -100,7 +135,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return string|null
      */
-    public function getConfigurationGroupLabel($websiteId): ?string
+    public function getConfigurationGroupLabel($websiteId)
     {
         return $this->config->getConfigurationGroupLabel($websiteId);
     }
@@ -109,7 +144,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return string|null
      */
-    public function getApiUrl($websiteId): ?string
+    public function getApiUrl($websiteId)
     {
         return $this->config->getApiUrl($websiteId);
     }
@@ -120,7 +155,7 @@ class ExpressPay implements  ArgumentInterface
      * @param int $websiteId
      * @return string|null
      */
-    public function getShopId(int $websiteId): ?string
+    public function getShopId(int $websiteId)
     {
         return $this->config->getShopId($websiteId);
     }
@@ -130,7 +165,7 @@ class ExpressPay implements  ArgumentInterface
      * @param int $websiteId
      * @return string|null
      */
-    public function isExpressPayEnabled(int $websiteId): ?string
+    public function isExpressPayEnabled(int $websiteId)
     {
         return $this->config->isExpressPayEnabled($websiteId);
     }
@@ -138,7 +173,7 @@ class ExpressPay implements  ArgumentInterface
     /**
      * @return string|null
      */
-    public function getJwtToken(): ?string
+    public function getJwtToken()
     {
         return $this->checkoutData->getJwtToken();
     }
@@ -146,7 +181,7 @@ class ExpressPay implements  ArgumentInterface
     /**
      * @return int|null
      */
-    public function getEpsGatewayId(): ?int
+    public function getEpsGatewayId()
     {
         return $this->checkoutData->getEpsGatewayId();
     }
@@ -154,7 +189,7 @@ class ExpressPay implements  ArgumentInterface
     /**
      * @return string|null
      */
-    public function getEpsAuthToken(): ?string
+    public function getEpsAuthToken()
     {
         return $this->checkoutData->getEpsAuthToken();
     }
@@ -162,7 +197,7 @@ class ExpressPay implements  ArgumentInterface
     /**
      * @return string
      */
-    public function getStoreUrl(): string
+    public function getStoreUrl()
     {
         $quote = $this->checkoutData->getQuote();
         return $quote->getStore()->getBaseUrl();
@@ -172,15 +207,25 @@ class ExpressPay implements  ArgumentInterface
      * @return string
      * @throws NoSuchEntityException
      */
-    public function getStoreName(): string
+    public function getStoreName()
     {
         return $this->checkoutData->getQuote()->getStore()->getFrontendName();
     }
 
     /**
+     * @param int $websiteId
+     * @return string|null
+     * @throws NoSuchEntityException
+     */
+    public function getStoreCurrency(int $websiteId)
+    {
+        return $this->storeManager->getStore($websiteId)->getCurrentCurrencyCode();
+    }
+
+    /**
      * @return bool
      */
-    public function getIsPhoneRequired(): bool
+    public function getIsPhoneRequired()
     {
         $quote = $this->checkoutData->getQuote();
         return $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED;
@@ -189,7 +234,7 @@ class ExpressPay implements  ArgumentInterface
     /**
      * @return string|null
      */
-    public function getPublicOrderId(): ?string
+    public function getPublicOrderId()
     {
         return $this->checkoutData->getPublicOrderId();
     }
@@ -198,7 +243,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return bool
      */
-    public function isCartWalletPayEnabled($websiteId): bool
+    public function isCartWalletPayEnabled($websiteId)
     {
         return $this->config->isCartWalletPayEnabled($websiteId);
     }
@@ -207,7 +252,7 @@ class ExpressPay implements  ArgumentInterface
      * @param $websiteId
      * @return bool
      */
-    public function isProductWalletPayEnabled($websiteId): bool
+    public function isProductWalletPayEnabled($websiteId)
     {
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
@@ -218,7 +263,7 @@ class ExpressPay implements  ArgumentInterface
      * @param int $websiteId
      * @return string
      */
-    public function getBoldStorefrontUrl(int $websiteId): string
+    public function getBoldStorefrontUrl(int $websiteId)
     {
         $publicOrderId = $this->checkoutData->getPublicOrderId();
         $apiUrl = $this->config->getApiUrl($websiteId) . 'checkout/storefront/';
@@ -230,7 +275,7 @@ class ExpressPay implements  ArgumentInterface
      *
      * @return Country[]
      */
-    public function getAllowedCountries(): array
+    public function getAllowedCountries()
     {
         if ($this->countries) {
             return $this->countries;

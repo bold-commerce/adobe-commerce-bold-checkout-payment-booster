@@ -6,6 +6,7 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 
 /** @var ExpressPay $expressPayViewModel */
 $expressPayViewModel = $block->getData('express_pay_view_model');
+$expressPayViewModel->initializeCheckoutData();
 $websiteId = $expressPayViewModel->getWebsiteId();
 $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
 ?>
@@ -37,7 +38,8 @@ $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
             "isExpressPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isExpressPayEnabled($websiteId))) ?>",
             "isCartWalletPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isCartWalletPayEnabled($websiteId))) ?>",
             "isProductWalletPayEnabled": "<?= $block->escapeHtml(__($expressPayViewModel->isProductWalletPayEnabled($websiteId))) ?>",
-            "countries": <?= json_encode($block->escapeHtml($expressPayViewModel->getAllowedCountries())) ?>
+            "countries": <?= json_encode($block->escapeHtml($expressPayViewModel->getAllowedCountries())) ?>,
+            "baseCurrency": <?= json_encode($block->escapeHtml($expressPayViewModel->getStoreCurrency($websiteId))) ?>
         }
     }
 }

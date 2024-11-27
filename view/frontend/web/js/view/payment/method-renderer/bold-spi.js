@@ -98,6 +98,8 @@ define([
             const paymentsInstance = await spi.getPaymentsClient();
             const boldPaymentsForm = document.getElementById('SPI');
             const isFastlaneAvailable = fastlane.isAvailable();
+            this.isSpiLoading(false);
+
             if (isFastlaneAvailable) {
                 const paymentOptions = {
                     fastlane: isFastlaneAvailable,
@@ -106,7 +108,6 @@ define([
                 paymentsInstance.renderPayments('SPI', paymentOptions);
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
-                this.isSpiLoading(false);
                 if (boldPaymentsForm.getHTML().trim() === '') {
                     this.isVisible(false);
                 }
@@ -148,7 +149,10 @@ define([
          * @return void
          */
         tokenize: function () {
-            const iframeWindow = document.getElementById('spi_frame_SPI').contentWindow;
+            const iframeWindow = document.getElementById('spi_frame_SPI')?.contentWindow;
+            if (!iframeWindow) {
+                return;
+            }
             const billingAddress = quote.billingAddress();
             const shippingAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
             const email = checkoutData.getValidatedEmailValue()

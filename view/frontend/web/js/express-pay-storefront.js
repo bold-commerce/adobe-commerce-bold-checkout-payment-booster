@@ -1,8 +1,12 @@
 define([
     'uiComponent',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
+    'Magento_Customer/js/customer-data',
     'ko'
 ], function(
     Component,
+    onCreatePaymentOrderCallback,
+    customerData,
     ko
 ) {
     'use strict'
@@ -40,15 +44,14 @@ define([
 
             console.log({boldPaymentsInstance});
 
-            // const allowedCountries = this._getAllowedCountryCodes();
-            // const walletOptions = {
-            //     shopName: window.checkoutConfig.bold?.shopName ?? '',
-            //     isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
-            //     fastlane: window.checkoutConfig.bold?.fastlane,
-            //     allowedCountryCodes: allowedCountries
-            // };
-            //
-            // boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
+            const allowedCountries = this._getAllowedCountryCodes();
+            const walletOptions = {
+                shopName: this.config().shopName ?? '',
+                isPhoneRequired: this.config().isPhoneRequired ?? true,
+                fastlane: this.config().fastlane,
+                allowedCountryCodes: allowedCountries
+            };
+            boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
         },
 
         getPaymentsClient: async function () {
@@ -150,6 +153,14 @@ define([
             window.boldPaymentsInstance = paymentsInstance;
             window.createBoldPaymentsInstanceInProgress = false;
             return window.boldPaymentsInstance;
+        },
+
+        _getAllowedCountryCodes: function () {
+            const countryCodes = [];
+            _.each(this.config().countries, function (countryData) {
+                countryCodes.push(countryData.value);
+            });
+            return countryCodes;
         },
     });
 });

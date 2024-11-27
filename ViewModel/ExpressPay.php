@@ -87,18 +87,8 @@ class ExpressPay implements  ArgumentInterface
     public function initializeCheckoutData()
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
-        echo '<pre>', var_dump(['SESSION TEST1', $this->checkoutSession->getTestData()]), '</pre>';
-        $this->checkoutSession->setTestData('MY DATA');
-        echo '<pre>', var_dump(['SESSION TEST2', $this->checkoutSession->getTestData()]), '</pre>';
-//        var_dump(['CHECKOUT DATA', $checkoutData]);
-//        $publicOrderId = $checkoutData['data']['public_order_id'];
-
         if (!$checkoutData || !$checkoutData['data']['public_order_id']) {
             $this->eventManager->dispatch('bold_checkout_data_action');
-        }
-        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
-        if ($checkoutData) {
-            echo '<pre>', var_dump(['ORDER ID', $checkoutData['data']['public_order_id']]), '</pre>';
         }
     }
 

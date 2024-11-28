@@ -120,13 +120,22 @@ define([
 
         /** @inheritdoc */
         placeOrder: function (data, event) {
-            fullscreenLoader.startLoader();
             const placeMagentoOrder = this._super.bind(this);
             if (this.paymentId()) {
                 return placeMagentoOrder(data, event);
             }
             this.tokenize();
             return false;
+        },
+
+        /**
+         * Show full-screen loader and process the order.
+         *
+         * @return boolean
+         */
+        placeOrderClick: function (data, event) {
+            fullscreenLoader.startLoader();
+            return this.placeOrder(data, event);
         },
 
         /**
@@ -212,7 +221,12 @@ define([
                             return;
                         }
                         this.paymentId(paymentId);
-                        this.placeOrder({}, jQuery.Event());
+
+                        const placeOrderSuccess = this.placeOrder({}, jQuery.Event());
+                        if (!placeOrderSuccess) {
+                            fullscreenLoader.stopLoader();
+                        }
+
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

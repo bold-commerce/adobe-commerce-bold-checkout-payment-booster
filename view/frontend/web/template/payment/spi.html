@@ -36,7 +36,7 @@
                     <button class="action primary checkout"
                             type="submit"
                             data-bind="
-                            click: placeOrder,
+                            click: placeOrderClick,
                             attr: {title: $t('Place Order')},
                             css: {disabled: isSpiLoading()},
                             enable: (getCode() == isChecked())

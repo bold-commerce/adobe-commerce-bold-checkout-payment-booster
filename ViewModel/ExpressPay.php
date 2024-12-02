@@ -3,9 +3,11 @@
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Store\Model\ScopeInterface;
@@ -18,6 +20,16 @@ use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
 
 class ExpressPay implements  ArgumentInterface
 {
+    /**
+     * @var CompositeConfigProvider
+     */
+    protected $configProvider;
+
+    /**
+     * @var SerializerInterface
+     */
+    protected $serializer;
+
     /**
      * @var Session
      */
@@ -61,7 +73,14 @@ class ExpressPay implements  ArgumentInterface
      */
     private $scopeConfig;
 
+    /**
+     * @var array
+     */
+    protected $jsLayout = [];
+
     public function __construct(
+        CompositeConfigProvider $configProvider,
+        SerializerInterface $serializer,
         Session $checkoutSession,
         ManagerInterface $eventManager,
         StoreManagerInterface $storeManager,
@@ -69,8 +88,10 @@ class ExpressPay implements  ArgumentInterface
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
     ) {
+        $this->configProvider = $configProvider;
+        $this->serializer = $serializer;
         $this->checkoutSession = $checkoutSession;
         $this->eventManager = $eventManager;
         $this->storeManager = $storeManager;
@@ -79,6 +100,12 @@ class ExpressPay implements  ArgumentInterface
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
         $this->scopeConfig = $scopeConfig;
+    }
+
+    public function getJsLayout()
+    {
+        $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+        return $this->serializer->serialize($this->jsLayout);
     }
 
     /**

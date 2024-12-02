@@ -18,6 +18,15 @@ $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
     </div>
 <?php endif; ?>
 
+<script>
+    if (!window.checkoutConfig) {
+        window.checkoutConfig = {};
+    }
+
+    const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
+    Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+</script>
+
 <script type="text/x-magento-init">
 {
     "#express-pay-container": {

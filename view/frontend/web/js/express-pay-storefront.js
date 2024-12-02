@@ -1,13 +1,21 @@
 define([
     'uiComponent',
+    'ko',
+    'Magento_Checkout/js/model/full-screen-loader',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
-    'Magento_Customer/js/customer-data',
-    'ko'
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
 ], function(
     Component,
+    ko,
+    fullScreenLoader,
     onCreatePaymentOrderCallback,
-    customerData,
-    ko
+    onUpdatePaymentOrderCallback,
+    onRequireOrderDataCallback,
+    onApprovePaymentOrderCallback,
+    onScaPaymentOrderCallback,
 ) {
     'use strict'
 
@@ -93,51 +101,57 @@ define([
                 ],
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        // try {
-                        //     return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
-                        // } catch (e) {
-                        //     console.error(e);
-                        //     fullScreenLoader.stopLoader();
-                        //     throw e;
-                        // }
+                        console.log('CALLBACK: onCreatePaymentOrder');
+                        try {
+                            return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
-                        // try {
-                        //     return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
-                        // } catch (e) {
-                        //     console.error(e);
-                        //     fullScreenLoader.stopLoader();
-                        //     throw e;
-                        // }
+                        console.log('CALLBACK: onUpdatePaymentOrder', paymentType, paymentPayload);
+                        try {
+                            return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onApprovePaymentOrder': async (paymentType, paymentInformation, paymentPayload) => {
-                        // try {
-                        //     return await onApprovePaymentOrderCallback(paymentType, paymentInformation, paymentPayload);
-                        // } catch (e) {
-                        //     console.error(e);
-                        //     fullScreenLoader.stopLoader();
-                        //     throw e;
-                        // }
+                        console.log('CALLBACK: onApprovePaymentOrder');
+                        try {
+                            return await onApprovePaymentOrderCallback(paymentType, paymentInformation, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onScaPaymentOrder': async function (paymentType, paymentPayload) {
-                        // try {
-                        //     return await onScaPaymentOrderCallback(paymentType, paymentPayload);
-                        // } catch (e) {
-                        //     console.error(e);
-                        //     fullScreenLoader.stopLoader();
-                        //     throw e;
-                        // }
+                        console.log('CALLBACK: onScaPaymentOrder');
+                        try {
+                            return await onScaPaymentOrderCallback(paymentType, paymentPayload);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onRequireOrderData': async function (requirements) {
-                        // try {
-                        //     return onRequireOrderDataCallback(requirements);
-                        // } catch (e) {
-                        //     console.error(e);
-                        //     fullScreenLoader.stopLoader();
-                        //     throw e;
-                        // }
+                        console.log('CALLBACK: onRequireOrderData');
+                        try {
+                            return onRequireOrderDataCallback(requirements);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
                     },
                     'onErrorPaymentOrder': function (errors) {
+                        console.log('CALLBACK: onErrorPaymentOrder');
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
                     },

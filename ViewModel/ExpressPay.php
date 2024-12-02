@@ -17,7 +17,7 @@ use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
 use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 
-class ExpressPay implements  ArgumentInterface
+class ExpressPay implements ArgumentInterface
 {
     /**
      * @var CompositeConfigProvider

@@ -18,9 +18,8 @@
                 </field>
                 <field id="configuration_group_label" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1">
                     <label>Configuration Group Label</label>
-                    <validate>required-entry</validate>
                     <comment><![CDATA[
-                            Configuration group label used to communicate with the Bold Checkout EPS.
+                            Configuration group label used to communicate with the Bold Checkout EPS. If left empty, this will default to the store domain.
                         ]]>
                     </comment>
                 </field>

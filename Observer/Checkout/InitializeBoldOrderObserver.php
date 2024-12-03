@@ -41,12 +41,6 @@ class InitializeBoldOrderObserver implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
-        $request = $observer->getEvent()->getRequest();
-        if ($request) {
-            $observerAction = $request->getFullActionName();
-            $this->logger->info($observerAction);
-        }
-
         try {
             $this->checkoutData->initCheckoutData();
         } catch (Exception $exception) {

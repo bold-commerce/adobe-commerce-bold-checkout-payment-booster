@@ -1,13 +1,11 @@
 define([
     'uiComponent',
     'ko',
-    'jquery',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
 ], function(
     Component,
     ko,
-    $,
     _,
     spi,
 ) {
@@ -15,11 +13,14 @@ define([
 
     return Component.extend({
         defaults: {
+            config: ko.observable(null)
         },
 
-        initialize: async function () {
+        initialize: async function (config) {
             this._super();
 
+            this.config(config.boldCheckoutConfig.bold);
+            
             this._initConfig();
             this._setVisibility();
         },
@@ -39,20 +40,20 @@ define([
 
         _initConfig: async function () {
             if (!window?.checkoutConfig?.bold) {
-                window.checkoutConfig.bold = this.boldCheckoutConfig;
+                window.checkoutConfig.bold = this.config();
             }
         },
 
         _renderExpressPayments: async function () {
             const containerId = 'express-pay-buttons';
-            
+
             let boldPaymentsInstance;
-            
+
             try {
                 boldPaymentsInstance = await spi.getPaymentsClient();
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
-            
+
                 return;
             }
 
@@ -63,7 +64,7 @@ define([
                 fastlane: window.checkoutConfig.bold?.fastlane,
                 allowedCountryCodes: allowedCountries
             };
-            
+
             boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
         },
 

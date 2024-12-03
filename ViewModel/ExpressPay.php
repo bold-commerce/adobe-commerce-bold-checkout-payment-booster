@@ -108,159 +108,12 @@ class ExpressPay implements ArgumentInterface
     }
 
     /**
-     * @return void
-     */
-    public function initializeCheckoutData()
-    {
-        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
-        if (!$checkoutData || !$checkoutData['data']['public_order_id']) {
-            $this->eventManager->dispatch('bold_checkout_data_action');
-        }
-    }
-
-    /**
-     * Get the current website id.
-     *
-     * @return int
-     * @throws NoSuchEntityException
-     */
-    public function getWebsiteId()
-    {
-        return (int) $this->storeManager->getStore()->getWebsiteId();
-    }
-
-    /**
-     * @param $websiteId
-     * @return string|null
-     */
-    public function getEpsUrl($websiteId)
-    {
-        return $this->config->getEpsUrl($websiteId);
-    }
-
-    /**
-     * @param $websiteId
-     * @return string|null
-     */
-    public function getStaticEpsUrl($websiteId)
-    {
-        return $this->config->getStaticEpsUrl($websiteId);
-    }
-
-    /**
-     * @param $websiteId
-     * @return string|null
-     */
-    public function getConfigurationGroupLabel($websiteId)
-    {
-        return $this->config->getConfigurationGroupLabel($websiteId);
-    }
-
-    /**
-     * @param $websiteId
-     * @return string|null
-     */
-    public function getApiUrl($websiteId)
-    {
-        return $this->config->getApiUrl($websiteId);
-    }
-
-    /**
-     * Get Bold Shop Id.
-     *
-     * @param int $websiteId
-     * @return string|null
-     */
-    public function getShopId(int $websiteId)
-    {
-        return $this->config->getShopId($websiteId);
-    }
-
-    /**
-     *
-     * @param int $websiteId
-     * @return string|null
-     */
-    public function isExpressPayEnabled(int $websiteId)
-    {
-        return $this->config->isExpressPayEnabled($websiteId);
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getJwtToken()
-    {
-        return $this->checkoutData->getJwtToken();
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getEpsGatewayId()
-    {
-        return $this->checkoutData->getEpsGatewayId();
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getEpsAuthToken()
-    {
-        return $this->checkoutData->getEpsAuthToken();
-    }
-
-    /**
-     * @return string
-     */
-    public function getStoreUrl()
-    {
-        $quote = $this->checkoutData->getQuote();
-        return $quote->getStore()->getBaseUrl();
-    }
-
-    /**
-     * @return string
-     * @throws NoSuchEntityException
-     */
-    public function getStoreName()
-    {
-        return $this->checkoutData->getQuote()->getStore()->getFrontendName();
-    }
-
-    /**
-     * @param int $websiteId
-     * @return string|null
-     * @throws NoSuchEntityException
-     */
-    public function getStoreCurrency(int $websiteId)
-    {
-        return $this->storeManager->getStore($websiteId)->getCurrentCurrencyCode();
-    }
-
-    /**
      * @return bool
+     * @throws NoSuchEntityException
      */
-    public function getIsPhoneRequired()
+    public function isCartWalletPayEnabled()
     {
-        $quote = $this->checkoutData->getQuote();
-        return $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getPublicOrderId()
-    {
-        return $this->checkoutData->getPublicOrderId();
-    }
-
-    /**
-     * @param $websiteId
-     * @return bool
-     */
-    public function isCartWalletPayEnabled($websiteId)
-    {
+        $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isCartWalletPayEnabled($websiteId);
     }
 
@@ -273,47 +126,12 @@ class ExpressPay implements ArgumentInterface
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
 
-    /**
-     * Get Bold Storefront URL.
-     *
-     * @param int $websiteId
-     * @return string
-     */
-    public function getBoldStorefrontUrl(int $websiteId)
-    {
-        $publicOrderId = $this->checkoutData->getPublicOrderId();
-        $apiUrl = $this->config->getApiUrl($websiteId) . 'checkout/storefront/';
-        return $apiUrl . $this->config->getShopId($websiteId) . '/' . $publicOrderId . '/';
-    }
-
-    /**
-     * Get allowed countries for Billing address mapping.
-     *
-     * @return Country[]
-     */
-    public function getAllowedCountries()
-    {
-        if ($this->countries) {
-            return $this->countries;
-        }
-        $allowedCountries = $this->allowedCountries->getAllowedCountries();
-        $countriesCollection = $this->collectionFactory->create()->addFieldToFilter(
-            'country_id',
-            ['in' => $allowedCountries]
-        );
-        $this->countries = $countriesCollection->toOptionArray(false);
-
-        return $this->countries;
-    }
-
     public function initConfig(): array
-    {   
+    {
         //TODO: For pages other than cart
             //initialize checkout config
             //initialize quote
         $this->checkoutData->initCheckoutData();
-        $config = $this->paymentBoosterConfigProvider->getConfig();
-
-        return $config;
+        return $this->paymentBoosterConfigProvider->getConfig();
     }
 }

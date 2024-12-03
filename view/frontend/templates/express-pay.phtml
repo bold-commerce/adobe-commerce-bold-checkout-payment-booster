@@ -6,9 +6,7 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 
 /** @var ExpressPay $expressPayViewModel */
 $expressPayViewModel = $block->getData('express_pay_view_model');
-$expressPayViewModel->initializeCheckoutData();
-$websiteId = $expressPayViewModel->getWebsiteId();
-$isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
+$isEnabled = $expressPayViewModel->isCartWalletPayEnabled();
 ?>
 
 <?php if ($isEnabled): ?>
@@ -16,7 +14,7 @@ $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
         if (!window.checkoutConfig) {
             window.checkoutConfig = {};
         }
-    
+
         const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
         Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
     </script>
@@ -24,7 +22,7 @@ $isEnabled = $expressPayViewModel->isCartWalletPayEnabled($websiteId);
     {
         "#express-pay-container": {
             "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
-                "boldCheckoutConfig": <?= json_encode($block->escapeHtml($expressPayViewModel->initConfig()))  ?>
+                "boldCheckoutConfig": <?= json_encode($expressPayViewModel->initConfig()) ?>
             }
         }
     }

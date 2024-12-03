@@ -128,9 +128,7 @@ class ExpressPay implements ArgumentInterface
 
     public function initConfig(): array
     {
-        //TODO: For pages other than cart
-            //initialize checkout config
-            //initialize quote
+        
         $this->checkoutData->initCheckoutData();
         return $this->paymentBoosterConfigProvider->getConfig();
     }

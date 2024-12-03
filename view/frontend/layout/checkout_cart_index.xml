@@ -3,7 +3,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="checkout.cart.methods">
-            <block name="express.pay" template="Bold_CheckoutPaymentBooster::express-pay.phtml" after="-">
+            <block name="express.pay" template="Bold_CheckoutPaymentBooster::express-pay.phtml" after="checkout.cart.methods.onepage.bottom">
                 <arguments>
                     <argument name="express_pay_view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\ExpressPay</argument>
                 </arguments>

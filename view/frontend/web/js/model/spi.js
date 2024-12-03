@@ -98,6 +98,10 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (!validateAgreements()) {
+                            throw new Error('Agreements not accepted');
+                        }
+
                         try {
                             return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {

@@ -20,7 +20,7 @@
                     <label>Configuration Group Label</label>
                     <validate>required-entry</validate>
                     <comment><![CDATA[
-                            Configuration group label used to communicate with the Bold Checkout EPS.
+                            Configuration group label used to communicate with the Bold Checkout EPS. If left empty, this will default to the store domain.
                         ]]>
                     </comment>
                 </field>

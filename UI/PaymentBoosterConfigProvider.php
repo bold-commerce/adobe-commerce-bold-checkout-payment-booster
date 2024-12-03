@@ -99,14 +99,21 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             if ($epsGatewayId === null) {
                 $errorMsgs[] = '$epsGatewayId is null.';
             }
-            
+
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.implode(', ', $errorMsgs));
             return [];
         }
+
+        $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
+        if (empty($configurationGroupLabel)) {
+            $configurationGroupLabel = parse_url($quote->getStore()->getBaseUrl())['host'] ?? '';
+            $configurationGroupLabel = preg_replace('/^www\./i', '', $configurationGroupLabel);
+        }
+
         return [
             'bold' => [
                 'epsAuthToken' => $epsAuthToken,
-                'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
+                'configurationGroupLabel' => $configurationGroupLabel,
                 'epsUrl' => $this->config->getEpsUrl($websiteId),
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'gatewayId' => $epsGatewayId,

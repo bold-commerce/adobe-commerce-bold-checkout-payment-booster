@@ -1,6 +1,7 @@
 define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_Checkout/js/model/payment/additional-validators',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
@@ -8,10 +9,12 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
-    'Magento_Ui/js/model/messageList'
+    'Magento_Ui/js/model/messageList',
+    'mage/translate'
 ], function (
     quote,
     fullScreenLoader,
+    additionalValidators,
     fastlane,
     loadScriptAction,
     onCreatePaymentOrderCallback,
@@ -19,9 +22,20 @@ define([
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
-    messageList
+    messageList,
+    $t
 ) {
     'use strict';
+
+    const validateAgreements = () => {
+        if (!additionalValidators.validate()) {
+            messageList.addErrorMessage({
+                message: $t('Please agree to all the terms and conditions before placing the order.')
+            });
+            return false;
+        }
+        return true;
+    };
 
     /**
      * Fastlane init model.
@@ -71,6 +85,10 @@ define([
                 ],
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (!validateAgreements()) {
+                            throw new Error('Agreements not accepted');
+                        }
+
                         try {
                             return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {
@@ -80,6 +98,10 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (!validateAgreements()) {
+                            throw new Error('Agreements not accepted');
+                        }
+
                         try {
                             return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {

@@ -21,13 +21,13 @@ define(
          */
         return async function (shippingMethod = null) {
             let newMethod;
-            let ms = 100;
+            let timeoutMS = 100;
             let carry = 100;
-            while (shippingService.isLoading() && ms < 5000) {
+            while (shippingService.isLoading() && timeoutMS < 5000) {
                 // max total timeout is 8000ms
-                await new Promise(resolve => setTimeout(resolve, ms));
-                carry = ms + carry;
-                ms = carry - ms;
+                await new Promise(resolve => setTimeout(resolve, timeoutMS));
+                carry = timeoutMS + carry;
+                timeoutMS = carry - timeoutMS;
             }
             shippingMethod = shippingMethod ?? quote.shippingMethod();
             if (shippingMethod !== null) {

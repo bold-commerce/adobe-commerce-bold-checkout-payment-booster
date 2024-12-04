@@ -77,8 +77,8 @@ define([
                         allowedCountryCodes: allowedCountries
                     };
 
-                    await boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
                     this.isExpressPayLoading(false);
+                    await boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
                 }
             });
             observer.observe(document.documentElement, {

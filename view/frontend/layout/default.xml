@@ -3,7 +3,7 @@
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="minicart.addons">
-            <block name="express.pay" template="Bold_CheckoutPaymentBooster::express-pay.phtml">
+            <block name="minicart.express.pay" template="Bold_CheckoutPaymentBooster::express-pay.phtml">
                 <arguments>
                     <argument name="express_pay_view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\ExpressPay</argument>
                 </arguments>

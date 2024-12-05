@@ -101,11 +101,11 @@ define([
             this.isSpiLoading(false);
 
             if (isFastlaneAvailable) {
-                const paymentOptions = {
+                const fastlaneOptions = {
                     fastlane: isFastlaneAvailable,
                     shouldRenderSpiFrame: false
                 };
-                paymentsInstance.renderPayments('SPI', paymentOptions);
+                paymentsInstance.renderPayments('SPI', fastlaneOptions);
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
                 if (boldPaymentsForm.getHTML().trim() === '') {
@@ -115,7 +115,13 @@ define([
             }
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
-            paymentsInstance.renderPayments('SPI');
+            const paymentOptions = {
+                fastlane: false,
+                shouldRenderSpiFrame: true,
+                shouldRenderPaypalButton: true,
+                shouldRenderAppleGoogleButtons: true,
+            }
+            paymentsInstance.renderPayments('SPI', paymentOptions);
         },
 
         /** @inheritdoc */

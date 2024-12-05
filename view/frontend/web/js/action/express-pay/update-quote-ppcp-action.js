@@ -33,7 +33,7 @@ define(
             try {
                 order = await getExpressPayOrderAction(
                     paymentApprovalData.gateway_id,
-                    paymentApprovalData.payment_data.order_id
+                    paymentApprovalData.payment_data.order_id ?? paymentApprovalData.order_id
                 );
             } catch (error) {
                 console.error('Could not retrieve Express Pay order.', error);

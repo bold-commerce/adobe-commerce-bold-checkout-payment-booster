@@ -39,6 +39,7 @@ define([
         },
 
         _initConfig: async function () {
+            //console.log(this.pageSource);
             if (!window?.checkoutConfig?.bold) {
                 window.checkoutConfig.bold = this.config();
             }
@@ -50,7 +51,7 @@ define([
             let boldPaymentsInstance;
 
             try {
-                boldPaymentsInstance = await spi.getPaymentsClient();
+                boldPaymentsInstance = await spi.getPaymentsClient(this.pageSource);
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
 

@@ -6,6 +6,7 @@
             <block name="minicart.express.pay" template="Bold_CheckoutPaymentBooster::express-pay.phtml">
                 <arguments>
                     <argument name="express_pay_view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\ExpressPay</argument>
+                    <argument name="render_page_source" xsi:type="const">Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider::PAGE_SOURCE_MINICART</argument>
                 </arguments>
             </block>
         </referenceContainer>

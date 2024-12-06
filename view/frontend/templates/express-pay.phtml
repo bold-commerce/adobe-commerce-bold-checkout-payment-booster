@@ -6,10 +6,16 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 
 /** @var ExpressPay $expressPayViewModel */
 $expressPayViewModel = $block->getData('express_pay_view_model');
-$isEnabled = $expressPayViewModel->isCartWalletPayEnabled();
+$pageSource = $block->getData('render_page_source');
+$jsLayout = $expressPayViewModel->getJsLayout();
+$isCartEnabled = $expressPayViewModel->isCartWalletPayEnabled();
+$isProductEnabled = $expressPayViewModel->isProductWalletPayEnabled();
 $hasActiveQuote = $expressPayViewModel->hasActiveQuote();
 
-if (!$isEnabled || !$hasActiveQuote):
+if (!(($isCartEnabled && in_array($pageSource, ['cart', 'mini-cart'])) ||
+      ($isProductEnabled && $pageSource === 'product')) ||
+    !$hasActiveQuote
+   ):
     return;
 endif;
 ?>
@@ -23,15 +29,15 @@ endif;
         window.checkoutConfig = {};
     }
 
-    const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
-    Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+    Object.assign(window.checkoutConfig, <?= $block->escapeJs(__($jsLayout)) ?>.checkoutConfig);
 </script>
 
 <script type="text/x-magento-init">
 {
     "#express-pay-container": {
         "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
-            "boldCheckoutConfig": <?= json_encode($expressPayViewModel->initConfig()) ?>
+            "boldCheckoutConfig": <?= json_encode($expressPayViewModel->initConfig()) ?>,
+            "pageSource": "<?= $block->escapeJs(__($pageSource)) ?>"
         }
     }
 }

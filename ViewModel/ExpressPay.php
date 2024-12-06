@@ -85,8 +85,9 @@ class ExpressPay implements ArgumentInterface
         return $this->config->isCartWalletPayEnabled($websiteId);
     }
 
-    public function isProductWalletPayEnabled($websiteId): bool
+    public function isProductWalletPayEnabled(): bool
     {
+        $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
 

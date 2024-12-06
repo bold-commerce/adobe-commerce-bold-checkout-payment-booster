@@ -12,7 +12,7 @@ $isCartEnabled = $expressPayViewModel->isCartWalletPayEnabled();
 $isProductEnabled = $expressPayViewModel->isProductWalletPayEnabled();
 $hasActiveQuote = $expressPayViewModel->hasActiveQuote();
 
-if (!(($isCartEnabled && in_array($pageSource, ['cart', 'mini-cart'])) ||
+if (!(($isCartEnabled && in_array($pageSource, ['cart'])) ||
       ($isProductEnabled && $pageSource === 'product')) ||
     !$hasActiveQuote
    ):
@@ -29,7 +29,8 @@ endif;
         window.checkoutConfig = {};
     }
 
-    Object.assign(window.checkoutConfig, <?= $block->escapeJs(__($jsLayout)) ?>.checkoutConfig);
+    var layout = <?=  $expressPayViewModel->getJsLayout() ?>;
+    Object.assign(window.checkoutConfig, layout.checkoutConfig);
 </script>
 
 <script type="text/x-magento-init">

@@ -13,6 +13,8 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/hydrate-order-action',
+    'Magento_Ui/js/model/messageList',
+    'Magento_Checkout/js/model/payment/additional-validators'
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -28,8 +30,23 @@ define([
     platformClient,
     fastlane,
     hydrateOrderAction,
+    messageList,
+    additionalValidators
 ) {
     'use strict';
+
+    const validateAgreements = () => {
+        if (!additionalValidators.validate()) {
+            messageList.addErrorMessage({
+                message: $t('Please agree to all the terms and conditions before placing the order.')
+            });
+            localStorage.removeItem('checkoutAcceptedAgreement');
+            return false;
+        }
+        localStorage.setItem('checkoutAcceptedAgreement', '1');
+        return true;
+    };
+
     return DefaultPaymentComponent.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/spi',
@@ -100,6 +117,13 @@ define([
             const isFastlaneAvailable = fastlane.isAvailable();
             this.isSpiLoading(false);
 
+            if (localStorage.getItem('checkoutAcceptedAgreement') === '1') {
+                document.querySelectorAll('input[data-gdpr-checkbox-code="privacy_checkbox"],' +
+                    '.checkout-agreement input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            }
+
             if (isFastlaneAvailable) {
                 const fastlaneOptions = {
                     fastlane: isFastlaneAvailable,
@@ -140,6 +164,9 @@ define([
          * @return boolean
          */
         placeOrderClick: function (data, event) {
+            if (!validateAgreements()) {
+                throw new Error('Agreements not accepted');
+            }
             fullscreenLoader.startLoader();
             return this.placeOrder(data, event);
         },

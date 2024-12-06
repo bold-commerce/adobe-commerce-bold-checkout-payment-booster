@@ -32,8 +32,10 @@ define([
             messageList.addErrorMessage({
                 message: $t('Please agree to all the terms and conditions before placing the order.')
             });
+            localStorage.removeItem('checkoutAcceptedAgreement');
             return false;
         }
+        localStorage.setItem('checkoutAcceptedAgreement', '1');
         return true;
     };
 

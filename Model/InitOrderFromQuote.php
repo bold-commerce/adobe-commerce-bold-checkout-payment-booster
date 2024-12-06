@@ -72,7 +72,7 @@ class InitOrderFromQuote
         $body = [
             'flow_id' => $flowId,
             'order_type' => 'simple_order',
-            'cart_id' => $quote->getId(),
+            'cart_id' => $quote->getId() ?? '',
         ];
         $orderData = $this->client->post(
             (int)$quote->getStore()->getWebsiteId(),

@@ -8,6 +8,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
+        'Magento_Ui/js/model/messageList'
     ],
     function (
         registry,
@@ -17,7 +18,8 @@ define(
         redirectOnSuccessAction,
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
-        saveShippingInformationAction
+        saveShippingInformationAction,
+        messageList
     ) {
         'use strict';
 
@@ -62,7 +64,8 @@ define(
                     return;
                 }
             }
-            const messageContainer = registry.get('checkout.errors').messageContainer;
+
+            const messageContainer = registry.get('checkout.errors')?.messageContainer ?? messageList;
             $.when(placeOrderAction(paymentMethodData, messageContainer))
                 .done(
                     function () {

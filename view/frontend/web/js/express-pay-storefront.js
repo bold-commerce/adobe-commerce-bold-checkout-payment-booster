@@ -1,26 +1,20 @@
 define([
     'uiComponent',
-    'ko',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
+    'Magento_Customer/js/customer-data'
 ], function(
     Component,
-    ko,
     _,
     spi,
+    customerData
 ) {
     'use strict'
 
     return Component.extend({
-        defaults: {
-            config: ko.observable(null)
-        },
-
-        initialize: async function (config) {
+        initialize: async function () {
             this._super();
 
-            this.config(config.boldCheckoutConfig.bold);
-            
             this._initConfig();
             this._setVisibility();
         },
@@ -40,7 +34,7 @@ define([
 
         _initConfig: async function () {
             if (!window?.checkoutConfig?.bold) {
-                window.checkoutConfig.bold = this.config();
+                window.checkoutConfig.bold = customerData.get('bold-checkout-data')();
             }
         },
 

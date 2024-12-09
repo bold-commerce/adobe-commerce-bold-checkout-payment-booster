@@ -9,4 +9,12 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Customer\CustomerData\SectionPoolInterface">
+        <arguments>
+            <argument name="sectionSourceMap" xsi:type="array">
+                <item name="bold-checkout-data" xsi:type="string">Bold\CheckoutPaymentBooster\CustomerData\BoldCheckoutData</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

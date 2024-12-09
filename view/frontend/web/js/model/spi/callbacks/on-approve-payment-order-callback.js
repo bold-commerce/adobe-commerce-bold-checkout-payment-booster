@@ -44,7 +44,7 @@ define(
 
             if (paymentType === 'ppcp' || isWalletPayment) {
                 paymentMethodData['additional_data'] = {
-                    order_id: paymentApprovalData?.payment_data.order_id
+                    order_id: paymentApprovalData?.payment_data.order_id ?? paymentApprovalData.order_id
                 };
             }
 

@@ -4,4 +4,7 @@
     <event name="controller_action_predispatch">
         <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
     </event>
+    <event name="shortcut_buttons_container">
+        <observer name="add_express_pay_buttons" instance="Bold\CheckoutPaymentBooster\Observer\ShortcutButtons\AddExpressPayButtonsObserver"/>
+    </event>
 </config>

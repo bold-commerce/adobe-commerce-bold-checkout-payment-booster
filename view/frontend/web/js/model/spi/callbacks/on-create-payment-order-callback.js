@@ -23,23 +23,26 @@ define(
             const paymentData = paymentPayload['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+            const addressProvided = Boolean(paymentData['shipping_address'] || paymentData['billing_address']);
 
             if (paymentType !== 'ppcp') {
                 return;
             }
 
-            if (isWalletPayment) {
-                if (paymentData['shipping_address']) {
+            if (addressProvided) {
+                if (isWalletPayment && paymentData['shipping_address']) {
                     updateQuoteAddressAction('shipping', paymentData['shipping_address']);
                 }
-                if (paymentData['billing_address']) {
+                if (isWalletPayment && paymentData['billing_address']) {
                     updateQuoteAddressAction('billing', paymentData['billing_address']);
                 }
-            } else {
-                await updateQuoteShippingMethodAction(paymentData['shipping_options']);
-            }
 
-            await saveShippingInformationAction(true);
+                if (!isWalletPayment) {
+                    await updateQuoteShippingMethodAction(paymentData['shipping_options']);
+                }
+
+                await saveShippingInformationAction(true);
+            }
 
             const walletPayResult = await createWalletPayOrderAction(paymentPayload);
             return {

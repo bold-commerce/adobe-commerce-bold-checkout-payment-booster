@@ -27,13 +27,20 @@ define([
 ) {
     'use strict';
 
+    const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
     const validateAgreements = () => {
+        if (!window.location.href.includes("#payment")) {
+            return true;
+        }
         if (!additionalValidators.validate()) {
             messageList.addErrorMessage({
                 message: $t('Please agree to all the terms and conditions before placing the order.')
             });
+            localStorage.removeItem(AGREEMENT_DATE_KEY);
             return false;
         }
+        const currentTime = Date.now();
+        localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
         return true;
     };
 

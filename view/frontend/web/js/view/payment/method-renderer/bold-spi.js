@@ -39,6 +39,11 @@ define([
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
 
     const validateAgreements = () => {
+
+        if (!window.location.href.includes("#payment")) {
+            return true;
+        }
+
         if (!additionalValidators.validate()) {
             messageList.addErrorMessage({
                 message: $t('Please agree to all the terms and conditions before placing the order.')

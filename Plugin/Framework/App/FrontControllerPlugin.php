@@ -102,7 +102,6 @@ class FrontControllerPlugin
             $moduleName = $request->getModuleName();
             $controllerName = $request->getControllerName();
             $actionName = $request->getActionName();
-
             $fullActionName = $moduleName . '_' . $controllerName . '_' . $actionName;
 
             if ($fullActionName === '__') {

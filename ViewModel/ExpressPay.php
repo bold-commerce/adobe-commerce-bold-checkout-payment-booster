@@ -73,30 +73,50 @@ class ExpressPay implements ArgumentInterface
         $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
     }
 
+    /**
+     * @return bool|string
+     */
     public function getJsLayout()
     {
         $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
         return $this->serializer->serialize($this->jsLayout);
     }
 
-    public function isCartWalletPayEnabled(): bool
+    /**
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    public function isCartWalletPayEnabled()
     {
         $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isCartWalletPayEnabled($websiteId);
     }
 
-    public function isProductWalletPayEnabled($websiteId): bool
+    /**
+     * @param $websiteId
+     * @return bool
+     */
+    public function isProductWalletPayEnabled($websiteId)
     {
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
 
-    public function hasActiveQuote(): bool
+    /**
+     * @return bool
+     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function hasActiveQuote()
     {
         $quote = $this->checkoutSession->getQuote();
         return $quote->getId() !== null;
     }
 
-    public function initConfig(): array
+    /**
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function initConfig()
     {
         $this->checkoutData->initCheckoutData();
         return $this->paymentBoosterConfigProvider->getConfig();

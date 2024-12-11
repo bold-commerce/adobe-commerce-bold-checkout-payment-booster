@@ -20,11 +20,11 @@ endif;
 
 <script>
     if (!window.checkoutConfig) {
-        window.checkoutConfig = {};
-    }
+        let newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
 
-    const newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
-    Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+        window.checkoutConfig = {};
+        Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+    }
 </script>
 
 <script type="text/x-magento-init">

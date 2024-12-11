@@ -14,16 +14,15 @@ class BoldCheckoutData implements SectionSourceInterface
      */
     private $paymentBoosterConfig;
 
-    public function __construct(
-        PaymentBoosterConfigProvider $paymentBoosterConfig
-    ) {
+    public function __construct(PaymentBoosterConfigProvider $paymentBoosterConfig)
+    {
         $this->paymentBoosterConfig = $paymentBoosterConfig;
     }
 
     /**
      * @return array
      */
-    public function getSectionData(): array
+    public function getSectionData()
     {
         $boldConfig = $this->paymentBoosterConfig->getConfig();
         return $boldConfig['bold'] ?? [];

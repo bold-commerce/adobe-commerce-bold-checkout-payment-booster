@@ -38,7 +38,8 @@ class AddExpressPayButtonsObserver implements ObserverInterface
             ExpressPayShortcutButtons::BLOCK_ALIAS,
             [
                 'data' => [
-                    'express_pay_view_model' => $this->expressPayFactory->create()
+                    'express_pay_view_model' => $this->expressPayFactory->create(),
+                    'render_page_source' => 'mini-cart'
                 ]
             ]
         );

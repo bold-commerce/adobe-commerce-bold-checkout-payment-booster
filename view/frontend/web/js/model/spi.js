@@ -8,6 +8,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
     'Magento_Ui/js/model/messageList'
 ], function (
     quote,
@@ -19,6 +20,7 @@ define([
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
+    onClickPaymentOrderCallback,
     messageList
 ) {
     'use strict';
@@ -34,7 +36,7 @@ define([
          *
          * @returns {Promise<{}>}
          */
-        getPaymentsClient: async function () {
+        getPaymentsClient: async function (pageSource = '') {
             if (window.boldPaymentsInstance) {
                 return window.boldPaymentsInstance;
             }
@@ -117,8 +119,16 @@ define([
                     },
                     'onErrorPaymentOrder': function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
-                        messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
+                        messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     },
+                    'onClickPaymentOrder': async function () {
+                        try {
+                            return await onClickPaymentOrderCallback(pageSource);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                        }
+                    }
                 }
             };
             const paymentsInstance = new window.bold.Payments(initialData);

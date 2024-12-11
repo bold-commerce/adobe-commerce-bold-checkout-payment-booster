@@ -18,6 +18,11 @@ use Psr\Log\LoggerInterface;
  */
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
+
+    public const PAGE_SOURCE_PRODUCT = 'product';
+    public const PAGE_SOURCE_CART = 'cart';
+    public const PAGE_SOURCE_MINICART = 'mini-cart';
+
     /**
      * @var CheckoutData
      */

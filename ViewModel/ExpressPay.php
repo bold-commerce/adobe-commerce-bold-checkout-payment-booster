@@ -12,6 +12,8 @@ use Magento\Store\Model\StoreManagerInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
+use Magento\Framework\App\RequestInterface;
+use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 
 class ExpressPay implements ArgumentInterface
 {
@@ -48,7 +50,12 @@ class ExpressPay implements ArgumentInterface
     /**
      * @var PaymentBoosterConfigProvider
      */
-    private $paymentBoosterConfigProvider;
+    private $paymentBoosterConfigProvider;    
+    
+    /**
+     * @var RequestInterface
+     */
+    private $request;
 
     /**
      * @var array
@@ -62,7 +69,8 @@ class ExpressPay implements ArgumentInterface
         StoreManagerInterface $storeManager,
         CheckoutData $checkoutData,
         Config $config,
-        PaymentBoosterConfigProvider $paymentBoosterConfigProvider
+        PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
+        RequestInterface $request
     ) {
         $this->configProvider = $configProvider;
         $this->serializer = $serializer;
@@ -71,6 +79,7 @@ class ExpressPay implements ArgumentInterface
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
+        $this->request = $request;
     }
 
     /**
@@ -84,39 +93,73 @@ class ExpressPay implements ArgumentInterface
 
     /**
      * @return bool
-     * @throws NoSuchEntityException
      */
-    public function isCartWalletPayEnabled()
+    private function isCartWalletPayEnabled(): bool
     {
         $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isCartWalletPayEnabled($websiteId);
     }
 
     /**
-     * @param $websiteId
      * @return bool
      */
-    public function isProductWalletPayEnabled($websiteId)
+    private function isProductWalletPayEnabled(): bool
     {
+        $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
 
     /**
      * @return bool
-     * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function hasActiveQuote()
+    private function hasActiveQuote(): bool
     {
         $quote = $this->checkoutSession->getQuote();
         return $quote->getId() !== null;
     }
 
     /**
+     * @return string
+     */
+    private function getFullActionName(): string {
+        $moduleName = $this->request->getModuleName();
+        $controllerName = $this->request->getControllerName();
+        $actionName = $this->request->getActionName();
+
+        $fullActionName = $moduleName . '_' . $controllerName . '_' . $actionName;
+
+        return $fullActionName;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnabled($pageSource = ''): bool {
+        $isEnabled = false;
+        $hasActiveQuote = $this->hasActiveQuote();
+        $isMinicartRendered = $this->getFullActionName() !== 'checkout_cart_index'
+                    && $this->getFullActionName() !== 'catalog_product_view';
+
+        switch ($pageSource) {
+            case PaymentBoosterConfigProvider::PAGE_SOURCE_CART:
+                $isEnabled = $this->isCartWalletPayEnabled();
+                break;            
+            case PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT:
+                $isEnabled = $this->isProductWalletPayEnabled();
+                break;            
+            case PaymentBoosterConfigProvider::PAGE_SOURCE_MINICART:
+                $isEnabled = $this->isCartWalletPayEnabled() && $isMinicartRendered;
+                break;
+        }
+
+        return $isEnabled && $hasActiveQuote;
+    }
+
+    /**
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function initConfig()
+    public function initConfig(): array
     {
         $this->checkoutData->initCheckoutData();
         return $this->paymentBoosterConfigProvider->getConfig();

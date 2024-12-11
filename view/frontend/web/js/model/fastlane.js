@@ -1,7 +1,6 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
-    'prototype'
+    'Bold_CheckoutPaymentBooster/js/action/general/load-script-action'
 ], function (
     ko,
     loadScriptAction,

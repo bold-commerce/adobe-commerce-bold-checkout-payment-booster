@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Checkout\Model\CompositeConfigProvider;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
@@ -106,7 +107,7 @@ class ExpressPay implements ArgumentInterface
     /**
      * @return bool
      * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function hasActiveQuote(): bool
     {

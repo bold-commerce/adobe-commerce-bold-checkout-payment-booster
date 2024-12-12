@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
-use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -14,7 +13,6 @@ use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
-use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 
 class ExpressPay implements ArgumentInterface
 {
@@ -39,19 +37,9 @@ class ExpressPay implements ArgumentInterface
     private $storeManager;
 
     /**
-     * @var CheckoutData
-     */
-    private $checkoutData;
-
-    /**
      * @var Config
      */
     private $config;
-
-    /**
-     * @var PaymentBoosterConfigProvider
-     */
-    private $paymentBoosterConfigProvider;
 
     /**
      * @var mixed[]
@@ -63,17 +51,13 @@ class ExpressPay implements ArgumentInterface
         SerializerInterface $serializer,
         Session $checkoutSession,
         StoreManagerInterface $storeManager,
-        CheckoutData $checkoutData,
-        Config $config,
-        PaymentBoosterConfigProvider $paymentBoosterConfigProvider
+        Config $config
     ) {
         $this->configProvider = $configProvider;
         $this->serializer = $serializer;
         $this->checkoutSession = $checkoutSession;
         $this->storeManager = $storeManager;
-        $this->checkoutData = $checkoutData;
         $this->config = $config;
-        $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
     }
 
     /**

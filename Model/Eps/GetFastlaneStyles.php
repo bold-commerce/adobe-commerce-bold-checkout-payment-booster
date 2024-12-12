@@ -44,7 +44,6 @@ class GetFastlaneStyles
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
             $configurationGroupLabel = parse_url($baseUrl)['host'] ?? '';
-            $configurationGroupLabel = preg_replace('/^www\./i', '', $configurationGroupLabel);
         }
 
         $epsStaticUrl = $this->config->getStaticEpsUrl($websiteId);

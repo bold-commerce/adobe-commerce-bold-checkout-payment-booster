@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
@@ -53,7 +55,7 @@ class ExpressPay implements ArgumentInterface
     /**
      * @var array
      */
-    protected $jsLayout = [];
+    private $jsLayout = [];
 
     public function __construct(
         CompositeConfigProvider $configProvider,
@@ -86,7 +88,7 @@ class ExpressPay implements ArgumentInterface
      * @return bool
      * @throws NoSuchEntityException
      */
-    public function isCartWalletPayEnabled()
+    public function isCartWalletPayEnabled(): bool
     {
         $websiteId = $this->storeManager->getStore()->getWebsiteId();
         return $this->config->isCartWalletPayEnabled($websiteId);
@@ -96,7 +98,7 @@ class ExpressPay implements ArgumentInterface
      * @param $websiteId
      * @return bool
      */
-    public function isProductWalletPayEnabled($websiteId)
+    public function isProductWalletPayEnabled($websiteId): bool
     {
         return $this->config->isProductWalletPayEnabled($websiteId);
     }
@@ -106,17 +108,46 @@ class ExpressPay implements ArgumentInterface
      * @throws NoSuchEntityException
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function hasActiveQuote()
+    public function hasActiveQuote(): bool
     {
         $quote = $this->checkoutSession->getQuote();
         return $quote->getId() !== null;
     }
 
     /**
-     * @return array
+     * @return array{
+     *     bold: array{
+     *         epsAuthToken: string,
+     *         configurationGroupLabel: string,
+     *         epsUrl: string,
+     *         epsStaticUrl: string,
+     *         gatewayId: int,
+     *         jwtToken: string,
+     *         url: string,
+     *         shopId: string,
+     *         publicOrderId: string,
+     *         countries: array{
+     *             is_region_visible: bool,
+     *             label: string,
+     *             value: string
+     *         },
+     *         origin: string,
+     *         epsUrl: string,
+     *         shopUrl: string,
+     *         shopName: string,
+     *         isPhoneRequired: bool,
+     *         isExpressPayEnabled: bool,
+     *         isCartWalletPayEnabled: bool,
+     *         paymentBooster: array{
+     *             payment: object{
+     *                 method: string
+     *             }
+     *         }
+     *     }
+     * }
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function initConfig()
+    public function initConfig(): array
     {
         $this->checkoutData->initCheckoutData();
         return $this->paymentBoosterConfigProvider->getConfig();

@@ -107,7 +107,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
             $configurationGroupLabel = parse_url($quote->getStore()->getBaseUrl())['host'] ?? '';
-            $configurationGroupLabel = preg_replace('/^www\./i', '', $configurationGroupLabel);
         }
 
         return [

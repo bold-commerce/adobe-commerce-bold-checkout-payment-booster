@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Checkout\Model\CompositeConfigProvider;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
-use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
-use Bold\CheckoutPaymentBooster\Model\Config;
-use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 
 class ExpressPay implements ArgumentInterface
 {

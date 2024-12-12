@@ -95,10 +95,10 @@ class ExpressPay implements ArgumentInterface
     }
 
     /**
-     * @param $websiteId
+     * @param int $websiteId
      * @return bool
      */
-    public function isProductWalletPayEnabled($websiteId): bool
+    public function isProductWalletPayEnabled(int $websiteId): bool
     {
         return $this->config->isProductWalletPayEnabled($websiteId);
     }

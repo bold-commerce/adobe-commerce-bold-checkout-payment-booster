@@ -53,7 +53,7 @@ class ExpressPay implements ArgumentInterface
     private $paymentBoosterConfigProvider;
 
     /**
-     * @var array
+     * @var mixed[]
      */
     private $jsLayout = [];
 

@@ -25,10 +25,6 @@ define(
          * @return {Promise}
          */
         return async function (paymentApprovalData) {
-            const paymentData = paymentApprovalData['payment_data'];
-            const availableWalletTypes = ['apple', 'google'];
-            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
-
             let order;
             try {
                 order = await getExpressPayOrderAction(
@@ -56,11 +52,9 @@ define(
                 return address;
             }
 
-            if (!isWalletPayment) {
-                quote.guestEmail = order.email;
-                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
-                updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
-            }
+            quote.guestEmail = order.email;
+            updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+            updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
         };
     }
 );

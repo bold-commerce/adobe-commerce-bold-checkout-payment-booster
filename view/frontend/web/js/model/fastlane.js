@@ -1,7 +1,6 @@
 define([
     'ko',
-    'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
-    'prototype'
+    'Bold_CheckoutPaymentBooster/js/action/general/load-script-action'
 ], function (
     ko,
     loadScriptAction,
@@ -161,16 +160,17 @@ define([
          * @param {{}} gatewayData
          */
         addAuthorizationAttributesToPayPalScript: function (gatewayData) {
-            Element.prototype.appendChild = Element.prototype.appendChild.wrap(
-                function (appendChild, element) {
-                    if (element.attributes && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
-                        // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
-                        element.setAttribute('data-sdk-client-token', gatewayData.client_token);
-                        element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
-                    }
-                    return appendChild(element);
+            var defaultLoad = require.load;
+            require.load = function (context, moduleName, url) {
+                var element = defaultLoad(context, moduleName, url);
+                if (element.attributes && element.attributes['data-requiremodule']?.value === 'bold_paypal_fastlane') {
+                    // Require.js < 2.1.19 is not calling onNodeCreated config callback, so we need to set the client token manually.
+                    element.setAttribute('data-sdk-client-token', gatewayData.client_token);
+                    element.setAttribute('data-client-metadata-id', window.checkoutConfig.bold.publicOrderId);
                 }
-            );
+
+                return element;
+            };
         },
         /**
          * Set Fastlane locale.

@@ -165,6 +165,7 @@ define([
                 shouldRenderSpiFrame: true,
                 shouldRenderPaypalButton: true,
                 shouldRenderAppleGoogleButtons: true,
+                shopName: window.checkoutConfig.bold?.shopName ?? '',
             }
             paymentsInstance.renderPayments('SPI', paymentOptions);
         },

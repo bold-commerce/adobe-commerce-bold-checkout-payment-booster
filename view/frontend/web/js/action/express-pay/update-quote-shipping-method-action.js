@@ -38,7 +38,7 @@ define(
                     return methodId === shippingMethod['id']
                         || methodId === shippingMethod['identifier']
                         || methodId === `${shippingMethod.carrier_code}_${shippingMethod.method_code}`;
-                }).first();
+                })[0];
             }
             selectShippingMethodAction(newMethod ?? shippingService.getShippingRates().first());
             if (quote.guestEmail === null) {

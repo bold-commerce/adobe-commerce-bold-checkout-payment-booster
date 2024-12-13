@@ -9,6 +9,5 @@
                 </arguments>
             </block>
         </referenceContainer>
-        <move element="checkout.cart.totals.container" destination="cart.summary" before="checkout.cart.methods.bottom"/>
     </body>
 </page>

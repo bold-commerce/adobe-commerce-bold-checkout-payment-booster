@@ -66,10 +66,15 @@ define(
             }
 
             const messageContainer = registry.get('checkout.errors')?.messageContainer ?? messageList;
+            $('body').trigger('processStart');
             $.when(placeOrderAction(paymentMethodData, messageContainer))
                 .done(
                     function () {
                         redirectOnSuccessAction.execute();
+                    }
+                ).always(
+                    function () {
+                        $('body').trigger('processStop');
                     }
                 );
         };

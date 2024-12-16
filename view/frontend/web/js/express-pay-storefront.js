@@ -3,7 +3,7 @@ define([
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Magento_Customer/js/customer-data'
-], function(
+], function (
     Component,
     _,
     spi,
@@ -16,19 +16,6 @@ define([
             this._super();
 
             this._initConfig();
-            this._setVisibility();
-        },
-
-        /**
-         * Set the visibility of the component.
-         * @private
-         */
-        _setVisibility: function () {
-            const ppcpExpressContainer = document.getElementById('ppcp-express-payment');
-            if (ppcpExpressContainer) {
-                ppcpExpressContainer.remove();
-            }
-
             this._renderExpressPayments();
         },
 
@@ -39,15 +26,11 @@ define([
         },
 
         _renderExpressPayments: async function () {
-            const containerId = 'express-pay-buttons';
-
             let boldPaymentsInstance;
-
             try {
-                boldPaymentsInstance = await spi.getPaymentsClient();
+                boldPaymentsInstance = await spi.getPaymentsClient(this.pageSource);
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
-
                 return;
             }
 
@@ -56,10 +39,11 @@ define([
                 shopName: window.checkoutConfig.bold?.shopName ?? '',
                 isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
                 fastlane: window.checkoutConfig.bold?.fastlane,
-                allowedCountryCodes: allowedCountries
+                allowedCountryCodes: allowedCountries,
+                pageSource: this.pageSource
             };
 
-            boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
+            boldPaymentsInstance.renderWalletPayments(this.containerId, walletOptions);
         },
 
         _getAllowedCountryCodes: function () {

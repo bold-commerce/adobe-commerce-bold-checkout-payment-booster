@@ -9,6 +9,7 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPayFactory;
 use Magento\Catalog\Block\ShortcutButtons;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
+use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 
 /**
  * Observes the `shortcut_buttons_container` event
@@ -32,18 +33,40 @@ class AddExpressPayButtonsObserver implements ObserverInterface
         $event = $observer->getEvent();
         /** @var ShortcutButtons $container */
         $container = $event->getData('container');
+
+        $layout = $container->getLayout();
+
+        if ($layout->getBlock(ExpressPayShortcutButtons::BLOCK_ALIAS) !== false) {
+            return;
+        }
+
         /** @var ExpressPayShortcutButtons $expressPayShortcutButtons */
-        $expressPayShortcutButtons = $container->getLayout()->createBlock(
+        $expressPayShortcutButtons = $layout->createBlock(
             ExpressPayShortcutButtons::class,
-            ExpressPayShortcutButtons::BLOCK_ALIAS,
+            '',
             [
                 'data' => [
                     'express_pay_view_model' => $this->expressPayFactory->create(),
-                    'render_page_source' => 'mini-cart'
+                    'render_page_source' => $this->getPageType($observer->getEvent())
                 ]
             ]
         );
 
         $container->addShortcut($expressPayShortcutButtons);
+    }
+
+    /**
+     * @param $event
+     * @return string
+     */
+    private function getPageType($event) : string
+    {
+        if ($event->getIsCatalogProduct()) {
+            return PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT;
+        }
+        if ($event->getIsShoppingCart()) {
+            return PaymentBoosterConfigProvider::PAGE_SOURCE_CART;
+        }
+        return PaymentBoosterConfigProvider::PAGE_SOURCE_MINICART;
     }
 }

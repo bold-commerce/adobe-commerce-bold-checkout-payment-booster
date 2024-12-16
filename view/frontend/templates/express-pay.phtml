@@ -9,24 +9,25 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 
 /** @var ExpressPay $expressPayViewModel */
 $expressPayViewModel = $block->getData('express_pay_view_model');
-$isEnabled = $expressPayViewModel->isCartWalletPayEnabled();
-$hasActiveQuote = $expressPayViewModel->hasActiveQuote();
+$pageSource = $block->getData('render_page_source');
+$isEnabled = $expressPayViewModel->isEnabled($pageSource);
+$containerId = 'express-pay-buttons-' . $pageSource;
 
-if (!$isEnabled || !$hasActiveQuote):
+if (!$isEnabled):
     return;
 endif;
 ?>
 
 <div id="express-pay-container" data-testid="express-pay-container">
-    <div id="express-pay-buttons"></div>
+    <div id="<?= $block->escapeHtml($containerId) ?>"></div>
 </div>
 
 <script>
     if (!window.checkoutConfig) {
-        let newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
+        var layout = <?= $expressPayViewModel->getJsLayout() ?>;
 
         window.checkoutConfig = {};
-        Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+        Object.assign(window.checkoutConfig, layout.checkoutConfig);
     }
 </script>
 
@@ -34,6 +35,8 @@ endif;
 {
     "#express-pay-container": {
         "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
+            "pageSource": "<?= $block->escapeHtml($pageSource) ?>",
+            "containerId": "<?= $block->escapeHtml($containerId) ?>"
         }
     }
 }

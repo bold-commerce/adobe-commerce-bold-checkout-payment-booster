@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
+
+/** @var Template $block */
+
+/** @var ExpressPay $expressPayViewModel */
+$expressPayViewModel = $block->getData('express_pay_view_model');
+$isEnabled = $expressPayViewModel->isCartWalletPayEnabled();
+$hasActiveQuote = $expressPayViewModel->hasActiveQuote();
+
+if (!$isEnabled || !$hasActiveQuote):
+    return;
+endif;
+?>
+
+<div id="express-pay-container" data-testid="express-pay-container">
+    <div id="express-pay-buttons"></div>
+</div>
+
+<script>
+    if (!window.checkoutConfig) {
+        let newCheckoutConfig = <?= $expressPayViewModel->getJsLayout() ?>;
+
+        window.checkoutConfig = {};
+        Object.assign(window.checkoutConfig, newCheckoutConfig.checkoutConfig);
+    }
+</script>
+
+<script type="text/x-magento-init">
+{
+    "#express-pay-container": {
+        "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
+        }
+    }
+}
+</script>

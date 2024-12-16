@@ -1,13 +1,11 @@
 define([
     'uiComponent',
     'ko',
-    'jquery',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
 ], function (
     Component,
     ko,
-    $,
     _,
     spi,
 ) {
@@ -72,7 +70,8 @@ define([
                         shopName: window.checkoutConfig.bold?.shopName ?? '',
                         isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
                         fastlane: window.checkoutConfig.bold?.fastlane,
-                        allowedCountryCodes: allowedCountries
+                        allowedCountryCodes: allowedCountries,
+                        pageSource: this.render_page_source
                     };
 
                     boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);

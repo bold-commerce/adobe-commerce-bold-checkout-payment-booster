@@ -26,9 +26,10 @@ use Magento\Framework\UrlInterface;
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
 
-    public const PAGE_SOURCE_PRODUCT = 'product';
+    public const PAGE_SOURCE_PRODUCT = 'product-details';
     public const PAGE_SOURCE_CART = 'cart';
     public const PAGE_SOURCE_MINICART = 'mini-cart';
+    public const PAGE_SOURCE_CHECKOUT = 'checkout';
 
     /**
      * @var CheckoutData

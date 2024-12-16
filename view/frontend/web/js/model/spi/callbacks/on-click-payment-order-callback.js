@@ -1,7 +1,7 @@
 define(['jquery'], function ($) {
     'use strict';
     return async function (pageSource) {
-        if (pageSource !== 'product') {
+        if (pageSource !== 'product-details') {
             return;
         }
 

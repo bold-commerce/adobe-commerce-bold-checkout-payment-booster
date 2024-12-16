@@ -1,12 +1,10 @@
 define([
     'uiComponent',
-    'ko',
     'underscore',
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Magento_Customer/js/customer-data'
 ], function (
     Component,
-    ko,
     _,
     spi,
     customerData
@@ -14,28 +12,10 @@ define([
     'use strict'
 
     return Component.extend({
-        defaults: {
-            _pageSource: ko.observable('')
-        },
-
-        initialize: async function (config) {
+        initialize: async function () {
             this._super();
 
-            this._pageSource(config.pageSource);
             this._initConfig();
-            this._setVisibility();
-        },
-
-        /**
-         * Set the visibility of the component.
-         * @private
-         */
-        _setVisibility: function () {
-            const ppcpExpressContainer = document.getElementById('ppcp-express-payment');
-            if (ppcpExpressContainer) {
-                ppcpExpressContainer.remove();
-            }
-
             this._renderExpressPayments();
         },
 
@@ -46,11 +26,9 @@ define([
         },
 
         _renderExpressPayments: async function () {
-            const containerId = 'express-pay-buttons';
-
             let boldPaymentsInstance;
             try {
-                boldPaymentsInstance = await spi.getPaymentsClient(this._pageSource());
+                boldPaymentsInstance = await spi.getPaymentsClient(this.pageSource);
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
                 return;
@@ -61,10 +39,11 @@ define([
                 shopName: window.checkoutConfig.bold?.shopName ?? '',
                 isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
                 fastlane: window.checkoutConfig.bold?.fastlane,
-                allowedCountryCodes: allowedCountries
+                allowedCountryCodes: allowedCountries,
+                pageSource: this.pageSource
             };
 
-            boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
+            boldPaymentsInstance.renderWalletPayments(this.containerId, walletOptions);
         },
 
         _getAllowedCountryCodes: function () {

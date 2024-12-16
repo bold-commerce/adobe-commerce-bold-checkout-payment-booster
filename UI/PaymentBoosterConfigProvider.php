@@ -20,9 +20,10 @@ use Psr\Log\LoggerInterface;
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
 
-    public const PAGE_SOURCE_PRODUCT = 'product';
+    public const PAGE_SOURCE_PRODUCT = 'product-details';
     public const PAGE_SOURCE_CART = 'cart';
     public const PAGE_SOURCE_MINICART = 'mini-cart';
+    public const PAGE_SOURCE_CHECKOUT = 'checkout';
 
     /**
      * @var CheckoutData
@@ -113,7 +114,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             if ($epsGatewayId === null) {
                 $errorMsgs[] = '$epsGatewayId is null.';
             }
-            
+
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): '.implode(', ', $errorMsgs));
             return [];
         }

@@ -5,6 +5,7 @@ define(
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/action/redirect-on-success',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-wallet-pay-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
@@ -15,6 +16,7 @@ define(
         quote,
         placeOrderAction,
         redirectOnSuccessAction,
+        updateQuoteWalletPayAction,
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
         saveShippingInformationAction
@@ -48,7 +50,9 @@ define(
                 };
             }
 
-            if (paymentType === 'ppcp') {
+            if (isWalletPayment) {
+                await updateQuoteWalletPayAction(paymentApprovalData);
+            } else if (paymentType === 'ppcp') {
                 await updateQuotePPCPAction(paymentApprovalData);
             } else {
                 await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);

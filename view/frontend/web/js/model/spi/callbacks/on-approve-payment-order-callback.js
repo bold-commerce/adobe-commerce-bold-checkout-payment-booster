@@ -58,14 +58,13 @@ define(
                 await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
             }
 
-            if (!isWalletPayment) {
-                try {
-                    await saveShippingInformationAction(true);
-                } catch (error) {
-                    console.error('Could not save shipping information for Express Pay order.', error);
-                    return;
-                }
+            try {
+                await saveShippingInformationAction(true);
+            } catch (error) {
+                console.error('Could not save shipping information for Express Pay order.', error);
+                return;
             }
+
             const messageContainer = registry.get('checkout.errors').messageContainer;
             $.when(placeOrderAction(paymentMethodData, messageContainer))
                 .done(

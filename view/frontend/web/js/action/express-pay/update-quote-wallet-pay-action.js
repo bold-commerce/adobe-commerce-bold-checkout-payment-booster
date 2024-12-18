@@ -1,8 +1,10 @@
 define(
     [
+        'Magento_Checkout/js/model/quote',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-address-action',
     ],
     function (
+        quote,
         updateQuoteAddressAction,
     ) {
         'use strict';
@@ -14,15 +16,31 @@ define(
          */
         return async function (paymentApprovalData) {
             const paymentData = paymentApprovalData['payment_data'];
-            const customer = paymentData['customer'];
-            const _convertAddress = function (address, customer) {
-                address.email = customer.email_address;
+            const shippingAddress = paymentData['shipping_address'];
+            const billingAddress = paymentData['billing_address'];
 
-                return address;
+            let email;
+            if (shippingAddress && shippingAddress['emailAddress']) { // Apple Pay
+                email = shippingAddress['emailAddress'];
+            } else if (paymentData['email']) { // Braintree Google Pay
+                email = paymentData['email'];
+            } else if (paymentData['customer'] && paymentData['customer']['email_address']) { // PPCP Google Pay
+                email = paymentData['customer']['email_address'];
             }
 
-            updateQuoteAddressAction('shipping', _convertAddress(paymentData.shipping_address, customer));
-            updateQuoteAddressAction('billing', _convertAddress(paymentData.billing_address, customer));
+            if (email) {
+                if (shippingAddress) {
+                    shippingAddress.email = email;
+                }
+
+                billingAddress.email = email;
+                quote.guestEmail = email;
+            }
+
+            if (shippingAddress) {
+                updateQuoteAddressAction('shipping', shippingAddress);
+            }
+            updateQuoteAddressAction('billing', billingAddress);
         };
     }
 );

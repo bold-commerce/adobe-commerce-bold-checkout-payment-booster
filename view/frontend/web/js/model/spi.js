@@ -23,7 +23,7 @@ define([
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
     onClickPaymentOrderCallback,
-    messageList
+    messageList,
 ) {
     'use strict';
 
@@ -112,7 +112,7 @@ define([
                     },
                     'onRequireOrderData': async function (requirements) {
                         try {
-                            return await onRequireOrderDataCallback(requirements);
+                            return onRequireOrderDataCallback(requirements);
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
@@ -133,12 +133,12 @@ define([
                             let config = await getCheckoutConfigurationAction();
                             config = await config.json();
                             config = JSON.parse(config);
-                            Object.assign(window.checkoutConfig, config);
+
+                            Object.assign(window.checkoutConfig, config.checkoutConfig);
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
-
-                            return;
+                            throw e;
                         }
                     }
                 }

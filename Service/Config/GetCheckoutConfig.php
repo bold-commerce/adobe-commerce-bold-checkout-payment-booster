@@ -38,7 +38,9 @@ class GetCheckoutConfig implements GetCheckoutConfigInterface
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCheckoutConfig() {
-        $jsLayout = $this->configProvider->getConfig();
+        $jsLayout = [];
+        $jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+
         $config = $this->serializer->serialize($jsLayout);
 
         return $config;

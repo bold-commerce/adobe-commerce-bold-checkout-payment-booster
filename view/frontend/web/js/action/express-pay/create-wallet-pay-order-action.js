@@ -14,7 +14,7 @@ define(
          * @return {Promise}
          */
         return async function (paymentPayload) {
-            return await platformClient.post(
+            return platformClient.post(
                 'rest/V1/express_pay/order/create',
                 {
                     quoteMaskId: window.checkoutConfig.quoteData.entity_id,

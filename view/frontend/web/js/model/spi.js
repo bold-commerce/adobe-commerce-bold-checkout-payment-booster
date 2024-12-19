@@ -3,23 +3,27 @@ define([
     'Magento_Checkout/js/model/full-screen-loader',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
+    'Bold_CheckoutPaymentBooster/js/action/express-pay/get-checkout-configuration-action',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
-    'Magento_Ui/js/model/messageList'
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
+    'Magento_Ui/js/model/messageList',
 ], function (
     quote,
     fullScreenLoader,
     fastlane,
     loadScriptAction,
+    getCheckoutConfigurationAction,
     onCreatePaymentOrderCallback,
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
-    messageList
+    onClickPaymentOrderCallback,
+    messageList,
 ) {
     'use strict';
 
@@ -34,7 +38,7 @@ define([
          *
          * @returns {Promise<{}>}
          */
-        getPaymentsClient: async function () {
+        getPaymentsClient: async function (pageSource = '') {
             if (window.boldPaymentsInstance) {
                 return window.boldPaymentsInstance;
             }
@@ -66,7 +70,7 @@ define([
                     {
                         'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
                         'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        'currency': quote.totals()['base_currency_code'],
+                        'currency': window.checkoutConfig.bold.currency,
                     }
                 ],
                 'callbacks': {
@@ -117,8 +121,26 @@ define([
                     },
                     'onErrorPaymentOrder': function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
-                        messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
+                        messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     },
+                    'onClickPaymentOrder': async function () {
+                        try {
+                            await onClickPaymentOrderCallback(pageSource);
+                            if (window.checkoutConfig.quoteData.entity_id !== '') {
+                                return;
+                            }
+
+                            let config = await getCheckoutConfigurationAction();
+                            config = await config.json();
+                            config = JSON.parse(config);
+
+                            Object.assign(window.checkoutConfig, config.checkoutConfig);
+                        } catch (e) {
+                            console.error(e);
+                            fullScreenLoader.stopLoader();
+                            throw e;
+                        }
+                    }
                 }
             };
             const paymentsInstance = new window.bold.Payments(initialData);

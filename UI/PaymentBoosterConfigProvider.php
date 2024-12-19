@@ -11,6 +11,7 @@ use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -18,6 +19,11 @@ use Psr\Log\LoggerInterface;
  */
 class PaymentBoosterConfigProvider implements ConfigProviderInterface
 {
+
+    public const PAGE_SOURCE_PRODUCT = 'product';
+    public const PAGE_SOURCE_CART = 'cart';
+    public const PAGE_SOURCE_MINICART = 'mini-cart';
+
     /**
      * @var CheckoutData
      */
@@ -49,6 +55,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $countries = [];
 
     /**
+     * @var StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
      * @param CheckoutData $checkoutData
      * @param Config $config
      * @param AllowedCountries $allowedCountries
@@ -59,13 +70,15 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         Config $config,
         AllowedCountries $allowedCountries,
         CollectionFactory $collectionFactory,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        StoreManagerInterface $storeManager
     ) {
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->allowedCountries = $allowedCountries;
         $this->collectionFactory = $collectionFactory;
         $this->logger = $logger;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -86,6 +99,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $epsGatewayId = $this->checkoutData->getEpsGatewayId();
+        $currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
         if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
             $errorMsgs = [];
             if ($jwtToken === null) {
@@ -127,6 +141,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                         'method' => Service::CODE,
                     ],
                 ],
+                'currency' => $currency
             ],
         ];
     }

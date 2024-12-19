@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">    
+    <preference for="Magento\Checkout\CustomerData\ItemPoolInterface" type="Magento\Checkout\CustomerData\ItemPool"/>
+    <type name="Magento\Checkout\CustomerData\ItemPool">
+        <arguments>
+            <argument name="defaultItemId" xsi:type="string">Magento\Checkout\CustomerData\DefaultItem</argument>
+        </arguments>
+    </type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="checkout_default_config_provider" xsi:type="object">Magento\Checkout\Model\DefaultConfigProvider</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

@@ -10,6 +10,8 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address\Rate;
+use Magento\Quote\Model\Quote\Address\RateResult\Error as AddressRateResultError;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -235,6 +237,28 @@ class QuoteConverterTest extends TestCase
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
         self::assertEmpty($quoteConverter->convertShippingInformation($quote));
+    }
+
+    public function testDoesNotConvertShippingInformationIfAddressHasError(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class);
+        /** @var Rate $rate */
+        $rate = $objectManager->create(Rate::class);
+        /** @var AddressRateResultError $erroneousShippingRateResult */
+        $erroneousShippingRateResult = $objectManager->create(AddressRateResultError::class);
+        $shippingAddress = $quote->getShippingAddress();
+
+        $shippingAddress->setId(42);
+        $shippingAddress->addShippingRate($rate);
+
+        $rate->importShippingRate($erroneousShippingRateResult);
+
+        self::assertEmpty($quoteConverter->convertShippingInformation($quote)['order_data']);
     }
 
     public function testDoesNotConvertCustomerIfBillingAddressIsNotSet(): void

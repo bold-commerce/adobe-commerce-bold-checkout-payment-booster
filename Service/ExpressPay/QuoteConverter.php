@@ -155,15 +155,16 @@ class QuoteConverter
             $shippingAddress->getShippingRatesCollection()->getItems(),
             // @phpstan-ignore argument.type
             static function (Rate $rate) use (&$usedRateCodes): bool {
-                if (in_array($rate->getCode(), $usedRateCodes)) {
+                if ($rate->getErrorMessage() !== null || in_array($rate->getCode(), $usedRateCodes)) {
                     return false;
                 }
 
-                $usedRateCodes[] = $rate->getCode();
+                $usedRateCodes[] = $rate->getCode(); // Work-around for Magento bug causing duplicated shipping rates
 
                 return true;
             }
-        )); // Work-around for Magento bug causing duplicated shipping rates
+        ));
+
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {

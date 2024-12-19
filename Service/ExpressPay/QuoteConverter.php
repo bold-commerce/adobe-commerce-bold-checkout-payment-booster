@@ -164,7 +164,6 @@ class QuoteConverter
                 return true;
             }
         ));
-
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {

@@ -239,7 +239,7 @@ class QuoteConverterTest extends TestCase
         self::assertEmpty($quoteConverter->convertShippingInformation($quote));
     }
 
-    public function testDoesNotConvertShippingInformationIfAddressHasError(): void
+    public function testDoesNotConvertShippingInformationIfAddressRateHasError(): void
     {
         /** @var ObjectManagerInterface $objectManager */
         $objectManager = Bootstrap::getObjectManager();

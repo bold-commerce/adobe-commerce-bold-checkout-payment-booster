@@ -167,6 +167,13 @@ class QuoteConverter
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {
+            $validShippingRates = array_filter(
+                $shippingRates,
+                static function (Rate $rate): bool {
+                    return substr($rate->getCode(), -strlen('_error')) !== '_error';
+                }
+            );  //filter out Rates Magento could not import
+
             $convertedQuote['order_data']['shipping_options'] = array_map(
                 static function (Rate $rate) use ($currencyCode, $shippingAddress): array {
                     $price = ($rate->getCode() === $shippingAddress->getShippingMethod())
@@ -181,7 +188,7 @@ class QuoteConverter
                         ]
                     ];
                 },
-                $shippingRates
+                $validShippingRates
             );
         }
 

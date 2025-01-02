@@ -148,7 +148,10 @@ define([
             if (isFastlaneAvailable) {
                 const fastlaneOptions = {
                     fastlane: isFastlaneAvailable,
-                    shouldRenderSpiFrame: false
+                    shouldRenderSpiFrame: false,
+                    shouldRenderPaypalButton: true,
+                    shouldRenderAppleGoogleButtons: true,
+                    shopName: window.checkoutConfig.bold?.shopName ?? '',
                 };
                 paymentsInstance.renderPayments('SPI', fastlaneOptions);
                 this.isBillingAddressRequired(false);

@@ -50,19 +50,21 @@ define(
                 };
             }
 
-            if (isWalletPayment) {
-                await updateQuoteWalletPayAction(paymentApprovalData);
-            } else if (paymentType === 'ppcp') {
-                await updateQuotePPCPAction(paymentApprovalData);
-            } else {
-                await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
-            }
+            if (window.location.hash === '#shipping') { // Only update addresses when using express pay
+                if (isWalletPayment) {
+                    await updateQuoteWalletPayAction(paymentApprovalData);
+                } else if (paymentType === 'ppcp') {
+                    await updateQuotePPCPAction(paymentApprovalData);
+                } else {
+                    await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
+                }
 
-            try {
-                await saveShippingInformationAction(true);
-            } catch (error) {
-                console.error('Could not save shipping information for Express Pay order.', error);
-                return;
+                try {
+                    await saveShippingInformationAction(true);
+                } catch (error) {
+                    console.error('Could not save shipping information for Express Pay order.', error);
+                    return;
+                }
             }
 
             const messageContainer = registry.get('checkout.errors').messageContainer;

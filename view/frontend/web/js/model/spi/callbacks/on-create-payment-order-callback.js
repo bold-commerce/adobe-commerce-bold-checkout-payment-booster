@@ -28,18 +28,20 @@ define(
                 return;
             }
 
-            if (isWalletPayment) {
-                if (paymentData['shipping_address']) {
-                    updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+            if (window.location.hash === '#shipping') { // Only update addresses when using express pay
+                if (isWalletPayment) {
+                    if (paymentData['shipping_address']) {
+                        updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+                    }
+                    if (paymentData['billing_address']) {
+                        updateQuoteAddressAction('billing', paymentData['billing_address']);
+                    }
+                } else {
+                    await updateQuoteShippingMethodAction(paymentData['shipping_options']);
                 }
-                if (paymentData['billing_address']) {
-                    updateQuoteAddressAction('billing', paymentData['billing_address']);
-                }
-            } else {
-                await updateQuoteShippingMethodAction(paymentData['shipping_options']);
-            }
 
-            await saveShippingInformationAction(true);
+                await saveShippingInformationAction(true);
+            }
 
             const walletPayResult = await createWalletPayOrderAction(paymentPayload);
             return {

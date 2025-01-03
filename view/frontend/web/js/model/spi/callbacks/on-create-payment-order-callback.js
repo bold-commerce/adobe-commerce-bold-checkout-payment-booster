@@ -23,23 +23,26 @@ define(
             const paymentData = paymentPayload['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+            const isSpiContainer = paymentPayload.containerId === 'SPI';
 
             if (paymentType !== 'ppcp') {
                 return;
             }
 
-            if (isWalletPayment) {
-                if (paymentData['shipping_address']) {
-                    updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+            if (!isSpiContainer) {
+                if (isWalletPayment) {
+                    if (paymentData['shipping_address']) {
+                        updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+                    }
+                    if (paymentData['billing_address']) {
+                        updateQuoteAddressAction('billing', paymentData['billing_address']);
+                    }
+                } else {
+                    await updateQuoteShippingMethodAction(paymentData['shipping_options']);
                 }
-                if (paymentData['billing_address']) {
-                    updateQuoteAddressAction('billing', paymentData['billing_address']);
-                }
-            } else {
-                await updateQuoteShippingMethodAction(paymentData['shipping_options']);
-            }
 
-            await saveShippingInformationAction(true);
+                await saveShippingInformationAction(true);
+            }
 
             const walletPayResult = await createWalletPayOrderAction(paymentPayload);
             return {

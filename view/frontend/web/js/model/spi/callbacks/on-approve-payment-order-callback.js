@@ -32,14 +32,16 @@ define(
          * @return {Promise}
          */
         return async function (paymentType, paymentInformation, paymentApprovalData) {
-            const paymentData = paymentApprovalData['payment_data'];
-            const availableWalletTypes = ['apple', 'google'];
-            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
-
             if (paymentApprovalData === null) {
                 console.error('Express Pay payment data is not set.');
                 return;
             }
+
+            const paymentData = paymentApprovalData['payment_data'];
+            const availableWalletTypes = ['apple', 'google'];
+            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+            const isSpiContainer = paymentApprovalData.containerId === 'SPI';
+
             const paymentMethodData = {
                 method: window.checkoutConfig?.bold?.paymentBooster?.payment?.method ?? 'bold',
             };
@@ -50,19 +52,21 @@ define(
                 };
             }
 
-            if (isWalletPayment) {
-                await updateQuoteWalletPayAction(paymentApprovalData);
-            } else if (paymentType === 'ppcp') {
-                await updateQuotePPCPAction(paymentApprovalData);
-            } else {
-                await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
-            }
+            if (!isSpiContainer) {
+                if (isWalletPayment) {
+                    await updateQuoteWalletPayAction(paymentApprovalData);
+                } else if (paymentType === 'ppcp') {
+                    await updateQuotePPCPAction(paymentApprovalData);
+                } else {
+                    await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
+                }
 
-            try {
-                await saveShippingInformationAction(true);
-            } catch (error) {
-                console.error('Could not save shipping information for Express Pay order.', error);
-                return;
+                try {
+                    await saveShippingInformationAction(true);
+                } catch (error) {
+                    console.error('Could not save shipping information for Express Pay order.', error);
+                    return;
+                }
             }
 
             const messageContainer = registry.get('checkout.errors').messageContainer;

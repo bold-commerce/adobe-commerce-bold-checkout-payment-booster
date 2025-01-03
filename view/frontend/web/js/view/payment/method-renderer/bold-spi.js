@@ -274,18 +274,19 @@ define([
                         break;
                     case 'EVENT_SPI_TOKENIZED':
                         const paymentId = data.payload?.payload?.data?.payment_id;
-                        if (!paymentId) {
-                            fullscreenLoader.stopLoader();
+                        if (paymentId) {
+                            this.paymentId(paymentId);
+    
+                            const placeOrderSuccess = this.placeOrder({}, jQuery.Event());
+                            if (!placeOrderSuccess) {
+                                fullscreenLoader.stopLoader();
+                            }
                             return;
                         }
-                        this.paymentId(paymentId);
-
-                        const placeOrderSuccess = this.placeOrder({}, jQuery.Event());
-                        if (!placeOrderSuccess) {
-                            fullscreenLoader.stopLoader();
+                        if (paymentId === undefined && data.payload?.success === false) {
+                            // Error message for empty or invalid CC details, temporary fix until CHK-7079 is resolved
+                            messageList.addErrorMessage({message: $t('Payment failed, please try again. For digital wallet payments, please click the wallet button to proceed')});
                         }
-
-                        break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);
                         console.log('Failed to tokenize');

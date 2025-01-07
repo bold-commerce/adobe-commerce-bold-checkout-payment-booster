@@ -13,6 +13,9 @@
                                         <item name="bold-express-pay" xsi:type="array">
                                             <item name="component" xsi:type="string">Bold_CheckoutPaymentBooster/js/view/bold-express-pay</item>
                                             <item name="sortOrder" xsi:type="string">0</item>
+                                            <item name="config" xsi:type="array">
+                                                <item name="render_page_source" xsi:type="const">Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider::PAGE_SOURCE_CHECKOUT</item>
+                                            </item>
                                         </item>
                                         <item name="shipping-step" xsi:type="array">
                                             <item name="children" xsi:type="array">

@@ -18,7 +18,8 @@ define([
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/express-pay',
             paymentId: ko.observable(null),
-            paymentApprovalData: ko.observable(null)
+            paymentApprovalData: ko.observable(null),
+            isExpressPayLoading: ko.observable(false),
         },
         isVisible: ko.observable(false),
         /** @inheritdoc */
@@ -55,6 +56,7 @@ define([
                 let boldPaymentsInstance;
 
                 if (document.getElementById(containerId)) {
+                    this.isExpressPayLoading(true);
                     observer.disconnect();
 
                     try {
@@ -74,7 +76,8 @@ define([
                         pageSource: this.render_page_source
                     };
 
-                    boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
+                    this.isExpressPayLoading(false);
+                    await boldPaymentsInstance.renderWalletPayments(containerId, walletOptions);
                 }
             });
             observer.observe(document.documentElement, {

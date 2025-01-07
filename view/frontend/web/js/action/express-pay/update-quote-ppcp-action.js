@@ -25,15 +25,11 @@ define(
          * @return {Promise}
          */
         return async function (paymentApprovalData) {
-            const paymentData = paymentApprovalData['payment_data'];
-            const availableWalletTypes = ['apple', 'google'];
-            const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
-
             let order;
             try {
                 order = await getExpressPayOrderAction(
                     paymentApprovalData.gateway_id,
-                    paymentApprovalData.payment_data.order_id
+                    paymentApprovalData.payment_data.order_id ?? paymentApprovalData.order_id
                 );
             } catch (error) {
                 console.error('Could not retrieve Express Pay order.', error);
@@ -56,11 +52,9 @@ define(
                 return address;
             }
 
-            if (!isWalletPayment) {
-                quote.guestEmail = order.email;
-                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
-                updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
-            }
+            quote.guestEmail = order.email;
+            updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+            updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
         };
     }
 );

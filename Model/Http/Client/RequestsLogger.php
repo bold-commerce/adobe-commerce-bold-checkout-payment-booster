@@ -63,7 +63,7 @@ class RequestsLogger
      * @param array|null $data
      * @return void
      */
-    public function logRequest(int $websiteId, string $url, string $method, ?array $data = null): void
+    public function logRequest(int $websiteId, string $url, string $method, ?array $data = null)
     {
         if (!$this->config->getLogIsEnabled($websiteId)) {
             return;
@@ -84,7 +84,7 @@ class RequestsLogger
      * @param ClientInterface $client
      * @return void
      */
-    public function logResponse(int $websiteId, ClientInterface $client): void
+    public function logResponse(int $websiteId, ClientInterface $client)
     {
         if (!$this->config->getLogIsEnabled($websiteId)) {
             return;

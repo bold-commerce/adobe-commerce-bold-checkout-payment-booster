@@ -36,11 +36,16 @@ class GetFastlaneStyles
      * Get fastlane styles.
      *
      * @param int $websiteId
+     * @param string $baseUrl
      * @return array
      */
-    public function getStyles(int $websiteId): array
+    public function getStyles(int $websiteId, string $baseUrl): array
     {
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
+        if (empty($configurationGroupLabel)) {
+            $configurationGroupLabel = parse_url($baseUrl)['host'] ?? '';
+        }
+
         $epsStaticUrl = $this->config->getStaticEpsUrl($websiteId);
         $url = rtrim($epsStaticUrl, '/') . '/' . $configurationGroupLabel . '/custom-style.css';
         $result = $this->getCommand->execute($websiteId, $url, [])->getBody();

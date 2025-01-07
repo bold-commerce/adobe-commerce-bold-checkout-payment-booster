@@ -13,6 +13,8 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/hydrate-order-action',
+    'Magento_Ui/js/model/messageList',
+    'Magento_Checkout/js/model/payment/additional-validators'
 ], function (
     DefaultPaymentComponent,
     quote,
@@ -28,8 +30,44 @@ define([
     platformClient,
     fastlane,
     hydrateOrderAction,
+    messageList,
+    additionalValidators
 ) {
     'use strict';
+
+    const AGREEMENT_VALIDITY_DURATION = 5 * 60 * 1000;
+    const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+
+    const validateAgreements = () => {
+
+        if (!window.location.href.includes("#payment")) {
+            return true;
+        }
+
+        if (!additionalValidators.validate()) {
+            messageList.addErrorMessage({
+                message: $t('Please agree to all the terms and conditions before placing the order.')
+            });
+            localStorage.removeItem(AGREEMENT_DATE_KEY);
+            return false;
+        }
+        const currentTime = Date.now();
+        localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
+        return true;
+    };
+
+    const removeOldAgreementDate = () => {
+        const acceptedAgreementDate = localStorage.getItem(AGREEMENT_DATE_KEY);
+        const currentTime = Date.now();
+        if (acceptedAgreementDate) {
+            const elapsedTime = currentTime - parseInt(acceptedAgreementDate, 10);
+            if (elapsedTime > AGREEMENT_VALIDITY_DURATION) {
+                localStorage.removeItem(AGREEMENT_DATE_KEY);
+            }
+        }
+    };
+    removeOldAgreementDate();
+
     return DefaultPaymentComponent.extend({
         defaults: {
             template: 'Bold_CheckoutPaymentBooster/payment/spi',
@@ -98,15 +136,26 @@ define([
             const paymentsInstance = await spi.getPaymentsClient();
             const boldPaymentsForm = document.getElementById('SPI');
             const isFastlaneAvailable = fastlane.isAvailable();
+            this.isSpiLoading(false);
+
+            if (localStorage.getItem(AGREEMENT_DATE_KEY)) {
+                document.querySelectorAll('input[data-gdpr-checkbox-code="privacy_checkbox"],' +
+                    '.checkout-agreement input[type="checkbox"]').forEach(checkbox => {
+                    checkbox.checked = true;
+                });
+            }
+
             if (isFastlaneAvailable) {
-                const paymentOptions = {
+                const fastlaneOptions = {
                     fastlane: isFastlaneAvailable,
-                    shouldRenderSpiFrame: false
+                    shouldRenderSpiFrame: false,
+                    shouldRenderPaypalButton: true,
+                    shouldRenderAppleGoogleButtons: true,
+                    shopName: window.checkoutConfig.bold?.shopName ?? '',
                 };
-                paymentsInstance.renderPayments('SPI', paymentOptions);
+                paymentsInstance.renderPayments('SPI', fastlaneOptions);
                 this.isBillingAddressRequired(false);
                 this.isPlaceOrderButtonVisible(false);
-                this.isSpiLoading(false);
                 if (boldPaymentsForm.getHTML().trim() === '') {
                     this.isVisible(false);
                 }
@@ -114,18 +163,37 @@ define([
             }
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
-            paymentsInstance.renderPayments('SPI');
+            const paymentOptions = {
+                fastlane: false,
+                shouldRenderSpiFrame: true,
+                shouldRenderPaypalButton: true,
+                shouldRenderAppleGoogleButtons: true,
+                shopName: window.checkoutConfig.bold?.shopName ?? '',
+            }
+            paymentsInstance.renderPayments('SPI', paymentOptions);
         },
 
         /** @inheritdoc */
         placeOrder: function (data, event) {
-            fullscreenLoader.startLoader();
             const placeMagentoOrder = this._super.bind(this);
             if (this.paymentId()) {
                 return placeMagentoOrder(data, event);
             }
             this.tokenize();
             return false;
+        },
+
+        /**
+         * Show full-screen loader and process the order.
+         *
+         * @return boolean
+         */
+        placeOrderClick: function (data, event) {
+            if (!validateAgreements()) {
+                throw new Error('Agreements not accepted');
+            }
+            fullscreenLoader.startLoader();
+            return this.placeOrder(data, event);
         },
 
         /**
@@ -148,7 +216,10 @@ define([
          * @return void
          */
         tokenize: function () {
-            const iframeWindow = document.getElementById('spi_frame_SPI').contentWindow;
+            const iframeWindow = document.getElementById('spi_frame_SPI')?.contentWindow;
+            if (!iframeWindow) {
+                return;
+            }
             const billingAddress = quote.billingAddress();
             const shippingAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
             const email = checkoutData.getValidatedEmailValue()
@@ -208,7 +279,12 @@ define([
                             return;
                         }
                         this.paymentId(paymentId);
-                        this.placeOrder({}, jQuery.Event());
+
+                        const placeOrderSuccess = this.placeOrder({}, jQuery.Event());
+                        if (!placeOrderSuccess) {
+                            fullscreenLoader.stopLoader();
+                        }
+
                         break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

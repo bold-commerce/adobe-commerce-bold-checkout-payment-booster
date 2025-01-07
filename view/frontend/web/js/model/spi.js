@@ -1,6 +1,7 @@
 define([
     'Magento_Checkout/js/model/quote',
     'Magento_Checkout/js/model/full-screen-loader',
+    'Magento_Checkout/js/model/payment/additional-validators',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
     'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-id-action',
@@ -12,9 +13,11 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
     'Magento_Ui/js/model/messageList',
     'mage/url',
+    'mage/translate'
 ], function (
     quote,
     fullScreenLoader,
+    additionalValidators,
     fastlane,
     loadScriptAction,
     getActiveQuoteId,
@@ -25,9 +28,27 @@ define([
     onScaPaymentOrderCallback,
     onClickPaymentOrderCallback,
     messageList,
-    urlBuilder
+    urlBuilder,
+    $t
 ) {
     'use strict';
+
+    const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+    const validateAgreements = () => {
+        if (!window.location.href.includes("#payment")) {
+            return true;
+        }
+        if (!additionalValidators.validate()) {
+            messageList.addErrorMessage({
+                message: $t('Please agree to all the terms and conditions before placing the order.')
+            });
+            localStorage.removeItem(AGREEMENT_DATE_KEY);
+            return false;
+        }
+        const currentTime = Date.now();
+        localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
+        return true;
+    };
 
     /**
      * Fastlane init model.
@@ -77,6 +98,10 @@ define([
                 ],
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (!validateAgreements()) {
+                            throw new Error('Agreements not accepted');
+                        }
+
                         try {
                             return await onCreatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {
@@ -86,6 +111,10 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (!validateAgreements()) {
+                            throw new Error('Agreements not accepted');
+                        }
+
                         try {
                             return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {

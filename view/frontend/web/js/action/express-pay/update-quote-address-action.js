@@ -65,7 +65,7 @@ define(
                 region_id: regionId
             } : regionName;
             const email = addressData['email'] || quote.shippingAddress.email || quote.billingAddress.email;
-            const phone = addressData['phone'] || quote.shippingAddress.telephone || quote.billingAddress.telephone;
+            const phone = addressData['phone'] || addressData['phoneNumber'] || quote.shippingAddress.telephone || quote.billingAddress.telephone;
             const quoteAddress = magentoAddressConverter.formAddressDataToQuoteAddress(
                 {
                     address_type: addressType,

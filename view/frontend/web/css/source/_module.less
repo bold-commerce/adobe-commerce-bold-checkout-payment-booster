@@ -6,6 +6,16 @@
   padding-top: 15px;
 }
 
+.braintree-express-payments span {
+  margin: 0;
+}
+
+.braintree-express-payments > div > div {
+    width: 100%;
+    padding-right: 0;
+    margin-top: 0;
+}
+
 #PIGI.payment__iframe--display-sca {
   position: fixed;
   top: 0;
@@ -13,4 +23,27 @@
   width: 100%;
   height: 100%;
   z-index: 5;
+}
+
+.braintree-apple-pay-button {
+    margin: 0;
+}
+
+.braintree-google-pay-button button, .braintree-google-pay-button button:hover,
+.ppcp-google-pay-button button, .ppcp-google-pay-button button:hover {
+    background-origin: content-box;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border:none;
+}
+
+#express-pay-buttons {
+    min-height: 60px;
+}
+
+.ToggleField__Text {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    font-size: 100%;
+    color: #1a1a1a;
 }

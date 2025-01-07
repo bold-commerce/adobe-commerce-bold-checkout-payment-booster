@@ -23,7 +23,6 @@ define(
             let newMethod;
             let timeoutMS = 100;
             let carry = 100;
-
             while (shippingService.isLoading() && timeoutMS < 5000) {
                 // max total timeout is 8000ms
                 await new Promise(resolve => setTimeout(resolve, timeoutMS));

@@ -86,7 +86,8 @@ class CheckoutData
         }
         $checkoutData = $this->initOrderFromQuote->init($quote);
         $checkoutData['data']['flow_settings']['fastlane_styles'] = $this->getFastlaneStyles->getStyles(
-            (int)$quote->getStore()->getWebsiteId()
+            (int)$quote->getStore()->getWebsiteId(),
+            $quote->getStore()->getBaseUrl()
         );
         $this->checkoutSession->setBoldCheckoutData($checkoutData);
     }

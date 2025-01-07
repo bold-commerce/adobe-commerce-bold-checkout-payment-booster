@@ -5,6 +5,7 @@ define(
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/action/redirect-on-success',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-wallet-pay-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
@@ -16,6 +17,7 @@ define(
         quote,
         placeOrderAction,
         redirectOnSuccessAction,
+        updateQuoteWalletPayAction,
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
         saveShippingInformationAction,
@@ -46,23 +48,23 @@ define(
 
             if (paymentType === 'ppcp' || isWalletPayment) {
                 paymentMethodData['additional_data'] = {
-                    order_id: paymentApprovalData?.payment_data.order_id
+                    order_id: paymentApprovalData?.payment_data.order_id ?? paymentApprovalData.order_id
                 };
             }
 
-            if (paymentType === 'ppcp') {
+            if (isWalletPayment) {
+                await updateQuoteWalletPayAction(paymentApprovalData);
+            } else if (paymentType === 'ppcp') {
                 await updateQuotePPCPAction(paymentApprovalData);
             } else {
                 await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
             }
 
-            if (!isWalletPayment) {
-                try {
-                    await saveShippingInformationAction(true);
-                } catch (error) {
-                    console.error('Could not save shipping information for Express Pay order.', error);
-                    return;
-                }
+            try {
+                await saveShippingInformationAction(true);
+            } catch (error) {
+                console.error('Could not save shipping information for Express Pay order.', error);
+                return;
             }
 
             const messageContainer = registry.get('checkout.errors')?.messageContainer ?? messageList;

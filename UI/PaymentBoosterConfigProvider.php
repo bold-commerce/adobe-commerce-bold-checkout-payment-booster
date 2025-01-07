@@ -145,10 +145,16 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): ' . implode(', ', $errorMsgs));
             return [];
         }
+
+        $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
+        if (empty($configurationGroupLabel)) {
+            $configurationGroupLabel = parse_url($quote->getStore()->getBaseUrl())['host'] ?? '';
+        }
+
         return [
             'bold' => [
                 'epsAuthToken' => $epsAuthToken,
-                'configurationGroupLabel' => $this->config->getConfigurationGroupLabel($websiteId),
+                'configurationGroupLabel' => $configurationGroupLabel,
                 'epsUrl' => $this->config->getEpsUrl($websiteId),
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'gatewayId' => $epsGatewayId,

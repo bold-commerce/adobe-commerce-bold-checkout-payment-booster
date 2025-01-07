@@ -19,7 +19,7 @@ endif;
 ?>
 
 <div id="express-pay-container" data-testid="express-pay-container">
-    <div id="<?= $block->escapeHtml($containerId) ?>"></div>
+    <div id="<?= $block->escapeHtmlAttr($containerId) ?>"></div>
 </div>
 
 <script>
@@ -35,8 +35,8 @@ endif;
 {
     "#express-pay-container": {
         "Bold_CheckoutPaymentBooster/js/express-pay-storefront": {
-            "pageSource": "<?= $block->escapeHtml($pageSource) ?>",
-            "containerId": "<?= $block->escapeHtml($containerId) ?>"
+            "pageSource": "<?= $block->escapeJs($pageSource) ?>",
+            "containerId": "<?= $block->escapeJs($containerId) ?>"
         }
     }
 }

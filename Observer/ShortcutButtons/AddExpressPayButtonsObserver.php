@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Block\ShortcutButtons\ExpressPayShortcutButtons;
 use Bold\CheckoutPaymentBooster\ViewModel\ExpressPayFactory;
 use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 use Magento\Catalog\Block\ShortcutButtons;
+use Magento\Framework\Event;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer;
 
@@ -56,10 +57,10 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * @param $event
+     * @param Event $event
      * @return string
      */
-    private function getPageType($event) : string
+    private function getPageType(Event $event): string
     {
         if ($event->getIsCatalogProduct()) {
             return PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT;

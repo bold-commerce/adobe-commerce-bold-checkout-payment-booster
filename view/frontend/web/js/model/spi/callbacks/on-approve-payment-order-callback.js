@@ -42,7 +42,7 @@ define(
             const paymentData = paymentApprovalData['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
-            const isSpiContainer = paymentApprovalData.containerId === 'SPI';
+            const isSpiContainer = paymentApprovalData.containerId === 'SPI' ||  paymentApprovalData.containerId === 'wallet-payments';
 
             const paymentMethodData = {
                 method: window.checkoutConfig?.bold?.paymentBooster?.payment?.method ?? 'bold',

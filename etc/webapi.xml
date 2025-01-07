@@ -63,5 +63,11 @@
             <!-- Authorization performed in service class -->
             <resource ref="anonymous" />
         </resources>
+    </route>    
+    <route url="/V1/cart/getQuoteId" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\Quote\GetQuoteInterface" method="getQuoteId"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
     </route>
 </routes>

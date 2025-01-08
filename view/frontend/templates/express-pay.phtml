@@ -12,6 +12,8 @@ $expressPayViewModel = $block->getData('express_pay_view_model');
 $pageSource = $block->getData('render_page_source');
 $isEnabled = $expressPayViewModel->isEnabled($pageSource);
 $containerId = 'express-pay-buttons-' . $pageSource;
+$isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
+$customerData = $expressPayViewModel->getCustomerData();
 
 if (!$isEnabled):
     return;
@@ -28,6 +30,14 @@ endif;
 
         window.checkoutConfig = {};
         Object.assign(window.checkoutConfig, layout.checkoutConfig);
+    }
+
+    if (!window.hasOwnProperty('isCustomerLoggedIn')) {
+        window.isCustomerLoggedIn = <? /* @noEscape */ var_export($isCustomerLoggedIn) ?>;
+    }
+
+    if (!window.hasOwnProperty('customerData')) {
+        window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
     }
 </script>
 

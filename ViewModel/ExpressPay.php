@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
+use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Address\CustomerAddressDataProvider;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -52,12 +56,25 @@ class ExpressPay implements ArgumentInterface
      */
     private $paymentBoosterConfigProvider;
 
-
+    /**
+     * @var CustomerSession
+     */
+    private $customerSession;
 
     /**
      * @var mixed[]
      */
     private $jsLayout = [];
+
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    private $customerRepository;
+
+    /**
+     * @var CustomerAddressDataProvider
+     */
+    private $customerAddressDataProvider;
 
     public function __construct(
         CompositeConfigProvider $configProvider,
@@ -66,7 +83,10 @@ class ExpressPay implements ArgumentInterface
         StoreManagerInterface $storeManager,
         CheckoutData $checkoutData,
         Config $config,
-        PaymentBoosterConfigProvider $paymentBoosterConfigProvider
+        PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
+        CustomerSession $customerSession,
+        CustomerRepositoryInterface $customerRepository,
+        CustomerAddressDataProvider $customerAddressDataProvider
     ) {
         $this->configProvider = $configProvider;
         $this->serializer = $serializer;
@@ -75,6 +95,9 @@ class ExpressPay implements ArgumentInterface
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
+        $this->customerSession = $customerSession;
+        $this->customerRepository = $customerRepository;
+        $this->customerAddressDataProvider = $customerAddressDataProvider;
     }
 
     /**
@@ -121,6 +144,30 @@ class ExpressPay implements ArgumentInterface
     /**
      * @return bool
      */
+    public function isCustomerLoggedIn(): bool
+    {
+        return (bool)$this->customerSession->isLoggedIn();
+    }
+
+    /**
+     * @throws LocalizedException
+     */
+    public function getCustomerData(): array
+    {
+        $customerData = [];
+
+        if ($this->isCustomerLoggedIn()) {
+            $customer = $this->getCustomer();
+            $customerData = $customer->__toArray();
+            $customerData['addresses'] = $this->customerAddressDataProvider->getAddressDataByCustomer($customer);
+        }
+
+        return $customerData;
+    }
+
+    /**
+     * @return bool
+     */
     private function isCartWalletPayEnabled(): bool
     {
         $websiteId = (int)$this->storeManager->getStore()->getWebsiteId();
@@ -145,5 +192,14 @@ class ExpressPay implements ArgumentInterface
     {
         $quote = $this->checkoutSession->getQuote();
         return $quote->getId() !== null;
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
+    private function getCustomer(): CustomerInterface
+    {
+        return $this->customerRepository->getById($this->customerSession->getCustomerId());
     }
 }

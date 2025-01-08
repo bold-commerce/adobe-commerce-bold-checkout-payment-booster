@@ -15,5 +15,5 @@ interface GetQuoteInterface
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getQuoteId();
+    public function getQuote();
 }

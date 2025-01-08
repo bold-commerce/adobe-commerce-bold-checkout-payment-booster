@@ -4,7 +4,6 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
-    'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-id-action',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
@@ -20,7 +19,6 @@ define([
     additionalValidators,
     fastlane,
     loadScriptAction,
-    getActiveQuoteId,
     onCreatePaymentOrderCallback,
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
@@ -143,7 +141,7 @@ define([
                     },
                     'onRequireOrderData': async function (requirements) {
                         try {
-                            return await onRequireOrderDataCallback(requirements);
+                            return onRequireOrderDataCallback(requirements);
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
@@ -154,17 +152,11 @@ define([
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     },
-                    'onClickPaymentOrder': async function () {
-                        try {
-                            await onClickPaymentOrderCallback(pageSource);
-                            let isQuoteInitialized = window.checkoutConfig.quoteData.entity_id !== '';
-                            if (isQuoteInitialized) {
-                                return;
-                            }
-
-                            let response = await getActiveQuoteId();
-
-                            window.checkoutConfig.quoteData.entity_id = response;
+                    'onClickPaymentOrder': async (type, payload) => {
+                        try {                            
+                            window.checkoutConfig.bold.payment_type_clicked = payload?.payment_data?.payment_type;
+                            
+                            onClickPaymentOrderCallback(pageSource);
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();

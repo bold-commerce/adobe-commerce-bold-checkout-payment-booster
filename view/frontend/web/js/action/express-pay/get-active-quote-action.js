@@ -14,7 +14,7 @@ define(
          * @return {Promise}
          */
         return function () {
-            return platformClient.get('rest/V1/cart/getQuoteId', {});
+            return platformClient.get('rest/V1/cart/getQuote', {});
         };
     }
 );

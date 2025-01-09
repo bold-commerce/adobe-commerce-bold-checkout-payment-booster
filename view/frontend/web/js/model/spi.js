@@ -47,6 +47,7 @@ define([
         localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
         return true;
     };
+    let onClickPromise = null;
 
     /**
      * Fastlane init model.
@@ -114,6 +115,9 @@ define([
                         }
 
                         try {
+                            if (window.checkoutConfig.bold.payment_type_clicked === "apple" || window.checkoutConfig.bold.payment_type_clicked === "google") {
+                                await onClickPromise;
+                            }
                             return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {
                             console.error(e);
@@ -139,7 +143,7 @@ define([
                             throw e;
                         }
                     },
-                    'onRequireOrderData': async function (requirements) {
+                    'onRequireOrderData': function (requirements) {
                         try {
                             return onRequireOrderDataCallback(requirements);
                         } catch (e) {
@@ -155,9 +159,12 @@ define([
                     'onClickPaymentOrder': async (paymentType, paymentPayload) => {
                         const pageSource = paymentPayload.containerId.replace('express-pay-buttons-', '');
                         window.checkoutConfig.bold.payment_type_clicked = paymentPayload?.payment_data?.payment_type;
-
-                        try {                                
-                            onClickPaymentOrderCallback(pageSource);
+                        try {
+                            if (window.checkoutConfig.bold.payment_type_clicked === "apple" || window.checkoutConfig.bold.payment_type_clicked === "google") {
+                                onClickPromise = onClickPaymentOrderCallback(pageSource);
+                            } else {
+                                await onClickPaymentOrderCallback(pageSource);
+                            }
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();

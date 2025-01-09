@@ -3,13 +3,17 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-address-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-shipping-method-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/create-wallet-pay-order-action'
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/create-wallet-pay-order-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action',
+        'Magento_Checkout/js/model/quote'
     ],
     function (
         updateQuoteAddressAction,
         updateQuoteShippingMethodAction,
         saveShippingInformationAction,
-        createWalletPayOrderAction
+        createWalletPayOrderAction,
+        getActiveQuote,
+        quote
     ) {
         'use strict';
 
@@ -27,6 +31,12 @@ define(
 
             if (paymentType !== 'ppcp') {
                 return;
+            }
+
+            if (!quote.getQuoteId()) {
+                let response = await getActiveQuote();
+                response = JSON.parse(response);
+                window.checkoutConfig.quoteData.entity_id = response.quoteId;
             }
 
             if (addressProvided) {

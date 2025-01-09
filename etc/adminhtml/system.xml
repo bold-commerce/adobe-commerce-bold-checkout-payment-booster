@@ -8,7 +8,7 @@
                     <label>
                         <![CDATA[Bold Booster by <a href="https://boldcommerce.com/" target="_blank">Bold Commerce</a>]]></label>
                     <comment>
-                        <![CDATA[Enable PayPal Complete Payments, with Apple Pay & Google Pay on product page, mini cart, and Checkout.]]></comment>
+                        <![CDATA[Unlock PayPal’s comprehensive suite of payment solutions, including Fastlane, Venmo, Buy Now Pay Later, credit card options, and more.]]></comment>
                     <fieldset_css>complex bold-booster-section</fieldset_css>
                     <frontend_model>PayPal\Braintree\Block\System\Config\Form\Fieldset</frontend_model>
                     <attribute type="activity_path">payment/bold_booster/active</attribute>

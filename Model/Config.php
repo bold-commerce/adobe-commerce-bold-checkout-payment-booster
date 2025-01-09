@@ -333,7 +333,7 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
-    }    
+    }
     
     /**
      * Check if Wallet Express Pay buttons are enabled on the product pages.

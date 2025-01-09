@@ -20,7 +20,20 @@ define(
          */
         return function (requirements) {
             const payload = {};
+            if (window.checkoutConfig.bold.payment_type_clicked == 'apple') {
+                payload.totals = {
+                    order_total: 0,
+                    order_balance: 1000,
+                    shipping_total: 0,
+                    discounts_total: 0,
+                    fees_total: 0,
+                    taxes_total: 0
+                };
+                payload.items = [{label: '', amount: 0}];
+                payload.shipping_address = {};
 
+                return payload;
+            };
             for (const requirement of requirements) {
                 switch (requirement) {
                     case 'customer':
@@ -42,10 +55,12 @@ define(
                         }));
                         break;
                     case 'billing_address':
-                        payload[requirement] = convertMagentoAddressAction(quote.billingAddress());
+                        const hasBillingAddress = quote.billingAddress() !== null;
+                        payload[requirement] = hasBillingAddress !== null ? convertMagentoAddressAction(quote.billingAddress()) : {};
                         break;
                     case 'shipping_address':
-                        payload[requirement] = convertMagentoAddressAction(quote.shippingAddress());
+                        const hasShippingAddress = quote.shippingAddress() !== null;
+                        payload[requirement] = hasShippingAddress ? convertMagentoAddressAction(quote.shippingAddress()) : {};
                         break;
                     case 'shipping_options':
                         payload[requirement] = shippingService.getShippingRates().map(option => ({

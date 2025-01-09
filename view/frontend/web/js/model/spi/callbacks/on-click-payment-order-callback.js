@@ -1,27 +1,31 @@
-define(['jquery'], function ($) {
+define([
+    'jquery',
+    'Bold_CheckoutPaymentBooster/js/action/express-pay/add-product-to-cart-action',
+    'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action'
+], function (
+    $,
+    addProductToCart,
+    getActiveQuote
+) {
     'use strict';
     return async function (pageSource) {
         if (pageSource !== 'product-details') {
             return;
         }
 
-        const productAddToCartForm = document.getElementById('product_addtocart_form');
-
-        const productAddToCartUrl = productAddToCartForm.getAttribute('action');
-        const addToCartFormData = new FormData(productAddToCartForm);
-        addToCartFormData.append('source', 'expresspay');
-
-        if (!($("#product_addtocart_form").validation('isValid'))) {
-            throw new Error('Product form invalid');
-        }
-
         try {
-            await fetch(productAddToCartUrl, {
-                method: "POST",
-                body: addToCartFormData
-            });
+            await addProductToCart();
+            let isQuoteInitialized = window.checkoutConfig.quoteData.entity_id !== '';
+            if (isQuoteInitialized) {
+                return;
+            }
+
+            let response = await getActiveQuote();
+            response = JSON.parse(response);
+            window.checkoutConfig.quoteData.entity_id = response.quoteId;
+            window.checkoutConfig.quoteItemData = response.quoteItemData;
         } catch (err) {
-            console.log(err);
+            console.error(err);
         }
     }
 });

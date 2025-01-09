@@ -1,6 +1,32 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
+        <section id="payment">
+            <group id="bold_section" sortOrder="-100" showInDefault="0" showInWebsite="1" showInStore="1">
+                <group id="bold_booster" translate="label comment" type="text" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>
+                        <![CDATA[Bold Booster by <a href="https://boldcommerce.com/" target="_blank">Bold Commerce</a>]]></label>
+                    <comment>
+                        <![CDATA[Enable PayPal Complete Payments, with Apple Pay & Google Pay on product page, mini cart, and Checkout.]]></comment>
+                    <fieldset_css>complex bold-booster-section</fieldset_css>
+                    <frontend_model>PayPal\Braintree\Block\System\Config\Form\Fieldset</frontend_model>
+                    <attribute type="activity_path">payment/bold_booster/active</attribute>
+                    <attribute type="displayIn">recommended_solutions</attribute>
+                    <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+                        <label>Enable Bold Booster</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/bold_booster/active</config_path>
+                        <requires>
+                            <group id="braintree_required"/>
+                        </requires>
+                    </field>
+                    <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="11" showInDefault="1" showInWebsite="1">
+                        <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Payment\PortalIframe</frontend_model>
+                    </group>
+                </group>
+            </group>
+        </section>
         <section id="checkout">
             <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="-100" showInDefault="1" showInWebsite="1">
                 <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\OnboardBanner</frontend_model>

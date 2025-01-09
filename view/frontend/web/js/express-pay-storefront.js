@@ -28,7 +28,7 @@ define([
         _renderExpressPayments: async function () {
             let boldPaymentsInstance;
             try {
-                boldPaymentsInstance = await spi.getPaymentsClient(this.pageSource);
+                boldPaymentsInstance = await spi.getPaymentsClient();
             } catch (error) {
                 console.error('Could not instantiate Bold Payments Client.', error);
                 return;

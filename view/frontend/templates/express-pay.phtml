@@ -11,7 +11,7 @@ use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 $expressPayViewModel = $block->getData('express_pay_view_model');
 $pageSource = $block->getData('render_page_source');
 $isEnabled = $expressPayViewModel->isEnabled($pageSource);
-$containerId = 'express-pay-buttons-' . $pageSource;
+$containerId = $expressPayViewModel->getContainerId($pageSource);
 $isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
 $customerData = $expressPayViewModel->getCustomerData();
 

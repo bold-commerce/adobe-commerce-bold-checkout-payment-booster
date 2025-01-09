@@ -69,7 +69,7 @@ class GetQuote implements GetQuoteInterface
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getQuote()
+    public function getQuote(): string
     {
         $quoteId = (int)$this->checkoutSession->getQuote()->getId();
         $result['quoteId'] = $this->quoteIdToMaskedQuoteId->execute($quoteId);
@@ -83,7 +83,7 @@ class GetQuote implements GetQuoteInterface
      *
      * @return array
      */
-    private function getQuoteItemData()
+    private function getQuoteItemData(): array
     {
         $quoteItemData = [];
         $quoteId = $this->checkoutSession->getQuote()->getId();
@@ -108,12 +108,12 @@ class GetQuote implements GetQuoteInterface
      * @param \Magento\Quote\Api\Data\CartItemInterface $item
      * @return array
      */
-    protected function getFormattedOptionValue($item)
+    protected function getFormattedOptionValue($item): array
     {
         $optionsData = [];
         $options = $this->configurationPool->getByProductType($item->getProductType())->getOptions($item);
         foreach ($options as $index => $optionValue) {
-            /* @var $helper \Magento\Catalog\Helper\Product\Configuration */
+            /* @var \Magento\Catalog\Helper\Product\Configuration $helper */
             $helper = $this->configurationPool->getByProductType('default');
             $params = [
                 'max_length' => 55,

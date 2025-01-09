@@ -166,6 +166,15 @@ class ExpressPay implements ArgumentInterface
     }
 
     /**
+     * @param string $pageSource
+     * @return string
+     */
+    public function getContainerId(string $pageSource): string
+    {
+        return $this->paymentBoosterConfigProvider::CONTAINER_PREFIX . $pageSource;
+    }
+
+    /**
      * @return bool
      */
     private function isCartWalletPayEnabled(): bool

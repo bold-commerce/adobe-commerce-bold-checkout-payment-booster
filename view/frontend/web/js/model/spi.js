@@ -59,7 +59,7 @@ define([
          *
          * @returns {Promise<{}>}
          */
-        getPaymentsClient: async function (pageSource = '') {
+        getPaymentsClient: async function () {
             if (window.boldPaymentsInstance) {
                 return window.boldPaymentsInstance;
             }
@@ -152,10 +152,11 @@ define([
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     },
-                    'onClickPaymentOrder': async (type, payload) => {
-                        try {                            
-                            window.checkoutConfig.bold.payment_type_clicked = payload?.payment_data?.payment_type;
-                            
+                    'onClickPaymentOrder': async (paymentType, paymentPayload) => {
+                        const pageSource = paymentPayload.containerId.replace('express-pay-buttons-', '');
+                        window.checkoutConfig.bold.payment_type_clicked = paymentPayload?.payment_data?.payment_type;
+
+                        try {                                
                             onClickPaymentOrderCallback(pageSource);
                         } catch (e) {
                             console.error(e);

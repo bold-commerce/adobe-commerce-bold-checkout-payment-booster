@@ -5,10 +5,10 @@ namespace Bold\CheckoutPaymentBooster\Block\System\Config\Payment;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
-class PortalIframe extends Field
+class PaymentIframe extends Field
 {
     /** @var string */
-    protected $_template = 'Bold_CheckoutPaymentBooster::system/config/payment/portal_iframe.phtml';
+    protected $_template = 'Bold_CheckoutPaymentBooster::system/config/payment/payment_iframe.phtml';
 
     /**
      * Render element HTML

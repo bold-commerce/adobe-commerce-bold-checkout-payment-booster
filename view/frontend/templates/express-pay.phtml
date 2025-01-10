@@ -33,7 +33,7 @@ endif;
     }
 
     if (!window.hasOwnProperty('isCustomerLoggedIn')) {
-        window.isCustomerLoggedIn = <? /* @noEscape */ var_export($isCustomerLoggedIn) ?>;
+        window.isCustomerLoggedIn = <?= /* @noEscape */ json_encode($isCustomerLoggedIn) ?>;
     }
 
     if (!window.hasOwnProperty('customerData')) {

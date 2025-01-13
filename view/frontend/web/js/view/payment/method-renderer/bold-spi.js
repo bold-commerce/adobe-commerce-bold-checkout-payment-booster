@@ -285,7 +285,7 @@ define([
                         }
                         if (paymentId === undefined && data.payload?.success === false) {
                             // Error message for empty or invalid CC details, temporary fix until CHK-7079 is resolved
-                            messageList.addErrorMessage({message: $t('Payment failed, please try again. For digital wallet payments, please click the wallet button to proceed')});
+                            messageList.addErrorMessage({message: $t('Payment failed. Please try again or select a different payment method in the "Pay With" section.')});
                         }
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);

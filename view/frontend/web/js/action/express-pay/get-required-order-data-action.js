@@ -20,7 +20,9 @@ define(
          */
         return function (requirements) {
             const payload = {};
-            if (window.checkoutConfig.bold.payment_type_clicked == 'apple') {
+            if (window.checkoutConfig.quoteData.entity_id === ''
+                && (window.checkoutConfig.bold.payment_type_clicked === 'apple'
+                    || window.checkoutConfig.bold.payment_type_clicked === "google")) {
                 payload.totals = {
                     order_total: 0,
                     order_balance: 1000,

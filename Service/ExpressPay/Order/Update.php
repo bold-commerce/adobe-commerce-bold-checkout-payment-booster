@@ -8,8 +8,10 @@ use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Quote\Model\Quote;
@@ -31,35 +33,46 @@ class Update
      * @var MaskedQuoteIdToQuoteIdInterface
      */
     private $maskedQuoteIdToQuoteId;
+
     /**
      * @var CartRepositoryInterface
      */
     private $cartRepository;
+
     /**
      * @var QuoteConverter
      */
     private $quoteConverter;
+
     /**
      * @var ClientInterface
      */
     private $httpClient;
+
     /**
      * @var GetExpressPayOrder
      */
     private $getExpressPayOrder;
+    
+    /**
+     * @var SessionManagerInterface
+     */
+    private $checkoutSession;
 
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
         GetExpressPayOrder $getExpressPayOrder,
-        ClientInterface $httpClient
+        ClientInterface $httpClient,
+        SessionManagerInterface $checkoutSession
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
         $this->quoteConverter = $quoteConverter;
         $this->getExpressPayOrder = $getExpressPayOrder;
         $this->httpClient = $httpClient;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -83,11 +96,22 @@ class Update
             $quoteId = $quoteMaskId;
         }
 
-        try {
-            /** @var Quote $quote */
-            $quote = $this->cartRepository->get((int)$quoteId);
-        } catch (NoSuchEntityException $noSuchEntityException) {
-            throw new LocalizedException(__('Could not update Express Pay order. Invalid quote ID "%1".', $quoteId));
+        if ($quoteId !== '') {
+            try {
+                /** @var Quote $quote */
+                $quote = $this->cartRepository->get((int)$quoteId);
+            } catch (NoSuchEntityException $noSuchEntityException) {
+                throw new LocalizedException(__('Could not update Express Pay order. Invalid quote ID "%1".', $quoteId));
+            }
+        } else {
+            try {
+                /** @var Session $session */
+                $session = $this->checkoutSession;
+                /** @var Quote $quote */
+                $quote = $session->getQuote();
+            } catch (NoSuchEntityException $noSuchEntityException) {
+                throw new LocalizedException(__('Active quote not found.'));
+            }
         }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();

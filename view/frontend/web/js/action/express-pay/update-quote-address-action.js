@@ -3,11 +3,17 @@ define(
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/customer-data',
         'Magento_Checkout/js/model/address-converter',
+        'Magento_Checkout/js/model/shipping-rate-processor/new-address',
+        'Magento_Checkout/js/model/cart/cache',
+        'Magento_Checkout/js/model/shipping-service'
     ],
     function (
         quote,
         customerData,
-        magentoAddressConverter
+        magentoAddressConverter,
+        newAddressProcessor,
+        cartCache,
+        shippingService
     ) {
         'use strict';
 
@@ -81,9 +87,17 @@ define(
 
             if (addressType === 'shipping') {
                 quote.shippingAddress(quoteAddress);
-                return;
+            } else {
+                quote.billingAddress(quoteAddress);
             }
-            quote.billingAddress(quoteAddress);
+
+            newAddressProcessor.getRates(quote.shippingAddress());
+            shippingService.getShippingRates().subscribe(function (rates) {
+                cartCache.set('rates', rates);
+                let shippingAddress = _.pick(quote.shippingAddress(), cartCache.requiredFields);
+
+                cartCache.set('shipping-address', shippingAddress);
+            });
         }
     }
 );

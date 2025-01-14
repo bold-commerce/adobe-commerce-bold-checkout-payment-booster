@@ -43,6 +43,8 @@
                 <payment_title>Credit card</payment_title>
                 <fastlane_payment_title>Credit card</fastlane_payment_title>
                 <is_express_pay_enabled>0</is_express_pay_enabled>
+                <is_cart_wallet_pay_enabled>0</is_cart_wallet_pay_enabled>
+                <is_product_wallet_pay_enabled>0</is_product_wallet_pay_enabled>
             </bold_checkout_payment_booster>
             <bold_checkout_payment_booster_advanced>
                 <api_url>https://api.boldcommerce.com/</api_url>

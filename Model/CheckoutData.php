@@ -69,9 +69,6 @@ class CheckoutData
     public function initCheckoutData()
     {
         $quote = $this->checkoutSession->getQuote();
-        if (!$quote->getId()) {
-            throw new Exception('Quote is not found');
-        }
         if (!$this->isPaymentBoosterAvailable->isAvailable()) {
             return;
         }

@@ -34,8 +34,8 @@ define(
                 newMethod = shippingService.getShippingRates().filter((method) => {
                     let methodId = `${method.carrier_code}_${method.method_code}`;
                     methodId = methodId.replace(/\s/g, '');
-                    return methodId === shippingMethod['id'] 
-                        || methodId === shippingMethod['identifier'] 
+                    return methodId === shippingMethod['id']
+                        || methodId === shippingMethod['identifier']
                         || methodId === `${shippingMethod.carrier_code}_${shippingMethod.method_code}`;
                 })[0];
             }

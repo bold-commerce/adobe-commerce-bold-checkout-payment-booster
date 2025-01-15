@@ -62,11 +62,6 @@ class ExpressPay implements ArgumentInterface
     private $customerSession;
 
     /**
-     * @var mixed[]
-     */
-    private $jsLayout = [];
-
-    /**
      * @var CustomerRepositoryInterface
      */
     private $customerRepository;
@@ -106,15 +101,17 @@ class ExpressPay implements ArgumentInterface
     public function getJsLayout()
     {
         $quoteId = $this->checkoutSession->getQuote()->getId();
+        // $quoteId = $this->checkoutData->getPublicOrderId();
+        $jsLayout = [];
 
         if ($quoteId !== null) {
-            $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+            $jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
         } else {
-            $this->checkoutData->initCheckoutData();
-            $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
+//            $this->checkoutData->initCheckoutData();
+            $jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
         }
 
-        return $this->serializer->serialize($this->jsLayout);
+        return $this->serializer->serialize($jsLayout);
     }
 
     /**

@@ -20,8 +20,13 @@ define([
         },
 
         _initConfig: async function () {
-            if (!window?.checkoutConfig?.bold) {
-                window.checkoutConfig.bold = customerData.get('bold-checkout-data')();
+            console.log('INIT BOLD CONFIG? ', !window?.checkoutConfig?.bold?.epsStaticUrl);
+
+            customerData.reload('bold-checkout-data');
+            console.log('BOLD SECTION DATA 2: ', customerData.get('bold-checkout-data')());
+
+            if (!window?.checkoutConfig?.bold?.epsStaticUrl) {
+                window.checkoutConfig.bold = customerData.get('bold-checkout-data')()['checkoutConfig']['bold'];
             }
         },
 

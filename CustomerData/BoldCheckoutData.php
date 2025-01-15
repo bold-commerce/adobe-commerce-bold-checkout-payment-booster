@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\CustomerData;
 
+use Magento\Checkout\Model\CompositeConfigProvider;
+use Magento\Checkout\Model\Session;
 use Magento\Customer\CustomerData\SectionSourceInterface;
 use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
+use Psr\Log\LoggerInterface;
 
 class BoldCheckoutData implements SectionSourceInterface
 {
@@ -14,9 +17,30 @@ class BoldCheckoutData implements SectionSourceInterface
      */
     private $paymentBoosterConfig;
 
-    public function __construct(PaymentBoosterConfigProvider $paymentBoosterConfig)
-    {
+    /**
+     * @var CompositeConfigProvider
+     */
+    private $configProvider;
+
+    /**
+     * @var Session
+     */
+    private $checkoutSession;
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    public function __construct(
+        PaymentBoosterConfigProvider $paymentBoosterConfig,
+        CompositeConfigProvider $configProvider,
+        Session $checkoutSession,
+        LoggerInterface $logger
+    ){
         $this->paymentBoosterConfig = $paymentBoosterConfig;
+        $this->configProvider = $configProvider;
+        $this->checkoutSession = $checkoutSession;
+        $this->logger = $logger;
     }
 
     /**
@@ -51,7 +75,20 @@ class BoldCheckoutData implements SectionSourceInterface
      */
     public function getSectionData(): array
     {
-        $boldConfig = $this->paymentBoosterConfig->getConfig();
-        return $boldConfig['bold'] ?? [];
+        $quoteId = $this->checkoutSession->getQuote()->getId();
+        $sectionData = [];
+
+        if ($quoteId !== null) {
+            $sectionData['checkoutConfig'] = $this->configProvider->getConfig();
+        } else {
+            $sectionData['checkoutConfig'] = $this->paymentBoosterConfig->getConfigWithoutQuote();
+        }
+
+        $this->logger->debug('Section Data', [$sectionData]);
+//
+//        return $this->serializer->serialize($jsLayout);
+
+//        $sectionData += $this->paymentBoosterConfig->getConfigWithoutQuote();
+        return $sectionData;
     }
 }

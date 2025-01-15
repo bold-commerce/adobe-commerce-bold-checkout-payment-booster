@@ -21,4 +21,10 @@
     <type name="Magento\Framework\App\FrontController">
         <plugin name="boldCheckoutDataPlugin" type="Bold\CheckoutPaymentBooster\Plugin\Framework\App\FrontControllerPlugin" sortOrder="-1"/>
     </type>
+
+    <type name="Bold\CheckoutPaymentBooster\CustomerData\BoldCheckoutData">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
 </config>

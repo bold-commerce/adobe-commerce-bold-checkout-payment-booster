@@ -8,7 +8,6 @@ use Magento\Checkout\Model\CompositeConfigProvider;
 use Magento\Checkout\Model\Session;
 use Magento\Customer\CustomerData\SectionSourceInterface;
 use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
-use Psr\Log\LoggerInterface;
 
 class BoldCheckoutData implements SectionSourceInterface
 {
@@ -26,21 +25,15 @@ class BoldCheckoutData implements SectionSourceInterface
      * @var Session
      */
     private $checkoutSession;
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
 
     public function __construct(
         PaymentBoosterConfigProvider $paymentBoosterConfig,
         CompositeConfigProvider $configProvider,
-        Session $checkoutSession,
-        LoggerInterface $logger
+        Session $checkoutSession
     ){
         $this->paymentBoosterConfig = $paymentBoosterConfig;
         $this->configProvider = $configProvider;
         $this->checkoutSession = $checkoutSession;
-        $this->logger = $logger;
     }
 
     /**
@@ -84,11 +77,6 @@ class BoldCheckoutData implements SectionSourceInterface
             $sectionData['checkoutConfig'] = $this->paymentBoosterConfig->getConfigWithoutQuote();
         }
 
-        $this->logger->debug('Section Data', [$sectionData]);
-//
-//        return $this->serializer->serialize($jsLayout);
-
-//        $sectionData += $this->paymentBoosterConfig->getConfigWithoutQuote();
         return $sectionData;
     }
 }

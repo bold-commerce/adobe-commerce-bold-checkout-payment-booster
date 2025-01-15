@@ -15,17 +15,18 @@ define([
         initialize: async function () {
             this._super();
 
-            this._initConfig();
-            this._renderExpressPayments();
+            await this._initConfig();
+            await this._renderExpressPayments();
         },
 
         _initConfig: async function () {
-            console.log('INIT BOLD CONFIG? ', !window?.checkoutConfig?.bold?.epsStaticUrl);
+            await customerData.reload(['bold-checkout-data']);
 
-            customerData.reload('bold-checkout-data');
-            console.log('BOLD SECTION DATA 2: ', customerData.get('bold-checkout-data')());
+            if (!window?.checkoutConfig) {
+                window.checkoutConfig = customerData.get('bold-checkout-data')()[checkoutConfig];
+            }
 
-            if (!window?.checkoutConfig?.bold?.epsStaticUrl) {
+            if (!window?.checkoutConfig?.bold || !window?.checkoutConfig?.bold?.epsStaticUrl) {
                 window.checkoutConfig.bold = customerData.get('bold-checkout-data')()['checkoutConfig']['bold'];
             }
         },

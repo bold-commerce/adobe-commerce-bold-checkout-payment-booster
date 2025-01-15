@@ -1,11 +1,7 @@
 define([
-    'jquery',
-    'Magento_Checkout/js/model/quote',
     'Bold_CheckoutPaymentBooster/js/action/express-pay/add-product-to-cart-action',
     'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action'
 ], function (
-    $,
-    quote,
     addProductToCart,
     getActiveQuote
 ) {
@@ -24,9 +20,9 @@ define([
 
             let response = await getActiveQuote();
             response = JSON.parse(response);
-            
+
             window.checkoutConfig.quoteData.entity_id = response.quoteId;
-            Object.assign(window.checkoutConfig, response.checkoutConfig);
+            window.checkoutConfig.quoteItemData = response.quoteItemData;
         } catch (err) {
             console.error(err);
         }

@@ -33,11 +33,11 @@ define(
                 return;
             }
 
-            // if (!quote.getQuoteId()) {
-            //     let response = await getActiveQuote();
-            //     response = JSON.parse(response);
-            //     window.checkoutConfig.quoteData.entity_id = response.quoteId;
-            // }
+            if (!quote.getQuoteId()) {
+               let response = await getActiveQuote();
+               response = JSON.parse(response);
+               window.checkoutConfig.quoteData.entity_id = response.quoteId;
+            }
 
             if (addressProvided) {
                 if (isWalletPayment && paymentData['shipping_address']) {

@@ -7,15 +7,11 @@ define([
 ) {
     'use strict';
     return async function (pageSource) {
-        if (pageSource !== 'product-details') {
-            return;
-        }
+
 
         try {
-            await addProductToCart();
-            let isQuoteInitialized = window.checkoutConfig.quoteData.entity_id !== '';
-            if (isQuoteInitialized) {
-                return;
+            if (pageSource === 'product-details') {
+                await addProductToCart();
             }
 
             let response = await getActiveQuote();

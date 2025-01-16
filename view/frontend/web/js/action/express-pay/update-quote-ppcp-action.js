@@ -1,19 +1,11 @@
 define(
     [
-        'uiRegistry',
-        'jquery',
         'Magento_Checkout/js/model/quote',
-        'Magento_Checkout/js/action/place-order',
-        'Magento_Checkout/js/action/redirect-on-success',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/get-express-pay-order-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-address-action',
     ],
     function (
-        registry,
-        $,
         quote,
-        placeOrderAction,
-        redirectOnSuccessAction,
         getExpressPayOrderAction,
         updateQuoteAddressAction,
     ) {
@@ -52,8 +44,10 @@ define(
                 return address;
             }
 
-            quote.guestEmail = order.email;
-            updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+            if (paymentApprovalData.shipping_strategy !== 'fixed') {
+                quote.guestEmail = order.email;
+                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+            }
             updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
         };
     }

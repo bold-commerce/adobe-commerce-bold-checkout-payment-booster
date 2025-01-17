@@ -152,6 +152,7 @@ define([
                     shouldRenderPaypalButton: true,
                     shouldRenderAppleGoogleButtons: true,
                     shopName: window.checkoutConfig.bold?.shopName ?? '',
+                    allowedCountries: window.checkoutConfig.bold?.countries ?? null,
                 };
                 paymentsInstance.renderPayments('SPI', fastlaneOptions);
                 this.isBillingAddressRequired(false);
@@ -169,6 +170,7 @@ define([
                 shouldRenderPaypalButton: true,
                 shouldRenderAppleGoogleButtons: true,
                 shopName: window.checkoutConfig.bold?.shopName ?? '',
+                allowedCountries: window.checkoutConfig.bold?.countries ?? null,
             }
             paymentsInstance.renderPayments('SPI', paymentOptions);
         },

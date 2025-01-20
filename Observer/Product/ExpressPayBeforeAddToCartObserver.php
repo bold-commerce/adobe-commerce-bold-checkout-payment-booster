@@ -53,8 +53,8 @@ class ExpressPayBeforeAddToCartObserver implements ObserverInterface
         $this->checkoutSession->setCheckoutState(true);
         $quote->removeAllItems();
         $quote->setTotalsCollectedFlag(false);
-        $this->checkoutSession->clearQuote();
-
         $this->cartRepository->save($quote);
+
+        $this->checkoutSession->setQuoteId($quote->getId());
     }
 }

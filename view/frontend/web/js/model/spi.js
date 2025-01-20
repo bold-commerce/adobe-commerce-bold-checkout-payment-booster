@@ -168,8 +168,6 @@ define([
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
-
-                            return;
                         }
                     }
                 }

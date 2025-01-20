@@ -20,7 +20,8 @@ define([
                 method: "POST",
                 headers: {},
                 body: addToCartFormData,
-                credentials: 'same-origin'
+                credentials: 'same-origin',
+                redirect: 'follow'
             });
         } catch (err) {
             console.error(err);

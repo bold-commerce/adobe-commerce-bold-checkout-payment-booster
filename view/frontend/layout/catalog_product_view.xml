@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceBlock name="product.info.addtocart">
+            <block name="bold.product.info.addtocart" template="Bold_CheckoutPaymentBooster::bold-storefront-data.phtml" before="-">
+                <arguments>
+                    <argument name="express_pay_view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\ExpressPay</argument>
+                    <argument name="render_page_source" xsi:type="const">Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+        <referenceBlock name="product.info.addtocart.additional">
+            <block name="bold.product.info.addtocart.additional" template="Bold_CheckoutPaymentBooster::bold-storefront-data.phtml" before="-">
+                <arguments>
+                    <argument name="express_pay_view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\ExpressPay</argument>
+                    <argument name="render_page_source" xsi:type="const">Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT</argument>
+                </arguments>
+            </block>
+        </referenceBlock>
+    </body>
+</page>

@@ -1,14 +1,14 @@
 define([
     'Bold_CheckoutPaymentBooster/js/action/express-pay/add-product-to-cart-action',
-    'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action'
+    'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action',
+    'Magento_Customer/js/customer-data'
 ], function (
     addProductToCart,
-    getActiveQuote
+    getActiveQuote,
+    customerData
 ) {
     'use strict';
     return async function (pageSource) {
-
-
         try {
             if (pageSource === 'product-details') {
                 await addProductToCart();

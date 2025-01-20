@@ -33,10 +33,12 @@ define(
                 return;
             }
 
-            let response = await getActiveQuote();
-            response = JSON.parse(response);
-
-            window.checkoutConfig.quoteData.entity_id = response.quoteId;
+            // if (!quote.getQuoteId()) {
+                // let response = await getActiveQuote();
+                // response = JSON.parse(response);
+                // window.checkoutConfig.quoteData.entity_id = response.quoteId;
+                // window.checkoutConfig.quoteItemData = response.quoteItemData;
+            //  }
 
             if (addressProvided) {
                 if (isWalletPayment && paymentData['shipping_address']) {

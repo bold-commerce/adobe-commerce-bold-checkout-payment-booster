@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\View\Element\Template;
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
+
+/** @var Template $block */
+
+/** @var ExpressPay $expressPayViewModel */
+$expressPayViewModel = $block->getData('express_pay_view_model');
+$pageSource = $block->getData('render_page_source');
+$isEnabled = $expressPayViewModel->isEnabled($pageSource);
+$isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
+$customerData = $expressPayViewModel->getCustomerData();
+
+if (!$isEnabled):
+    return;
+endif;
+?>
+
+<script>
+    // if (!window.checkoutConfig) {
+        let layout = <?= $expressPayViewModel->getJsLayout() ?>;
+
+        window.checkoutConfig = {};
+        Object.assign(window.checkoutConfig, layout.checkoutConfig);
+    // }
+
+    if (!window.hasOwnProperty('isCustomerLoggedIn')) {
+        window.isCustomerLoggedIn = <?= /* @noEscape */ json_encode($isCustomerLoggedIn) ?>;
+    }
+
+    if (!window.hasOwnProperty('customerData')) {
+        window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
+    }
+</script>

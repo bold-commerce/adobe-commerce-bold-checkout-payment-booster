@@ -25,11 +25,11 @@ define([
             }
 
             if (!window?.checkoutConfig) {
-                window.checkoutConfig = await customerData.get('bold-checkout-data')()[checkoutConfig];
+                window.checkoutConfig = customerData.get('bold-checkout-data')()[checkoutConfig];
             }
 
             if (!window?.checkoutConfig?.bold || !window?.checkoutConfig?.bold?.epsStaticUrl) {
-                window.checkoutConfig.bold = await customerData.get('bold-checkout-data')()['checkoutConfig']['bold'];
+                window.checkoutConfig.bold = customerData.get('bold-checkout-data')()['checkoutConfig']['bold'];
             }
         },
 

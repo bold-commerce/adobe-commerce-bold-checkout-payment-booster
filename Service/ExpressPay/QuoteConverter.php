@@ -51,15 +51,28 @@ class QuoteConverter
      */
     public function convertFullQuote(Quote $quote, string $gatewayId): array
     {
-        return array_merge_recursive(
+        $shippingAddress = $quote->getShippingAddress();
+        $grandTotal = $quote->getGrandTotal();
+
+        $itemTotal = $this->calculateItemTotal($quote);
+        $shippingTotal = $shippingAddress->getShippingAmount();
+        $taxTotal = $this->calculateShippingTotal($quote);
+        $discountTotal = $this->calculateDiscountTotal($quote);
+
+        $convertedQuote = array_merge_recursive(
             $this->convertGatewayIdentifier($gatewayId),
             $this->convertLocale($quote),
             $this->convertCustomer($quote),
-            $this->convertShippingInformation($quote),
-            $this->convertQuoteItems($quote),
-            $this->convertTotal($quote),
-            $this->convertTaxes($quote),
-            $this->convertDiscount($quote)
+            $this->convertShippingInformation($quote, $shippingTotal),
+            $this->convertQuoteItems($quote, $itemTotal),
+            $this->convertTotal($quote, $grandTotal),
+            $this->convertTaxes($quote, $taxTotal),
+            $this->convertDiscount($quote, $discountTotal)
+        );
+
+        return array_replace_recursive(
+            $convertedQuote,
+            $this->applyFudgeFactor($grandTotal, $itemTotal, $shippingTotal, $taxTotal, $discountTotal)
         );
     }
 
@@ -125,7 +138,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
      */
-    public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
+    public function convertShippingInformation(Quote $quote, float $shippingTotal, bool $includeAddress = true): array
     {
         $shippingAddress = $quote->getShippingAddress();
 
@@ -208,7 +221,7 @@ class QuoteConverter
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2, '.', '')
+                    'value' => number_format($shippingTotal, 2, '.', '')
                 ],
             ];
         }
@@ -221,7 +234,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>>
      */
-    public function convertQuoteItems(Quote $quote): array
+    public function convertQuoteItems(Quote $quote, float $itemTotal): array
     {
         $quoteItems = $quote->getItems();
 
@@ -258,14 +271,7 @@ class QuoteConverter
                 'item_total' => [
                     'currency_code' => $currencyCode ?? '',
                     'value' => number_format(
-                        array_sum(
-                            array_map(
-                                static function (CartItemInterface $cartItem) {
-                                    return $cartItem->getPrice() * $cartItem->getQty();
-                                },
-                                $quoteItems
-                            )
-                        ),
+                        $itemTotal,
                         2,
                         '.',
                         ''
@@ -282,7 +288,7 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertTotal(Quote $quote): array
+    public function convertTotal(Quote $quote, float $grandTotal): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
 
@@ -296,7 +302,7 @@ class QuoteConverter
             'order_data' => [
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$quote->getGrandTotal(), 2, '.', '')
+                    'value' => number_format($grandTotal, 2, '.', '')
                 ]
             ]
         ];
@@ -305,50 +311,28 @@ class QuoteConverter
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertTaxes(Quote $quote): array
+    public function convertTaxes(Quote $quote, float $taxTotal): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
-        $convertedQuote = [
+        return [
             'order_data' => [
                 'tax_total' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => ''
+                    'value' => number_format(
+                        $taxTotal,
+                        2,
+                        '.',
+                        ''
+                    )
                 ]
             ]
         ];
-
-        if ($quote->getIsVirtual()) {
-            /** @var Item[] $items */
-            $items = $quote->getItems();
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                array_sum(
-                    array_map(
-                        static function (Item $item): float {
-                            return $item->getTaxAmount() ?? 0.00;
-                        },
-                        $items
-                    )
-                ),
-                2,
-                '.',
-                ''
-            );
-        } else {
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
-                2,
-                '.',
-                ''
-            );
-        }
-
-        return $convertedQuote;
     }
 
     /**
      * @return array<string, array<string, array<string, string>>>
      */
-    public function convertDiscount(Quote $quote): array
+    public function convertDiscount(Quote $quote, float $discountTotal): array
     {
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
 
@@ -357,7 +341,7 @@ class QuoteConverter
                 'discount' => [
                     'currency_code' => $currencyCode ?? '',
                     'value' => number_format(
-                        (float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()),
+                        $discountTotal,
                         2,
                         '.',
                         ''
@@ -434,5 +418,105 @@ class QuoteConverter
             '.',
             ''
         );
+    }
+
+    /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
+     * @phpcs:enable Generic.Files.LineLength.TooLong
+     */
+    private function calculateItemTotal(Quote $quote): float
+    {
+        if (!$this->areTotalsCollected) {
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
+        $quoteItems = $quote->getItems();
+
+        return array_sum(
+            array_map(
+                static function (CartItemInterface $cartItem) {
+                    return $cartItem->getPrice() * $cartItem->getQty();
+                },
+                $quoteItems
+            )
+        );
+    }
+
+    /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
+     * @phpcs:enable Generic.Files.LineLength.TooLong
+     */
+    private function calculateShippingTotal(Quote $quote): float
+    {
+        if (!$this->areTotalsCollected) {
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
+        if ($quote->getIsVirtual()) {
+            /** @var Item[] $items */
+            $items = $quote->getItems();
+            return array_sum(
+                array_map(
+                    static function (Item $item): float {
+                        return $item->getTaxAmount() ?? 0.00;
+                    },
+                    $items
+                )
+            );
+        } else {
+            return $quote->getShippingAddress()->getTaxAmount() ?? 0.00;
+        }
+    }
+
+    /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
+     * @phpcs:enable Generic.Files.LineLength.TooLong
+     */
+    private function calculateDiscountTotal(Quote $quote): float
+    {
+        if (!$this->areTotalsCollected) {
+            $quote->collectTotals();
+
+            $this->areTotalsCollected = true;
+        }
+
+        return $quote->getSubtotal() - $quote->getSubtotalWithDiscount();
+    }
+
+    /**
+     * @phpcs:disable Generic.Files.LineLength.TooLong
+     * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
+     * @phpcs:enable Generic.Files.LineLength.TooLong
+     */
+    private function applyFudgeFactor(
+        float $grandTotal,
+        float $itemTotal,
+        float $shippingTotal,
+        float $taxTotal,
+        float $discountTotal): array
+    {
+        $calculatedGrandTotal = (float) $itemTotal + $taxTotal + $shippingTotal - $discountTotal;
+        $fudgeFactor = (float) $grandTotal - $calculatedGrandTotal;
+        // TODO: explode if the fudge factor is too large, indicating a real math error
+
+        return [
+            'order_data' => [
+                'item_total' => [
+                    'value' => number_format(
+                        $itemTotal + $fudgeFactor,
+                        2,
+                        '.',
+                        ''
+                    )
+                ]
+            ]
+        ];
     }
 }

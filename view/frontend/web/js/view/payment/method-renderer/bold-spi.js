@@ -90,25 +90,29 @@ define([
                 }
             });
             this.isVisible(window.checkoutConfig.bold?.paymentBooster);
-            const delayedHydrateOrder = _.debounce(
-                async function () {
-                    try {
-                        await hydrateOrderAction();
-                    } catch (e) {
-                        console.error(e);
-                        this.isVisible(false);
-                    }
-                }.bind(this),
-                500
-            );
-            hydrateOrderAction().then(() => {
-                quote.billingAddress.subscribe(function () {
-                    delayedHydrateOrder();
-                }, this);
-            }).catch((reason) => {
-                console.error(reason);
-                this.isVisible(false);
-            });
+            // const delayedHydrateOrder = _.debounce(
+            //     async function () {
+            //         try {
+            //             console.log('debounced shipping add ', quote.shippingAddress())
+            //             console.log('debounced billing add ', quote.billingAddress())
+            //             await hydrateOrderAction();
+            //         } catch (e) {
+            //             console.error(e);
+            //             this.isVisible(false);
+            //         }
+            //     }.bind(this),
+            //     500
+            // );
+            // console.log('start shipping add ', quote.shippingAddress())
+            // console.log('start billing add ', quote.billingAddress())
+            // hydrateOrderAction().then(() => {
+            //     quote.billingAddress.subscribe(function () {
+            //         delayedHydrateOrder();
+            //     }, this);
+            // }).catch((reason) => {
+            //     console.error(reason);
+            //     this.isVisible(false);
+            // });
         },
         /**
          * Initialize SPI payment form.
@@ -175,11 +179,18 @@ define([
 
         /** @inheritdoc */
         placeOrder: function (data, event) {
+            console.log('place order function');
             const placeMagentoOrder = this._super.bind(this);
             if (this.paymentId()) {
                 return placeMagentoOrder(data, event);
             }
-            this.tokenize();
+            console.log('hydrate call');
+            hydrateOrderAction().then(() => {
+                console.log('tokenize');
+                this.tokenize();
+            }).catch((reason) => {
+                console.error(reason);
+            });
             return false;
         },
 

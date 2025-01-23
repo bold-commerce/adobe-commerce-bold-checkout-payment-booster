@@ -5,7 +5,7 @@
   "license": [
     "MIT"
   ],
-  "version": "2.2.12",
+  "version": "2.2.13",
   "require": {
     "magento/framework": ">=102.0.1 <103.0.8",
     "magento/module-checkout": ">=100.3.1 <100.4.8",

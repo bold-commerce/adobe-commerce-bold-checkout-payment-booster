@@ -51,6 +51,7 @@ define([
             localStorage.removeItem(AGREEMENT_DATE_KEY);
             return false;
         }
+
         const currentTime = Date.now();
         localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
         return true;
@@ -163,14 +164,18 @@ define([
             }
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
+
             const paymentOptions = {
                 fastlane: false,
                 shouldRenderSpiFrame: true,
                 shouldRenderPaypalButton: true,
                 shouldRenderAppleGoogleButtons: true,
-                shopName: window.checkoutConfig.bold?.shopName ?? '',
             }
             paymentsInstance.renderPayments('SPI', paymentOptions);
+
+            if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
+                this.isPlaceOrderButtonVisible(false);
+            }
         },
 
         /** @inheritdoc */
@@ -192,6 +197,17 @@ define([
             if (!validateAgreements()) {
                 throw new Error('Agreements not accepted');
             }
+
+            const iframe = document.querySelector('iframe[title="paypal_card_form"]');
+            const iframeContent = iframe?.contentWindow?.document;
+            const submitButton = iframeContent?.getElementById('submit-button')
+                ?.innerHTML?.indexOf('Pay ') > -1;
+
+            if (submitButton) {
+                iframeContent.getElementById('submit-button').click();
+                return;
+            }
+
             fullscreenLoader.startLoader();
             return this.placeOrder(data, event);
         },

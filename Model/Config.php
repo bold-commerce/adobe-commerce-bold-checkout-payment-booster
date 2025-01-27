@@ -343,10 +343,12 @@ class Config
      */
     public function isProductWalletPayEnabled(int $websiteId): bool
     {
-        return $this->scopeConfig->isSetFlag(
-            self::PATH_IS_PRODUCT_WALLET_PAY_ENABLED,
-            ScopeInterface::SCOPE_WEBSITES,
-            $websiteId
-        );
+        return false;
+        
+        // $this->scopeConfig->isSetFlag(
+        // self::PATH_IS_PRODUCT_WALLET_PAY_ENABLED,
+        // ScopeInterface::SCOPE_WEBSITES,
+        // $websiteId
+        // );
     }
 }

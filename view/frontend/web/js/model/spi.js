@@ -32,6 +32,28 @@ define([
     'use strict';
 
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+
+    const additionalValidation = () => {
+        additionalValidators.registerValidator({
+            validate: function () {
+                const checkboxes = Array.from(document.querySelectorAll(
+                    'input[data-gdpr-checkbox-code],' +
+                    '.checkout-agreement input[type="checkbox"]'
+                )).filter(el => {
+                    const style = window.getComputedStyle(el);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+                });
+                if (checkboxes.length === 0) {
+                    return true;
+                }
+                return Array
+                    .from(checkboxes)
+                    .every(checkbox => checkbox.checked);
+            }
+        });
+    };
+    additionalValidation();
+
     const validateAgreements = () => {
         if (!window.location.href.includes("#payment")) {
             return true;

@@ -28,26 +28,21 @@ define(
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
             const addressProvided = Boolean(paymentData['shipping_address'] || paymentData['billing_address']);
+            const isSpiContainer = paymentPayload.containerId === 'SPI';
 
             if (paymentType !== 'ppcp') {
                 return;
             }
 
-            if (!quote.getQuoteId()) {
-                let response = await getActiveQuote();
-                response = JSON.parse(response);
-                window.checkoutConfig.quoteData.entity_id = response.quoteId;
-            }
-
-            if (addressProvided) {
-                if (isWalletPayment && paymentData['shipping_address']) {
-                    updateQuoteAddressAction('shipping', paymentData['shipping_address']);
-                }
-                if (isWalletPayment && paymentData['billing_address']) {
-                    updateQuoteAddressAction('billing', paymentData['billing_address']);
-                }
-
-                if (!isWalletPayment) {
+            if (!isSpiContainer && addressProvided) {
+                if (isWalletPayment) {
+                    if (paymentData['shipping_address']) {
+                        updateQuoteAddressAction('shipping', paymentData['shipping_address']);
+                    }
+                    if (paymentData['billing_address']) {
+                        updateQuoteAddressAction('billing', paymentData['billing_address']);
+                    }
+                } else {
                     await updateQuoteShippingMethodAction(paymentData['shipping_options']);
                 }
 

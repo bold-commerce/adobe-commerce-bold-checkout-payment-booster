@@ -116,7 +116,10 @@ class FrontControllerPlugin
         }
 
         try {
-            $this->checkoutData->initCheckoutData();
+            $publicOrderId = $this->checkoutData->getPublicOrderId();
+            if($publicOrderId === null) {
+                $this->checkoutData->initCheckoutData();
+            }
         } catch (Exception $exception) {
             $this->logger->critical($exception);
         }

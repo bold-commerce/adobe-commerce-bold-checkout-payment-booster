@@ -50,9 +50,9 @@ class ExpressPayBeforeAddToCartObserver implements ObserverInterface
     {
         $request = $observer->getEvent()->getRequest();
 
-        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
-        if($checkoutData === null) {
-            $this->checkoutData->initCheckoutData();
-        }
+        // $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        // if($checkoutData === null) {
+        //     $this->checkoutData->initCheckoutData();
+        // }
     }
 }

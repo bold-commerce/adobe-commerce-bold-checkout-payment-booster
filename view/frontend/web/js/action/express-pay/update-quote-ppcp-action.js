@@ -41,6 +41,7 @@ define(
                 address.last_name = order.last_name;
                 address.state = address.province;
                 address.country_code = address.country;
+                address.telephone = address.phone;
 
                 if (!address.email && order.email) {
                     address.email = order.email;
@@ -48,13 +49,17 @@ define(
 
                 delete address.province;
                 delete address.country;
+                delete address.phone;
 
                 return address;
             }
 
             quote.guestEmail = order.email;
-            updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
             updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
+
+            if (paymentApprovalData.shipping_strategy === 'dynamic') {
+                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+            }
         };
     }
 );

@@ -53,7 +53,7 @@
                 <field id="is_express_pay_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
                     <label>Enable Digital Wallets in Express Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Display digital wallets above the shipping step.]]></comment>
+                    <comment><![CDATA[Display Digital Wallets above the shipping step.]]></comment>
                     <depends>
                         <field id="is_payment_booster_enabled">1</field>
                     </depends>
@@ -61,12 +61,12 @@
                 <field id="is_cart_wallet_pay_enabled" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1">
                     <label>Enable Digital Wallets on Cart Page</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Display digital wallets on your cart page.]]></comment>
+                    <comment><![CDATA[Display Digital Wallets on your cart page.]]></comment>
                 </field>
                 <!-- <field id="is_product_wallet_pay_enabled" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1">
                     <label>Enable Digital Wallets on Product Pages</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Display digital wallets on your product pages.]]></comment>
+                    <comment><![CDATA[Display Digital Wallets on your product pages.]]></comment>
                 </field> -->
             </group>
             <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">

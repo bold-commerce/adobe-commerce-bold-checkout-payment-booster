@@ -9,7 +9,6 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
-    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
     'Magento_Ui/js/model/messageList',
     'mage/url',
     'mage/translate'
@@ -24,7 +23,6 @@ define([
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
-    onClickPaymentOrderCallback,
     messageList,
     urlBuilder,
     $t
@@ -69,7 +67,6 @@ define([
         localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
         return true;
     };
-    let onClickPromise = null;
 
     /**
      * Fastlane init model.
@@ -137,9 +134,6 @@ define([
                         }
 
                         try {
-                            if (window.checkoutConfig.bold.payment_type_clicked === "apple" || window.checkoutConfig.bold.payment_type_clicked === "google") {
-                                await onClickPromise;
-                            }
                             return await onUpdatePaymentOrderCallback(paymentType, paymentPayload);
                         } catch (e) {
                             console.error(e);
@@ -177,22 +171,6 @@ define([
                     'onErrorPaymentOrder': function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
-                    },
-                    'onClickPaymentOrder': async (paymentType, paymentPayload) => {
-                        const pageSource = paymentPayload.containerId.replace('express-pay-buttons-', '');
-                        window.checkoutConfig.bold.payment_type_clicked = paymentPayload?.payment_data?.payment_type;
-                        try {
-                            if (window.checkoutConfig.bold.payment_type_clicked === "apple" || window.checkoutConfig.bold.payment_type_clicked === "google") {
-                                onClickPromise = onClickPaymentOrderCallback(pageSource);
-                            } else {
-                                await onClickPaymentOrderCallback(pageSource);
-                            }
-                        } catch (e) {
-                            console.error(e);
-                            fullScreenLoader.stopLoader();
-
-                            return;
-                        }
                     }
                 }
             };

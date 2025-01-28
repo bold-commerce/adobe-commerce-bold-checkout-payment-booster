@@ -8,7 +8,6 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
-    <preference for="Bold\CheckoutPaymentBooster\Api\Quote\GetQuoteInterface" type="Bold\CheckoutPaymentBooster\Service\Quote\GetQuote"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

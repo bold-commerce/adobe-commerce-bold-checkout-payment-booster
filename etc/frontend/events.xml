@@ -1,9 +1,6 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">  
-    <event name="controller_action_predispatch_checkout_cart_add">
-        <observer name="express_pay_before_add_to_cart" instance="Bold\CheckoutPaymentBooster\Observer\Product\ExpressPayBeforeAddToCartObserver"/>
-    </event>
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="shortcut_buttons_container">
         <observer name="add_express_pay_buttons" instance="Bold\CheckoutPaymentBooster\Observer\ShortcutButtons\AddExpressPayButtonsObserver"/>
     </event>

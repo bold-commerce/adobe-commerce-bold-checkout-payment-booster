@@ -20,22 +20,6 @@ define(
          */
         return function (requirements) {
             const payload = {};
-            if (window.checkoutConfig.quoteData.entity_id === ''
-                && (window.checkoutConfig.bold.payment_type_clicked === 'apple'
-                    || window.checkoutConfig.bold.payment_type_clicked === "google")) {
-                payload.totals = {
-                    order_total: 0,
-                    order_balance: 1000,
-                    shipping_total: 0,
-                    discounts_total: 0,
-                    fees_total: 0,
-                    taxes_total: 0
-                };
-                payload.items = [{label: '', amount: 0}];
-                payload.shipping_address = {};
-
-                return payload;
-            };
             for (const requirement of requirements) {
                 switch (requirement) {
                     case 'customer':

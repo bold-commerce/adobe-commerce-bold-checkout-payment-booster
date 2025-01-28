@@ -4,7 +4,6 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-shipping-method-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/create-wallet-pay-order-action',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/get-active-quote-action',
         'Magento_Checkout/js/model/quote'
     ],
     function (
@@ -12,7 +11,6 @@ define(
         updateQuoteShippingMethodAction,
         saveShippingInformationAction,
         createWalletPayOrderAction,
-        getActiveQuote,
         quote
     ) {
         'use strict';

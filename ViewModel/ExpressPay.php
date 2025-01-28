@@ -105,13 +105,13 @@ class ExpressPay implements ArgumentInterface
      */
     public function getJsLayout()
     {
-        $quoteId = $this->checkoutSession->getQuote()->getId();
-        if ($quoteId !== null) {
-            $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
-        } else {
-            $this->checkoutData->initCheckoutData();
-            $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
-        }
+        // $quoteId = $this->checkoutSession->getQuote()->getId();
+        // if ($quoteId !== null) {
+        //     $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+        // } else {
+            // $this->checkoutData->initCheckoutData();
+        $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
+        //}
 
         return $this->serializer->serialize($this->jsLayout);
     }

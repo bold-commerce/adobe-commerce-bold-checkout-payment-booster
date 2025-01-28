@@ -15,12 +15,13 @@ define([
         initialize: async function () {
             this._super();
 
-            this._initConfig();
+            await this._initConfig();
             this._renderExpressPayments();
         },
 
         _initConfig: async function () {
             if (!window?.checkoutConfig?.bold) {
+                await customerData.reload(['bold-checkout-data']);
                 window.checkoutConfig.bold = customerData.get('bold-checkout-data')();
             }
         },

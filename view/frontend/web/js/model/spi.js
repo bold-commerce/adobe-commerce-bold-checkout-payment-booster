@@ -10,6 +10,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
     'Magento_Ui/js/model/messageList',
+    'mage/url',
     'mage/translate'
 ], function (
     quote,
@@ -23,6 +24,7 @@ define([
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
     messageList,
+    urlBuilder,
     $t
 ) {
     'use strict';
@@ -109,7 +111,7 @@ define([
                     {
                         'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
                         'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        'currency': quote.totals()['base_currency_code'],
+                        'currency': window.checkoutConfig.bold.currency,
                     }
                 ],
                 'callbacks': {
@@ -157,7 +159,7 @@ define([
                             throw e;
                         }
                     },
-                    'onRequireOrderData': async function (requirements) {
+                    'onRequireOrderData': function (requirements) {
                         try {
                             return onRequireOrderDataCallback(requirements);
                         } catch (e) {
@@ -168,8 +170,8 @@ define([
                     },
                     'onErrorPaymentOrder': function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
-                        messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
-                    },
+                        messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
+                    }
                 }
             };
             const paymentsInstance = new window.bold.Payments(initialData);

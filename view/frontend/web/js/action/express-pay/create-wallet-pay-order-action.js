@@ -13,7 +13,7 @@ define(
          * @param {{}}
          * @return {Promise}
          */
-        return async function (paymentPayload) {
+        return function (paymentPayload) {
             return platformClient.post(
                 'rest/V1/express_pay/order/create',
                 {

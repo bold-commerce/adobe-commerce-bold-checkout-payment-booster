@@ -122,12 +122,14 @@
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create">
         <arguments>
             <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
 
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update">
         <arguments>
             <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
+            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
 

@@ -20,7 +20,6 @@ define(
          */
         return function (requirements) {
             const payload = {};
-
             for (const requirement of requirements) {
                 switch (requirement) {
                     case 'customer':
@@ -42,10 +41,12 @@ define(
                         }));
                         break;
                     case 'billing_address':
-                        payload[requirement] = convertMagentoAddressAction(quote.billingAddress());
+                        const hasBillingAddress = quote.billingAddress() !== null;
+                        payload[requirement] = hasBillingAddress !== null ? convertMagentoAddressAction(quote.billingAddress()) : {};
                         break;
                     case 'shipping_address':
-                        payload[requirement] = convertMagentoAddressAction(quote.shippingAddress());
+                        const hasShippingAddress = quote.shippingAddress() !== null;
+                        payload[requirement] = hasShippingAddress ? convertMagentoAddressAction(quote.shippingAddress()) : {};
                         break;
                     case 'shipping_options':
                         payload[requirement] = shippingService.getShippingRates().map(option => ({

@@ -214,6 +214,8 @@ define([
          * @return boolean
          */
         placeOrderClick: function (data, event) {
+            this.paymentId(null);
+
             if (!validateAgreements()) {
                 throw new Error('Agreements not accepted');
             }

@@ -22,5 +22,11 @@
     "psr-4": {
       "Bold\\CheckoutPaymentBooster\\": ""
     }
+  },
+  "repositories": {
+    "bold-commerce-adobe-commerce-bold-checkout-payment-booster": {
+      "type": "git",
+      "url": "git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git"
+    }
   }
 }

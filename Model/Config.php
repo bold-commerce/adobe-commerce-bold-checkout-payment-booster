@@ -29,6 +29,8 @@ class Config
     private const PATH_CONFIGURATION_GROUP_LABEL = 'checkout/bold_checkout_payment_booster/configuration_group_label';
     private const PATH_BOLD_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/bold_booster_flow_id';
     private const PATH_IS_EXPRESS_PAY_ENABLED = 'checkout/bold_checkout_payment_booster/is_express_pay_enabled';
+    private const PATH_IS_TAX_INCLUDED_IN_PRICES = 'tax/calculation/price_includes_tax';
+    private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
 
     /**
      * @var ScopeConfigInterface
@@ -313,6 +315,36 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_IS_EXPRESS_PAY_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if tax is included in item prices.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isTaxIncludedInPrices(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_TAX_INCLUDED_IN_PRICES,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if tax is included in shipping cost.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isTaxIncludedInShipping(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_TAX_INCLUDED_IN_SHIPPING,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

@@ -159,7 +159,7 @@ define([
                             throw e;
                         }
                     },
-                    'onRequireOrderData': function (requirements) {
+                    'onRequireOrderData': async function (requirements) {
                         try {
                             return onRequireOrderDataCallback(requirements);
                         } catch (e) {
@@ -168,7 +168,7 @@ define([
                             throw e;
                         }
                     },
-                    'onErrorPaymentOrder': function (errors) {
+                    'onErrorPaymentOrder': async function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     }

@@ -8,12 +8,18 @@
         <group id="bold_payments_fastlane">
             <label>Credit card</label>
         </group>
+        <group id="bold_payments_wallet">
+            <label>Digital Wallets</label>
+        </group>
     </groups>
     <methods>
         <method name="bold">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
         <method name="bold_fastlane">
+            <allow_multiple_address>1</allow_multiple_address>
+        </method>
+        <method name="bold_wallet">
             <allow_multiple_address>1</allow_multiple_address>
         </method>
     </methods>

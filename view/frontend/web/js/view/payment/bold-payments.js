@@ -10,6 +10,10 @@ define([
         {
             type: 'bold',
             component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-spi'
+        },
+        {
+            type: 'bold_wallet',
+            component: 'Bold_CheckoutPaymentBooster/js/view/payment/method-renderer/bold-wallet-payments'
         }
     );
     if (window.checkoutConfig.bold?.fastlane !== undefined) {

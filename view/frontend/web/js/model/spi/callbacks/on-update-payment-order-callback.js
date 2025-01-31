@@ -24,6 +24,7 @@ define(
          * @param {Object} paymentOrder
          */
         return async function (paymentType, paymentPayload) {
+            debugger;
             const paymentData = paymentPayload['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);

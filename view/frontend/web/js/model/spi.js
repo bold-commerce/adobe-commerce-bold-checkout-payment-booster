@@ -11,7 +11,8 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
     'Magento_Ui/js/model/messageList',
     'mage/url',
-    'mage/translate'
+    'mage/translate',
+    'jquery',
 ], function (
     quote,
     fullScreenLoader,
@@ -25,9 +26,13 @@ define([
     onScaPaymentOrderCallback,
     messageList,
     urlBuilder,
-    $t
+    $t,
+    $,
 ) {
     'use strict';
+
+    let isProductPageActive = false;
+    let productQuoteCreationError = null;
 
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
 
@@ -115,8 +120,73 @@ define([
                     }
                 ],
                 'callbacks': {
+                    'onClickPaymentOrder': async (paymentType, paymentPayload) => {
+                        let productAddToCartForm;
+                        let productAddToCartFormData;
+                        let createQuoteResponse;
+                        let createQuoteResult;
+
+                        productQuoteCreationError = null;
+                        isProductPageActive = paymentPayload.containerId.includes('product-detail');
+
+                        if (!isProductPageActive) {
+                            return;
+                        }
+
+                        productAddToCartForm = document.getElementById('product_addtocart_form');
+
+                        if (!$(productAddToCartForm).validation('isValid')) {
+                            productQuoteCreationError = new Error('Invalid product form');
+
+                            return;
+                        }
+
+                        productAddToCartFormData = new FormData(productAddToCartForm);
+
+                        try {
+                            createQuoteResponse = await fetch(
+                                urlBuilder.build('bold_booster/digitalwallets_quote/create'),
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'X_REQUESTED_WITH': 'XMLHttpRequest'
+                                    },
+                                    body: productAddToCartFormData,
+                                    credentials: 'same-origin'
+                                }
+                            );
+                        } catch (error) {
+                            console.error('Could not create Digital Wallets product quote. Error:', error);
+
+                            productQuoteCreationError = error;
+
+                            return;
+                        }
+
+                        createQuoteResult = await createQuoteResponse.json();
+
+                        console.debug({ createQuoteResult })
+
+                        if (createQuoteResult.hasOwnProperty('error')) {
+                            console.error(
+                                'Could not create Digital Wallets product quote. Error:',
+                                createQuoteResult.error
+                            );
+
+                            productQuoteCreationError = new Error(createQuoteResult.error);
+
+                            return;
+                        }
+
+                        window.checkoutConfig.quoteData = createQuoteResult.quoteData;
+                        window.checkoutConfig.totalsData = createQuoteResult.totalsData ?? [];
+                    },
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (!validateAgreements()) {
+                        if (productQuoteCreationError instanceof Error) {
+                            throw productQuoteCreationError;
+                        }
+
+                        if (!isProductPageActive && !validateAgreements()) {
                             throw new Error('Agreements not accepted');
                         }
 
@@ -169,6 +239,37 @@ define([
                         }
                     },
                     'onErrorPaymentOrder': function (errors) {
+                        if (isProductPageActive && window.quoteData?.hasOwnProperty('entity_id')) {
+                            debugger
+                            const deactivateQuoteFormData = new FormData();
+
+                            deactivateQuoteFormData.append('form_key', $.mage.cookies.get('form_key'));
+                            deactivateQuoteFormData.append('quote_id', window.quoteData.entity_id);
+
+                            fetch(
+                                urlBuilder.build('bold_booster/digitalwallets_quote/deactivate'),
+                                {
+                                    method: 'POST',
+                                    headers: {
+                                        'X_REQUESTED_WITH': 'XMLHttpRequest'
+                                    },
+                                    body: deactivateQuoteFormData,
+                                    credentials: 'same-origin'
+                                }
+                            ).then(
+                                response => {
+                                    const result = response.json();
+
+                                    if (result.success) {
+                                        return;
+                                    }
+
+                                    console.error(result.error);
+                                }
+                            ).then(() => { window.quoteData = []; })
+                            .catch();
+                        }
+
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     }

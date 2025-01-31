@@ -318,8 +318,8 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
-    }    
-    
+    }
+
     /**
      * Check if Wallet Express Pay buttons are enabled On the cart and mini cart pages.
      *
@@ -334,7 +334,7 @@ class Config
             $websiteId
         );
     }
-    
+
     /**
      * Check if Wallet Express Pay buttons are enabled on the product pages.
      *
@@ -343,8 +343,8 @@ class Config
      */
     public function isProductWalletPayEnabled(int $websiteId): bool
     {
-        return false;
-        
+        return true;
+
         // $this->scopeConfig->isSetFlag(
         // self::PATH_IS_PRODUCT_WALLET_PAY_ENABLED,
         // ScopeInterface::SCOPE_WEBSITES,

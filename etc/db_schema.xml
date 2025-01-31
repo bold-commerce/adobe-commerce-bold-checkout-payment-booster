@@ -14,4 +14,7 @@
             <column name="order_id"/>
         </index>
     </table>
+    <table name="quote">
+        <column xsi:type="boolean" name="is_digital_wallets" nullable="false" default="false" comment="Is a Digital Wallets Quote"/>
+    </table>
 </schema>

@@ -14,5 +14,10 @@
     "constraint": {
       "PRIMARY": true
     }
+  },
+  "quote": {
+    "column": {
+      "is_digital_wallets": true
+    }
   }
 }

@@ -10,6 +10,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
     'Magento_Ui/js/model/messageList',
+    'mage/url',
     'mage/translate'
 ], function (
     quote,
@@ -23,11 +24,34 @@ define([
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
     messageList,
+    urlBuilder,
     $t
 ) {
     'use strict';
 
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+
+    const additionalValidation = () => {
+        additionalValidators.registerValidator({
+            validate: function () {
+                const checkboxes = Array.from(document.querySelectorAll(
+                    'input[data-gdpr-checkbox-code],' +
+                    '.checkout-agreement input[type="checkbox"]'
+                )).filter(el => {
+                    const style = window.getComputedStyle(el);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+                });
+                if (checkboxes.length === 0) {
+                    return true;
+                }
+                return Array
+                    .from(checkboxes)
+                    .every(checkbox => checkbox.checked);
+            }
+        });
+    };
+    additionalValidation();
+
     const validateAgreements = () => {
         if (!window.location.href.includes("#payment")) {
             return true;
@@ -87,7 +111,7 @@ define([
                     {
                         'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
                         'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        'currency': quote.totals()['base_currency_code'],
+                        'currency': window.checkoutConfig.bold.currency,
                     }
                 ],
                 'callbacks': {
@@ -144,10 +168,10 @@ define([
                             throw e;
                         }
                     },
-                    'onErrorPaymentOrder': function (errors) {
+                    'onErrorPaymentOrder': async function (errors) {
                         console.error('An unexpected PayPal error occurred', errors);
-                        messageList.addErrorMessage({message: 'Warning: An unexpected error occurred. Please try again.'});
-                    },
+                        messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
+                    }
                 }
             };
             const paymentsInstance = new window.bold.Payments(initialData);

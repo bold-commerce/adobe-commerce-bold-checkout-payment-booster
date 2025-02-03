@@ -3,13 +3,15 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-address-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-shipping-method-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/create-wallet-pay-order-action'
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/create-wallet-pay-order-action',
+        'Magento_Checkout/js/model/quote'
     ],
     function (
         updateQuoteAddressAction,
         updateQuoteShippingMethodAction,
         saveShippingInformationAction,
-        createWalletPayOrderAction
+        createWalletPayOrderAction,
+        quote
     ) {
         'use strict';
 
@@ -23,13 +25,14 @@ define(
             const paymentData = paymentPayload['payment_data'];
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
+            const addressProvided = Boolean(paymentData['shipping_address'] || paymentData['billing_address']);
             const isSpiContainer = paymentPayload.containerId === 'SPI';
 
             if (paymentType !== 'ppcp') {
                 return;
             }
 
-            if (!isSpiContainer) {
+            if (!isSpiContainer && addressProvided) {
                 if (isWalletPayment) {
                     if (paymentData['shipping_address']) {
                         updateQuoteAddressAction('shipping', paymentData['shipping_address']);

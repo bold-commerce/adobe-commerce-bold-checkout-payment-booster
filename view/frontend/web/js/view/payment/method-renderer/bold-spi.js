@@ -39,11 +39,9 @@ define([
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
 
     const validateAgreements = () => {
-
         if (!window.location.href.includes("#payment")) {
             return true;
         }
-
         if (!additionalValidators.validate()) {
             messageList.addErrorMessage({
                 message: $t('Please agree to all the terms and conditions before placing the order.')
@@ -51,6 +49,7 @@ define([
             localStorage.removeItem(AGREEMENT_DATE_KEY);
             return false;
         }
+
         const currentTime = Date.now();
         localStorage.setItem(AGREEMENT_DATE_KEY, currentTime.toString());
         return true;
@@ -67,6 +66,28 @@ define([
         }
     };
     removeOldAgreementDate();
+
+    const additionalValidation = () => {
+        additionalValidators.registerValidator({
+            validate: function () {
+                const checkboxes = Array.from(document.querySelectorAll(
+                    'input[data-gdpr-checkbox-code],' +
+                    '.checkout-agreement input[type="checkbox"]'
+                )).filter(el => {
+                    const style = window.getComputedStyle(el);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+                });
+
+                if (checkboxes.length === 0) {
+                    return true;
+                }
+                return Array
+                    .from(checkboxes)
+                    .every(checkbox => checkbox.checked);
+            }
+        });
+    };
+    additionalValidation();
 
     return DefaultPaymentComponent.extend({
         defaults: {
@@ -139,7 +160,7 @@ define([
             this.isSpiLoading(false);
 
             if (localStorage.getItem(AGREEMENT_DATE_KEY)) {
-                document.querySelectorAll('input[data-gdpr-checkbox-code="privacy_checkbox"],' +
+                document.querySelectorAll('input[data-gdpr-checkbox-code],' +
                     '.checkout-agreement input[type="checkbox"]').forEach(checkbox => {
                     checkbox.checked = true;
                 });
@@ -164,15 +185,19 @@ define([
             }
             this.isBillingAddressRequired(true);
             this.isPlaceOrderButtonVisible(true);
+
             const paymentOptions = {
                 fastlane: false,
                 shouldRenderSpiFrame: true,
                 shouldRenderPaypalButton: true,
                 shouldRenderAppleGoogleButtons: true,
-                shopName: window.checkoutConfig.bold?.shopName ?? '',
                 allowedCountries: window.checkoutConfig.bold?.countries ?? null,
             }
             paymentsInstance.renderPayments('SPI', paymentOptions);
+
+            if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
+                this.isPlaceOrderButtonVisible(false);
+            }
         },
 
         /** @inheritdoc */
@@ -191,9 +216,22 @@ define([
          * @return boolean
          */
         placeOrderClick: function (data, event) {
+            this.paymentId(null);
+
             if (!validateAgreements()) {
                 throw new Error('Agreements not accepted');
             }
+
+            const iframe = document.querySelector('iframe[title="paypal_card_form"]');
+            const iframeContent = iframe?.contentWindow?.document;
+            const submitButton = iframeContent?.getElementById('submit-button')
+                ?.innerHTML?.indexOf('Pay ') > -1;
+
+            if (submitButton) {
+                iframeContent.getElementById('submit-button').click();
+                return;
+            }
+
             fullscreenLoader.startLoader();
             return this.placeOrder(data, event);
         },
@@ -278,7 +316,7 @@ define([
                         const paymentId = data.payload?.payload?.data?.payment_id;
                         if (paymentId) {
                             this.paymentId(paymentId);
-    
+
                             const placeOrderSuccess = this.placeOrder({}, jQuery.Event());
                             if (!placeOrderSuccess) {
                                 fullscreenLoader.stopLoader();

@@ -59,9 +59,13 @@ define(
                         break;
                     case 'totals':
                         const totals = quote.getTotals();
+                        const order_balance = window.checkoutConfig.bold.isTaxIncludedInPrices ?
+                            parseFloat(totals()['grand_total'] + totals()['tax_amount'] || 0) * 100 :
+                            parseFloat(totals()['grand_total'] || 0) * 100;
+
                         payload[requirement] = {
                             order_total: parseFloat(totals()['grand_total'] || 0) * 100,
-                            order_balance: parseFloat(totals()['grand_total'] || 0) * 100,
+                            order_balance,
                             shipping_total: parseFloat(totals()['shipping_amount'] || 0) * 100,
                             discounts_total: parseFloat(totals()['discount_amount'] || 0) * 100,
                             fees_total: parseFloat(totals()['fee_amount'] || 0) * 100,

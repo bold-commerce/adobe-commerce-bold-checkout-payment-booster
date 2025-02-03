@@ -53,15 +53,14 @@ define(
                 const gatewayData = boldPaymentsInstance.paymentGateways[0] || null;
                 const isPaymentsButtonsVisible = gatewayData && (gatewayData.type === 'ppcp' || (gatewayData.type === 'braintree' && (gatewayData.credentials.is_paypal_enabled || gatewayData.credentials.is_google_pay_enabled || gatewayData.credentials.is_paypal_enabled)));
                 if (isPaymentsButtonsVisible) {
-                    const paymentOptions = {
-                        fastlane: false,
-                        shouldRenderSpiFrame: false,
-                        shouldRenderPaypalButton: true,
-                        shouldRenderAppleGoogleButtons: true,
+                    const walletPaymentOptions = {
                         shopName: window.checkoutConfig.bold?.shopName ?? '',
-                        isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true
+                        isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
+                        fastlane: false,
+                        pageSource: 'checkout',
+                        updateShipping: false
                     }
-                    boldPaymentsInstance.renderPaymentsButtons('wallet-payments', paymentOptions);
+                    boldPaymentsInstance.renderWalletPayments('wallet-payments', walletPaymentOptions);
                     this.isWalletPayLoading(false);
                 } else {
                     this.isWalletPayLoading(false);

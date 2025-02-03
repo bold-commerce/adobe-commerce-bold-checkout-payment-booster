@@ -50,6 +50,13 @@
                         <field id="is_fastlane_enabled">1</field>
                     </depends>
                 </field>
+                <field id="wallet_payment_title" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1">
+                    <label>Digital Wallets Title</label>
+                    <comment><![CDATA[Digital Wallets title that will be displayed on the checkout page.]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
+                </field>
                 <field id="is_express_pay_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1">
                     <label>Enable Digital Wallets in Express Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

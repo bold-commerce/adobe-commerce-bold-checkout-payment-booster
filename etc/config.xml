@@ -35,6 +35,22 @@
                 <sort_order>1</sort_order>
                 <group>bold_payments_fastlane</group>
             </bold_fastlane>
+            <bold_wallet>
+                <active>1</active>
+                <model>Bold\CheckoutPaymentBooster\Model\Method\WalletPayAdapter</model>
+                <order_status>pending</order_status>
+                <title>Digital Wallets</title>
+                <allowspecific>0</allowspecific>
+                <can_authorize>1</can_authorize>
+                <can_capture>1</can_capture>
+                <can_capture_partial>1</can_capture_partial>
+                <can_refund>1</can_refund>
+                <can_refund_partial_per_invoice>1</can_refund_partial_per_invoice>
+                <can_void>1</can_void>
+                <can_cancel>1</can_cancel>
+                <sort_order>3</sort_order>
+                <group>bold_payments_wallet</group>
+            </bold_wallet>
         </payment>
         <checkout>
             <bold_checkout_payment_booster>
@@ -42,6 +58,7 @@
                 <is_fastlane_enabled>0</is_fastlane_enabled>
                 <payment_title>Credit card</payment_title>
                 <fastlane_payment_title>Credit card</fastlane_payment_title>
+                <wallet_payment_title>Digital Wallets</wallet_payment_title>
                 <is_express_pay_enabled>0</is_express_pay_enabled>
                 <is_cart_wallet_pay_enabled>0</is_cart_wallet_pay_enabled>
                 <is_product_wallet_pay_enabled>0</is_product_wallet_pay_enabled>

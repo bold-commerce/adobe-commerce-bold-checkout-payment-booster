@@ -170,8 +170,8 @@ define([
                 const fastlaneOptions = {
                     fastlane: isFastlaneAvailable,
                     shouldRenderSpiFrame: false,
-                    shouldRenderPaypalButton: true,
-                    shouldRenderAppleGoogleButtons: true,
+                    shouldRenderPaypalButton: false,
+                    shouldRenderAppleGoogleButtons: false,
                     shopName: window.checkoutConfig.bold?.shopName ?? '',
                 };
                 paymentsInstance.renderPayments('SPI', fastlaneOptions);
@@ -188,10 +188,13 @@ define([
             const paymentOptions = {
                 fastlane: false,
                 shouldRenderSpiFrame: true,
-                shouldRenderPaypalButton: true,
-                shouldRenderAppleGoogleButtons: true,
+                shouldRenderPaypalButton: false,
+                shouldRenderAppleGoogleButtons: false,
             }
             paymentsInstance.renderPayments('SPI', paymentOptions);
+            if (boldPaymentsForm.getHTML().trim() === '') {
+                this.isVisible(false);
+            }
 
             if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
                 this.isPlaceOrderButtonVisible(false);

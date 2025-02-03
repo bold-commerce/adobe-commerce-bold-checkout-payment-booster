@@ -19,6 +19,7 @@ class DisableBoldAddressValidationPlugin
     private const BOLD_METHODS_CODES = [
         Service::CODE_FASTLANE,
         Service::CODE,
+        Service::CODE_WALLET,
     ];
 
     /**

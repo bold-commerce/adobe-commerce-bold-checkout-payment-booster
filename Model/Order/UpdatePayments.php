@@ -105,7 +105,8 @@ class UpdatePayments implements UpdatePaymentsInterface
     public function update(
         string $shopId,
         string $financialStatus,
-        int $platformOrderId
+        int $platformOrderId,
+        array $payments
     ): ResultInterface {
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
         // Do not remove this check until resource authorized by ACL.
@@ -118,7 +119,7 @@ class UpdatePayments implements UpdatePaymentsInterface
             throw new LocalizedException(__('Public Order ID does not match.'));
         }
         $order = $this->orderRepository->get($platformOrderId);
-        $this->processUpdate($order, $orderExtensionData, $financialStatus);
+        $this->processUpdate($order, $orderExtensionData, $financialStatus, $payments);
 
         return $this->responseFactory->create(
             [
@@ -142,12 +143,13 @@ class UpdatePayments implements UpdatePaymentsInterface
     private function processUpdate(
         OrderInterface $order,
         OrderExtensionData $orderExtensionData,
-        string $financialStatus
+        string $financialStatus,
+        array $payments
     ): void {
         switch ($financialStatus) {
             case self::FINANCIAL_STATUS_PAID:
                 if (!$orderExtensionData->getIsCaptureInProgress()) {
-                    $this->createInvoice->execute($order);
+                    $this->createInvoice->execute($order, $payments);
                 }
                 break;
             case self::FINANCIAL_STATUS_REFUNDED:

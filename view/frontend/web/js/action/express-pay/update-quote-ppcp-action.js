@@ -37,11 +37,13 @@ define(
                 return;
             }
             const _convertAddress = function (address, order) {
+                let phone = address.phone || order.billing_address.telephone || order.billing_address.phone;
+
                 address.first_name = order.first_name;
                 address.last_name = order.last_name;
                 address.state = address.province;
                 address.country_code = address.country;
-                address.telephone = address.phone;
+                address.telephone = phone;
 
                 if (!address.email && order.email) {
                     address.email = order.email;

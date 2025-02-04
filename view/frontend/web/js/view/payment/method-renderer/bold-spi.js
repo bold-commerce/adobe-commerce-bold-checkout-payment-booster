@@ -12,7 +12,6 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi',
     'Bold_CheckoutPaymentBooster/js/model/platform-client',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
-    'Bold_CheckoutPaymentBooster/js/action/general/hydrate-order-action',
     'Magento_Ui/js/model/messageList',
     'Magento_Checkout/js/model/payment/additional-validators'
 ], function (
@@ -29,7 +28,6 @@ define([
     spi,
     platformClient,
     fastlane,
-    hydrateOrderAction,
     messageList,
     additionalValidators
 ) {
@@ -111,25 +109,6 @@ define([
                 }
             });
             this.isVisible(window.checkoutConfig.bold?.paymentBooster);
-            const delayedHydrateOrder = _.debounce(
-                async function () {
-                    try {
-                        await hydrateOrderAction();
-                    } catch (e) {
-                        console.error(e);
-                        this.isVisible(false);
-                    }
-                }.bind(this),
-                500
-            );
-            hydrateOrderAction().then(() => {
-                quote.billingAddress.subscribe(function () {
-                    delayedHydrateOrder();
-                }, this);
-            }).catch((reason) => {
-                console.error(reason);
-                this.isVisible(false);
-            });
         },
         /**
          * Initialize SPI payment form.

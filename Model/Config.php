@@ -18,6 +18,7 @@ class Config
     public const PATH_PAYMENT_CSS = 'checkout/bold_checkout_custom_elements/payment_css';
     public const PATH_PAYMENT_TITLE = 'checkout/bold_checkout_payment_booster/payment_title';
     public const PATH_FASTLANE_PAYMENT_TITLE = 'checkout/bold_checkout_payment_booster/fastlane_payment_title';
+    public const PATH_WALLET_PAYMENT_TITLE = 'checkout/bold_checkout_payment_booster/wallet_payment_title';
     public const PATH_SHOP_ID = 'checkout/bold_checkout_payment_booster/shop_id';
     private const PATH_IS_PAYMENT_BOOSTER_ENABLED = 'checkout/bold_checkout_payment_booster/is_payment_booster_enabled';
     private const PATH_IS_FASTLANE_ENABLED = 'checkout/bold_checkout_payment_booster/is_fastlane_enabled';

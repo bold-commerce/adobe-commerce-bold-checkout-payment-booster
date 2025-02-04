@@ -16,6 +16,7 @@
             <argument name="boldPaymentMethods" xsi:type="array">
                 <item name="bold" xsi:type="string">bold</item>
                 <item name="bold_fastlane" xsi:type="string">bold_fastlane</item>
+                <item name="bold_wallet" xsi:type="string">bold_wallet</item>
             </argument>
         </arguments>
     </type>
@@ -58,6 +59,15 @@
             <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
         </arguments>
     </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Method\WalletPayAdapter" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_WALLET</argument>
+            <argument name="valueHandlerPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Config\WalletPayValueHandlerPool</argument>
+            <argument name="commandPool" xsi:type="object">Bold\CheckoutPaymentBooster\Gateway\Command\CommandPool</argument>
+            <argument name="formBlockType" xsi:type="object">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Bold\CheckoutPaymentBooster\Block\Info</argument>
+        </arguments>
+    </virtualType>
     <!--Value Handler Pool-->
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\BaseTitleValueHandler" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
         <arguments>
@@ -67,6 +77,11 @@
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneTitleValueHandler" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
         <arguments>
             <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_FASTLANE_PAYMENT_TITLE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayTitleValueHandler" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\TitleValueHandler">
+        <arguments>
+            <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_WALLET_PAYMENT_TITLE</argument>
         </arguments>
     </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\ValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
@@ -89,6 +104,16 @@
             </argument>
         </arguments>
     </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\WalletPayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayConfigValueHandler</item>
+                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
+                <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayTitleValueHandler</item>
+                <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\ConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
             <argument name="configInterface" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\Config</argument>
@@ -107,6 +132,16 @@
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_FASTLANE</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::CODE_WALLET</argument>
         </arguments>
     </virtualType>
     <!-- Command Pool -->

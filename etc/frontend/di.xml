@@ -6,6 +6,7 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="bold_payment_booster_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider</item>
                 <item name="bold_fastlane_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider</item>
+                <item name="bold_wallet_config_provider" xsi:type="object">Bold\CheckoutPaymentBooster\UI\Payment\WalletPaymentsConfigProvider</item>
             </argument>
         </arguments>
     </type>

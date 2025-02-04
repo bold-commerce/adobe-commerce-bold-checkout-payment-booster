@@ -19,6 +19,7 @@ class Service
 {
     public const CODE = 'bold';
     public const CODE_FASTLANE = 'bold_fastlane';
+    public const CODE_WALLET = 'bold_wallet';
     public const CANCEL = 'cancel';
     public const VOID = 'void';
     private const CAPTURE_FULL_URL = 'checkout/orders/{{shopId}}/%s/payments/capture/full';

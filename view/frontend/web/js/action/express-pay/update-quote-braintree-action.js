@@ -16,7 +16,7 @@ define(
          * @param {{}} paymentApprovalData
          * @return {void}
          */
-        return async function (paymentInformation, paymentApprovalData) {
+        return async function (paymentInformation, paymentApprovalData, isSpiContainer) {
             const paymentData = paymentApprovalData.payment_data;
             if (paymentData.email) {
                 quote.guestEmail = paymentData.email;
@@ -44,11 +44,19 @@ define(
                     paymentData.shipping_address['phone'] = paymentData.customer.phone;
                 }
             }
-            if (paymentData.shipping_address) {
-                updateQuoteAddressAction('shipping', paymentData.shipping_address);
-            }
-            if (paymentData.billing_address) {
-                updateQuoteAddressAction('billing', paymentData.billing_address);
+
+            if (isSpiContainer) {
+                if (paymentData.billing_address) {
+                    updateQuoteAddressAction('billing', paymentData.billing_address);
+                }
+            } else {
+                if (paymentData.shipping_address) {
+                    updateQuoteAddressAction('shipping', paymentData.shipping_address);
+                }
+
+                if (paymentData.billing_address) {
+                    updateQuoteAddressAction('billing', paymentData.billing_address);
+                }
             }
         };
     }

@@ -16,7 +16,8 @@
                             textInput: email,
                             hasFocus: emailFocused,
                             afterRender: emailHasChanged,
-                            mageInit: {'mage/trim-input':{}}"
+                            mageInit: {'mage/trim-input':{}},
+                            event: {change: emailHasChanged}"
                        name="username"
                        data-validate="{required:true, 'validate-email':true}"
                        id="customer-email"/>

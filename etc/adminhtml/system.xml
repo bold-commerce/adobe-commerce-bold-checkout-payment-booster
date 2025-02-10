@@ -7,6 +7,9 @@
             </group>
             <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1" showInWebsite="1">
                 <label>Bold Checkout Payment Booster Extension</label>
+                <field id="version" translate="label" type="note" sortOrder="5" showInDefault="0" showInWebsite="1">
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\ModuleVersion</frontend_model>
+                </field>
                 <field id="api_token" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1">
                     <label>API Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>

@@ -64,4 +64,10 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route method="GET" url="/V1/shops/:shopId/modules">
+        <service class="Bold\CheckoutPaymentBooster\Api\GetModulesInfoInterface" method="getModulesInfo"/>
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

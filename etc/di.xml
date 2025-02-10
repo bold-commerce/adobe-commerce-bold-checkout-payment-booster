@@ -10,6 +10,9 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\GetModulesInfoInterface" type="Bold\CheckoutPaymentBooster\Model\Modules\GetModulesInfo"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Module\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Modules\GetModulesInfo\Result"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Module\InfoInterface" type="Bold\CheckoutPaymentBooster\Model\Modules\GetModulesInfo\Result\Info"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

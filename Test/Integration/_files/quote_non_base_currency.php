@@ -20,5 +20,4 @@ $store->unsetData('current_currency');
 $store->setCurrentCurrencyCode('CNY');
 $quote->setBaseCurrencyCode('USD');
 $quote->setQuoteCurrencyCode('CNY');
-//$quote->setHaseForcedCurrency(true);
 $quote->save();

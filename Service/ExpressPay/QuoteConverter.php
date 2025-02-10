@@ -236,7 +236,10 @@ class QuoteConverter
                 'items' => array_map(
                     static function (CartItemInterface $cartItem) use ($currencyCode): array {
                         $itemPrice = number_format(
-                            $cartItem->getRowTotal() / $cartItem->getQty(), 2, '.', ''
+                            $cartItem->getRowTotal() / $cartItem->getQty(),
+                            2,
+                            '.',
+                            ''
                         );
                         return [
                             'name' => $cartItem->getName() ?? '',

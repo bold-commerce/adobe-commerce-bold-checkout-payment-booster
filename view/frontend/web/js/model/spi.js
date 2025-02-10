@@ -68,6 +68,20 @@ define([
         return true;
     };
 
+    const validateBillingAddress = () => {
+        if (!window.location.href.includes("#payment")) {
+            return true;
+        }
+        if (!quote.billingAddress()) {
+            console.log('please enter address');
+            messageList.addErrorMessage({
+                message: $t('Please enter your address.')
+            });
+            return false;
+        }
+        return true;
+    }
+
     /**
      * Fastlane init model.
      *
@@ -117,7 +131,13 @@ define([
                 'callbacks': {
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
                         if (!validateAgreements()) {
+                            window.expectingPaymentError = Date.now();
                             throw new Error('Agreements not accepted');
+                        }
+
+                        if (!validateBillingAddress()) {
+                            window.expectingPaymentError = Date.now();
+                            throw new Error('Billing Address required');
                         }
 
                         try {
@@ -130,6 +150,7 @@ define([
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
                         if (!validateAgreements()) {
+                            window.expectingPaymentError = Date.now();
                             throw new Error('Agreements not accepted');
                         }
 
@@ -169,6 +190,16 @@ define([
                         }
                     },
                     'onErrorPaymentOrder': async function (errors) {
+                        if (window.expectingPaymentError) {
+                            if (Date.now() - window.expectingPaymentError < 1000) {
+                                console.log('Expected error caught');
+                                window.expectingPaymentError = false;
+                                return;
+                            } else {
+                                console.log('Expected error caught but took over 1000ms');
+                                window.expectingPaymentError = false;
+                            }
+                        }
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     }
@@ -182,6 +213,7 @@ define([
             }
             window.boldPaymentsInstance = paymentsInstance;
             window.createBoldPaymentsInstanceInProgress = false;
+            window.expectingPaymentError = false;
             return window.boldPaymentsInstance;
         },
         /**

@@ -201,6 +201,7 @@ define([
             this.paymentId(null);
 
             if (!validateAgreements()) {
+                window.expectingPaymentError = Date.now();
                 throw new Error('Agreements not accepted');
             }
 

@@ -40,24 +40,32 @@ class CheckoutData
     private $getFastlaneStyles;
 
     /**
+     * @var Config
+     */
+    private $config;
+
+    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
      * @param ResumeOrder $resumeOrder
      * @param GetFastlaneStyles $getFastlaneStyles
+     * @param Config $config
      */
     public function __construct(
         Session $checkoutSession,
         IsPaymentBoosterAvailable $isPaymentBoosterAvailable,
         InitOrderFromQuote $initOrderFromQuote,
         ResumeOrder $resumeOrder,
-        GetFastlaneStyles $getFastlaneStyles
+        GetFastlaneStyles $getFastlaneStyles,
+        Config $config
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
         $this->initOrderFromQuote = $initOrderFromQuote;
         $this->resumeOrder = $resumeOrder;
         $this->getFastlaneStyles = $getFastlaneStyles;
+        $this->config = $config;
     }
 
     /**
@@ -69,13 +77,19 @@ class CheckoutData
     public function initCheckoutData()
     {
         $quote = $this->checkoutSession->getQuote();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+
+        if (!$this->config->getShopId($websiteId)) {
+            throw new LocalizedException(__('Shop ID is not configured for website "%1".', $websiteId));
+        }
+
         if (!$this->isPaymentBoosterAvailable->isAvailable()) {
             return;
         }
         if ($this->getPublicOrderId()) {
             $orderData = $this->resumeOrder->resume(
                 $this->getPublicOrderId(),
-                (int)$quote->getStore()->getWebsiteId()
+                $websiteId
             );
             if ($orderData) {
                 $checkoutData = $this->checkoutSession->getBoldCheckoutData();
@@ -86,7 +100,7 @@ class CheckoutData
         }
         $checkoutData = $this->initOrderFromQuote->init($quote);
         $checkoutData['data']['flow_settings']['fastlane_styles'] = $this->getFastlaneStyles->getStyles(
-            (int)$quote->getStore()->getWebsiteId(),
+            $websiteId,
             $quote->getStore()->getBaseUrl()
         );
         $this->checkoutSession->setBoldCheckoutData($checkoutData);

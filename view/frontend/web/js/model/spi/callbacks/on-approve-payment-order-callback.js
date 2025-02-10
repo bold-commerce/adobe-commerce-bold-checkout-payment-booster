@@ -54,15 +54,15 @@ define(
                 };
             }
 
-            if (!isSpiContainer) {
-                if (isWalletPayment) {
-                    await updateQuoteWalletPayAction(paymentApprovalData);
-                } else if (paymentType === 'ppcp') {
-                    await updateQuotePPCPAction(paymentApprovalData);
-                } else {
-                    await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData);
-                }
+            if (isWalletPayment) {
+                await updateQuoteWalletPayAction(paymentApprovalData, isSpiContainer);
+            } else if (paymentType === 'ppcp') {
+                await updateQuotePPCPAction(paymentApprovalData, isSpiContainer);
+            } else {
+                await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData, isSpiContainer);
+            }
 
+            if (!isSpiContainer) {
                 try {
                     await saveShippingInformationAction(true);
                 } catch (error) {

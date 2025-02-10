@@ -24,7 +24,8 @@ define(
          *
          * @return {Promise}
          */
-        return async function (paymentApprovalData) {
+
+        return async function (paymentApprovalData, isSpiContainer) {
             let order;
             try {
                 order = await getExpressPayOrderAction(
@@ -56,11 +57,15 @@ define(
                 return address;
             }
 
-            quote.guestEmail = order.email;
-            updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
+            if (isSpiContainer) {
+                updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
+            } else {
+                quote.guestEmail = order.email;
+                updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
 
-            if (paymentApprovalData.shipping_strategy === 'dynamic') {
-                updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+                if (paymentApprovalData.shipping_strategy === 'dynamic') {
+                    updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
+                }
             }
         };
     }

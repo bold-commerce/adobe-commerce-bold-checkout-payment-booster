@@ -14,33 +14,39 @@ define(
          *
          * @return {Promise}
          */
-        return async function (paymentApprovalData) {
+        return async function (paymentApprovalData, isSpiContainer) {
             const paymentData = paymentApprovalData['payment_data'];
             const shippingAddress = paymentData['shipping_address'];
             const billingAddress = paymentData['billing_address'];
 
-            let email;
-            if (shippingAddress && shippingAddress['emailAddress']) { // Apple Pay
-                email = shippingAddress['emailAddress'];
-            } else if (paymentData['email']) { // Braintree Google Pay
-                email = paymentData['email'];
-            } else if (paymentData['customer'] && paymentData['customer']['email_address']) { // PPCP Google Pay
-                email = paymentData['customer']['email_address'];
-            }
-
-            if (email) {
-                if (shippingAddress) {
-                    shippingAddress.email = email;
+            if (isSpiContainer) {
+                if (billingAddress) {
+                    updateQuoteAddressAction('billing', billingAddress);
+                }
+            } else {
+                let email;
+                if (shippingAddress && shippingAddress['emailAddress']) { // Apple Pay
+                    email = shippingAddress['emailAddress'];
+                } else if (paymentData['email']) { // Braintree Google Pay
+                    email = paymentData['email'];
+                } else if (paymentData['customer'] && paymentData['customer']['email_address']) { // PPCP Google Pay
+                    email = paymentData['customer']['email_address'];
                 }
 
-                billingAddress.email = email;
-                quote.guestEmail = email;
-            }
+                if (email) {
+                    if (shippingAddress) {
+                        shippingAddress.email = email;
+                    }
 
-            if (shippingAddress) {
-                updateQuoteAddressAction('shipping', shippingAddress);
+                    billingAddress.email = email;
+                    quote.guestEmail = email;
+                }
+
+                if (shippingAddress) {
+                    updateQuoteAddressAction('shipping', shippingAddress);
+                }
+                updateQuoteAddressAction('billing', billingAddress);
             }
-            updateQuoteAddressAction('billing', billingAddress);
         };
     }
 );

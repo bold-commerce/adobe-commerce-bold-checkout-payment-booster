@@ -14,6 +14,9 @@
     "magento/module-quote": ">=101.1.1 <101.2.8",
     "magento/module-store": ">=101.0.1 <101.1.8"
   },
+  "require-dev": {
+    "dms/phpunit-arraysubset-asserts": "*"
+  },
   "replace": {
     "bold-commerce/module-checkout":"*"
   },

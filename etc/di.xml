@@ -183,4 +183,10 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Creator">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
 </config>

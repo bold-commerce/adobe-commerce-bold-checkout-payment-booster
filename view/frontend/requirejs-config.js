@@ -7,6 +7,9 @@ let config = {
             'Magento_Checkout/js/model/step-navigator': {
                 'Bold_CheckoutPaymentBooster/js/model/step-navigator-mixin': true
             },
+            'Swissup_Firecheckout/js/firecheckout': {
+                'Bold_CheckoutPaymentBooster/js/view/swissup-firecheckout' : true
+            }
         },
     },
     paths: {

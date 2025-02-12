@@ -14,6 +14,18 @@
             <column name="order_id"/>
         </index>
     </table>
+    <table name="bold_booster_magento_quote_bold_order" resource="checkout" engine="innodb" comment="Magento Quote Link to Bold Order">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true"/>
+        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" comment="Magento Quote Identifier"/>
+        <column xsi:type="varchar" name="bold_order_id" nullable="false" length="255" comment="Bold Public Order Identifier"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+        <constraint xsi:type="unique" referenceId="BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID">
+            <column name="quote_id"/>
+        </constraint>
+        <constraint xsi:type="foreign" referenceId="BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID_QUOTE_ENTITY_ID" table="bold_booster_magento_quote_bold_order" column="quote_id" referenceTable="quote" referenceColumn="entity_id" onDelete="CASCADE"/>
+    </table>
     <table name="quote">
         <column xsi:type="boolean" name="is_digital_wallets" nullable="false" default="false" comment="Is a Digital Wallets Quote"/>
     </table>

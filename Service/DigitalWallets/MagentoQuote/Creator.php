@@ -89,6 +89,9 @@ class Creator
         /** @var Quote $quote */
         $quote = $this->quoteFactory->create();
         $customer = $this->customerSession->getCustomer();
+        $boldPublicOrderId = $productRequestData['bold_order_id'] ?? '';
+
+        unset($productRequestData['bold_order_id']);
 
         $quote->setStoreId((int)$storeId);
         $quote->setData('is_digital_wallets', true);
@@ -96,6 +99,7 @@ class Creator
         $quote->setBillingAddress($this->quoteAddressFactory->create());
         $quote->setShippingAddress($this->quoteAddressFactory->create());
         $quote->setCustomerIsGuest(true);
+        $quote->getExtensionAttributes()->setBoldOrderId($boldPublicOrderId);
 
         if ($customer !== null && $customer->getId() !== null) {
             $quote->setCustomer($customer->getDataModel());

@@ -20,6 +20,7 @@ use Magento\ConfigurableProduct\Api\OptionRepositoryInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Api\Data\CartExtension;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartInterfaceFactory;
 use Magento\Quote\Api\Data\CartItemInterface;
@@ -208,6 +209,8 @@ class CreatorTest extends TestCase
 
         $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+        /** @var CartExtension $cartExtensionAttributes */
+        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
         /** @var LocalizedException $localizedException */
         $localizedException = $objectManager->create(
             LocalizedException::class,
@@ -229,6 +232,9 @@ class CreatorTest extends TestCase
         );
 
         $quoteStub
+            ->method('getExtensionAttributes')
+            ->willReturn($cartExtensionAttributes);
+        $quoteStub
             ->method('addProduct')
             ->willThrowException($localizedException);
 
@@ -249,6 +255,8 @@ class CreatorTest extends TestCase
 
         $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+        /** @var CartExtension $cartExtensionAttributes */
+        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
         $quoteFactoryStub = $this->createStub(CartInterfaceFactory::class);
         /** @var StoreManagerInterface $storeManager */
         $storeManager = $objectManager->get(StoreManagerInterface::class);
@@ -262,6 +270,9 @@ class CreatorTest extends TestCase
             ]
         );
 
+        $quoteStub
+            ->method('getExtensionAttributes')
+            ->willReturn($cartExtensionAttributes);
         $quoteStub
             ->method('addProduct')
             ->willReturn('Invalid or missing product option');
@@ -283,6 +294,8 @@ class CreatorTest extends TestCase
 
         $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+        /** @var CartExtension $cartExtensionAttributes */
+        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
         /** @var CartItemInterface $quoteItem */
         $quoteItem = $objectManager->create(CartItemInterface::class);
         /** @var AddressInterface $shippingAddress */
@@ -309,6 +322,9 @@ class CreatorTest extends TestCase
             ]
         );
 
+        $quoteStub
+            ->method('getExtensionAttributes')
+            ->willReturn($cartExtensionAttributes);
         $quoteStub
             ->method('addProduct')
             ->willReturn($quoteItem);
@@ -339,6 +355,8 @@ class CreatorTest extends TestCase
 
         $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+        /** @var CartExtension $cartExtensionAttributes */
+        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
         /** @var CartItemInterface $quoteItem */
         $quoteItem = $objectManager->create(CartItemInterface::class);
         /** @var AddressInterface $shippingAddress */
@@ -373,6 +391,9 @@ class CreatorTest extends TestCase
             ]
         );
 
+        $quoteStub
+            ->method('getExtensionAttributes')
+            ->willReturn($cartExtensionAttributes);
         $quoteStub
             ->method('addProduct')
             ->willReturn($quoteItem);
@@ -411,6 +432,8 @@ class CreatorTest extends TestCase
 
         $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+        /** @var CartExtension $cartExtensionAttributes */
+        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
         /** @var CartItemInterface $quoteItem */
         $quoteItem = $objectManager->create(CartItemInterface::class);
         /** @var AddressInterface $shippingAddress */
@@ -446,6 +469,9 @@ class CreatorTest extends TestCase
             ]
         );
 
+        $quoteStub
+            ->method('getExtensionAttributes')
+            ->willReturn($cartExtensionAttributes);
         $quoteStub
             ->method('addProduct')
             ->willReturn($quoteItem);

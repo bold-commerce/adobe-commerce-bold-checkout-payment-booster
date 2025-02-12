@@ -59,4 +59,30 @@ class CartRepositoryInterfacePlugin
 
         return $result;
     }
+
+    /**
+     * @param CartRepositoryInterface $subject
+     * @param void $result
+     * @param CartInterface $quote
+     * @return void
+     */
+    public function afterSave(CartRepositoryInterface $subject, $result, CartInterface $quote)
+    {
+        $cartExtension = $quote->getExtensionAttributes();
+
+        if ($cartExtension === null || $cartExtension->getBoldOrderId() === null) {
+            return $result;
+        }
+
+        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderInterfaceFactory->create();
+
+        $magentoQuoteBoldOrder->setQuoteId($quote->getId());
+        $magentoQuoteBoldOrder->setBoldOrderId($cartExtension->getBoldOrderId());
+
+        try {
+            $this->magentoQuoteBoldOrderRepository->save($magentoQuoteBoldOrder);
+        } catch (LocalizedException $localizedException) {// phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedCatch
+        }
+    }
 }

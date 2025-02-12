@@ -45,6 +45,21 @@
             <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
         </data>
     </route>
+    <route url="/V1/express_pay/callback/on_approve" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Callback\OnApprove" method="execute" />
+        <resources>
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/express_pay/callback/mine/on_approve" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Callback\OnApprove" method="execute" />
+        <resources>
+            <resource ref="self" />
+        </resources>
+        <data>
+            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
+        </data>
+    </route>
     <route url="/V1/shops/:shopId/guest-cart/:cartId/hydrate/:publicOrderId" method="PUT">
         <service class="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" method="hydrate"/>
         <resources>

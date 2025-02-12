@@ -9,6 +9,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/on-approve-express-pay-order-action',
         'Magento_Ui/js/model/messageList'
     ],
     function (
@@ -21,6 +22,7 @@ define(
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
         saveShippingInformationAction,
+        onApproveExpressPayOrderAction,
         messageList
     ) {
         'use strict';
@@ -67,6 +69,15 @@ define(
                     await saveShippingInformationAction(true);
                 } catch (error) {
                     console.error('Could not save shipping information for Express Pay order.', error);
+                    return;
+                }
+            }
+
+            if (paymentType === 'ppcp') {
+                try {
+                    await onApproveExpressPayOrderAction(paymentApprovalData);
+                } catch(error) {
+                    console.error('Error executing on approve callback hook for Express Pay order.', error);
                     return;
                 }
             }

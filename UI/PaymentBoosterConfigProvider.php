@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI;
 
+use Bold\CheckoutPaymentBooster\Model\is3rdPartyCheckout;
 use Magento\Directory\Model\AllowedCountries;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -82,10 +83,21 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $escaper;
 
     /**
+     * @var is3rdPartyCheckout
+     */
+    private $is3rdPartyCheckout;
+
+    /**
      * @param CheckoutData $checkoutData
      * @param Config $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
+     * @param LoggerInterface $logger
+     * @param StoreManagerInterface $storeManager
+     * @param UrlInterface $urlBuilder
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Escaper $escaper
+     * @param is3rdPartyCheckout $is3rdPartyCheckout
      */
     public function __construct(
         CheckoutData $checkoutData,
@@ -96,7 +108,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         StoreManagerInterface $storeManager,
         UrlInterface $urlBuilder,
         ScopeConfigInterface $scopeConfig,
-        Escaper $escaper
+        Escaper $escaper,
+        is3rdPartyCheckout $is3rdPartyCheckout
     ) {
         $this->checkoutData = $checkoutData;
         $this->config = $config;
@@ -107,6 +120,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
         $this->escaper = $escaper;
+        $this->is3rdPartyCheckout = $is3rdPartyCheckout;
     }
 
     /**
@@ -177,7 +191,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                         'method' => Service::CODE,
                     ],
                 ],
-                'currency' => $currency
+                'currency' => $currency,
+                'thirdPartyCheckout' => $this->is3rdPartyCheckout->get3rdPartyCheckoutName()
             ],
         ];
     }

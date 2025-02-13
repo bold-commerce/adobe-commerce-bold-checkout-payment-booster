@@ -7,7 +7,7 @@
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="bold_commerce_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
-                <value id="cashier" type="host">cashier.boldcommerce.com</value>
+                <value id="bold_cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_braintree_sandbox" type="host">*.sandbox.braintree-api.com</value>
                 <value id="bold_braintree" type="host">*.braintree-api.com</value>
                 <value id="bold_paypal" type="host">*.paypal.com</value>
@@ -23,19 +23,18 @@
         </policy>
         <policy id="script-src">
             <values>
-                <value id="allow_inline_resource" type="host">unsafe-inline</value>
                 <value id="bold_commerce" type="host">api.boldcommerce.com</value>
                 <value id="bold_commerce_staging" type="host">api.staging.boldcommerce.com</value>
                 <value id="bold_commerce_eps_staging" type="host">eps.secure.staging.boldcommerce.com</value>
-                <value id="cashier" type="host">cashier.boldcommerce.com</value>
+                <value id="bold_cashier" type="host">cashier.boldcommerce.com</value>
                 <value id="bold_paypal" type="host">*.paypal.com</value>
                 <value id="bold_paypal_objects" type="host">*.paypalobjects.com</value>
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
-                <value id="bold_paypal_script" type="hash" algorithm="sha256">1ozuCt5fPv779wJQEWXLF2gXag+V1bnu3hmAhDbY0Cg=</value>
                 <value id="bold_local" type="host">*.bold.ninja</value>
                 <value id="bold_applepay_script" type="host">*.cdn-apple.com</value>
                 <value id="bold_stripe" type="host">*.stripe.com</value>
+                <value id="bold_inline_script_hash" type="hash" algorithm="sha256">7nnKyr+RUZ9a44Hg3lYwjgkUx5VyFQwv2ZUhVw6N7J4=</value>
             </values>
         </policy>
         <policy id="frame-src">
@@ -46,6 +45,7 @@
                 <value id="bold_local" type="host">*.bold.ninja</value>
                 <value id="bold_static_eps" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
+                <value id="bold_stripe" type="host">*.stripe.com</value>
             </values>
         </policy>
         <policy id="object-src">

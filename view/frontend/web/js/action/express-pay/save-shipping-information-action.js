@@ -1,5 +1,6 @@
 define(
     [
+        'jquery',
         'Magento_Checkout/js/model/quote',
         'mage/storage',
         'Magento_Checkout/js/model/resource-url-manager',
@@ -7,6 +8,7 @@ define(
         'Magento_Checkout/js/model/error-processor'
     ],
     function (
+        $,
         quote,
         storage,
         resourceUrlManager,
@@ -22,6 +24,8 @@ define(
          * @return {Deferred}
          */
         return async function (saveBillingAddress = false) {
+            let promise = $.Deferred();
+
             let payload;
             payload = {
                 addressInformation: {
@@ -34,16 +38,22 @@ define(
                 payload.addressInformation.billing_address = quote.billingAddress();
             }
             payloadExtender(payload);
-            return storage.post(
+            storage.post(
                 resourceUrlManager.getUrlForSetShippingInformation(quote),
                 JSON.stringify(payload)
             ).done(
                 function (response) {
                     quote.setTotals(response.totals);
+                    return promise.resolve();
                 }
-            ).fail((response) => {
-                errorProcessor.process(response);
-            });
+            ).fail(
+                function (response) {
+                    errorProcessor.process(response);
+                    return promise.reject();
+                }
+            );
+
+            return promise;
         }
     }
 );

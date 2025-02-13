@@ -112,7 +112,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     /**
      * @inheritdoc
      */
-    public function getConfig(): array
+    public function getConfig(bool $fromQuote = true): array
     {
         if (!$this->checkoutData->getPublicOrderId()) {
             $errorMsg = "No public order ID.";
@@ -120,14 +120,22 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return [];
         }
 
-        $quote = $this->checkoutData->getQuote();
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $store = $this->storeManager->getStore();
+
+        if ($fromQuote) {
+            $quote = $this->checkoutData->getQuote();
+            $store = $quote->getStore();
+        }
+
+        $websiteId = (int)$store->getWebsiteId();
         $shopId = $this->config->getShopId($websiteId);
         $publicOrderId = $this->checkoutData->getPublicOrderId();
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $epsGatewayId = $this->checkoutData->getEpsGatewayId();
-        $currency = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
+        $currency = $store->getCurrentCurrency()->getCode();
+        $shopUrl = $store->getBaseUrl();
+
         if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
             $errorMsgs = [];
             if ($jwtToken === null) {
@@ -148,7 +156,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
-            $configurationGroupLabel = parse_url($quote->getStore()->getBaseUrl())['host'] ?? '';
+            $configurationGroupLabel = parse_url($shopUrl)['host'] ?? '';
         }
 
         return [
@@ -165,9 +173,10 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'countries' => $this->getAllowedCountries(),
                 'origin' => rtrim($this->config->getApiUrl($websiteId), '/'),
                 'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
-                'shopUrl' => $quote->getStore()->getBaseUrl(),
-                'shopName' => $quote->getStore()->getFrontendName(),
-                'isPhoneRequired' => $quote->getStore()->getConfig('customer/address/telephone_show') === NooptreqSource::VALUE_REQUIRED,
+                'shopUrl' => $shopUrl,
+                'shopName' => $store->getFrontendName(),
+                'isPhoneRequired' => $store->getConfig('customer/address/telephone_show')
+                    === NooptreqSource::VALUE_REQUIRED,
                 'isExpressPayEnabled' => $this->config->isExpressPayEnabled($websiteId),
                 'isCartWalletPayEnabled' => $this->config->isCartWalletPayEnabled($websiteId),
                 'isTaxIncludedInPrices' => $this->config->isTaxIncludedInPrices($websiteId),
@@ -184,7 +193,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
     public function getConfigWithoutQuote(): array
     {
-        $result = $this->getConfig();
+        $result = $this->getConfig(false);
         $result['storeCode'] = $this->storeManager->getStore()->getCode();
         $result['quoteData']['entity_id'] = '';
         $result['totalsData'] = [];

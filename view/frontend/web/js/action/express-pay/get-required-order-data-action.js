@@ -1,11 +1,13 @@
 define(
     [
+        'jquery',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/checkout-data',
         'Magento_Checkout/js/model/shipping-service',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/convert-magento-address-action'
     ],
     function (
+        $,
         quote,
         checkoutData,
         shippingService,
@@ -14,9 +16,56 @@ define(
         'use strict';
 
         /**
+         * @returns {[{label: string, amount: number}]}
+         */
+        function getProductItemData() {
+            let $priceElement;
+            let productPrice;
+
+            $priceElement = $('.bundle-info .price-box .price');
+
+            if ($priceElement.length === 0) {
+                $priceElement = $('.product-info-main .price-box .price');
+            }
+
+            // Get price for simple, configurable, bundle, virtual and downloadable products
+            if ($priceElement.length === 1) {
+                productPrice = parseInt($priceElement[0].innerText.replace(/\D/g, ''));
+            }
+
+            // Calculate price for grouped products
+            if ($priceElement.length > 1) {
+                productPrice = $priceElement
+                    .toArray()
+                    .reduce(
+                        (totalPrice, currentPriceElement) => {
+                            const quantity = parseInt(
+                                $(currentPriceElement)
+                                    .closest('.item')
+                                    .siblings('.qty')
+                                    .find('input.qty')
+                                    .val()
+                                || 0
+                            );
+
+                            return totalPrice + parseInt(currentPriceElement.innerText.replace(/\D/g, '') * quantity);
+                        },
+                        0
+                    );
+            }
+
+            return [
+                {
+                    label: $('.page-title').text().trim(),
+                    amount: productPrice
+                }
+            ];
+        }
+
+        /**
          * Get required order data for express pay.
          *
-         * @return {Promise}
+         * @return {Object}
          */
         return function (requirements) {
             const payload = {};
@@ -35,10 +84,21 @@ define(
                         };
                         break;
                     case 'items':
-                        payload[requirement] = quote.getItems().map(item => ({
-                            amount: parseInt(parseFloat(item.base_price) * 100),
-                            label: item.name
-                        }));
+                        let quoteItems = [];
+
+                        if (window.checkoutConfig?.hasOwnProperty('quoteItemData')) {
+                            quoteItems = quote.getItems().map(item => ({
+                                amount: parseInt(parseFloat(item.base_price) * 100),
+                                label: item.name
+                            }));
+                        }
+
+                        if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
+                            quoteItems = getProductItemData();
+                        }
+
+                        payload[requirement] = quoteItems;
+
                         break;
                     case 'billing_address':
                         const hasBillingAddress = quote.billingAddress() !== null;

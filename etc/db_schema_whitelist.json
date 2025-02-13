@@ -14,5 +14,21 @@
     "constraint": {
       "PRIMARY": true
     }
+  },
+  "quote": {
+    "column": {
+      "is_digital_wallets": true
+    }
+  },
+  "bold_booster_quote_order_id": {
+    "column": {
+      "id": true,
+      "quote_id": true,
+      "bold_order_id": true
+    },
+    "constraint": {
+      "PRIMARY": true,
+      "BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID_QUOTE_ENTITY_ID": true
+    }
   }
 }

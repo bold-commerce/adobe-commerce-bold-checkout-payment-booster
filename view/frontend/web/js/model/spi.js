@@ -4,6 +4,7 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
@@ -18,6 +19,7 @@ define([
     additionalValidators,
     fastlane,
     loadScriptAction,
+    onClickPaymentOrderCallback,
     onCreatePaymentOrderCallback,
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
@@ -28,6 +30,10 @@ define([
     $t
 ) {
     'use strict';
+
+    let isProductPageActive = false;
+    let onClickCallbackError = null;
+    let onClickCallbackPromise;
 
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
 
@@ -115,8 +121,29 @@ define([
                     }
                 ],
                 'callbacks': {
+                    'onClickPaymentOrder': async (paymentType, paymentPayload) => {
+                        isProductPageActive = paymentPayload.containerId.includes('product-detail');
+
+                        if (onClickCallbackError instanceof Error) {
+                            onClickCallbackError = null;
+                        }
+
+                        try {
+                            if (['apple', 'google'].includes(paymentPayload.payment_data.payment_type)) {
+                                onClickCallbackPromise = onClickPaymentOrderCallback(paymentType, paymentPayload);
+                            } else {
+                                await onClickPaymentOrderCallback(paymentType, paymentPayload);
+                            }
+                        } catch (error) {
+                            onClickCallbackError = error;
+                        }
+                    },
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (!validateAgreements()) {
+                        if (onClickCallbackError instanceof Error) {
+                            throw onClickCallbackError;
+                        }
+
+                        if (!isProductPageActive && !validateAgreements()) {
                             throw new Error('Agreements not accepted');
                         }
 
@@ -129,6 +156,14 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (isProductPageActive && onClickCallbackPromise !== undefined) {
+                            await onClickCallbackPromise;
+                        }
+
+                        if (onClickCallbackError instanceof Error) {
+                            throw onClickCallbackError;
+                        }
+
                         if (!validateAgreements()) {
                             throw new Error('Agreements not accepted');
                         }

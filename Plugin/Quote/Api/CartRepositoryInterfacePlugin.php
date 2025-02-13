@@ -66,12 +66,12 @@ class CartRepositoryInterfacePlugin
      * @param CartInterface $quote
      * @return void
      */
-    public function afterSave(CartRepositoryInterface $subject, $result, CartInterface $quote)
+    public function afterSave(CartRepositoryInterface $subject, $result, CartInterface $quote): void
     {
         $cartExtension = $quote->getExtensionAttributes();
 
         if ($cartExtension === null || $cartExtension->getBoldOrderId() === null) {
-            return $result;
+            return;
         }
 
         /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */

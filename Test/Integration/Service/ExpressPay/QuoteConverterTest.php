@@ -232,8 +232,7 @@ class QuoteConverterTest extends TestCase
     /**
      * @magentoConfigFixture current_store currency/options/base USD
      * @magentoConfigFixture current_store currency/options/default USD
-     * @magentoConfigFixture current_store currency/options/allow USD,CNY
-     * @magentoDataFixture Magento/Directory/_files/usd_cny_rate.php
+     * @magentoConfigFixture current_store currency/options/allow USD,EUR
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_non_base_currency.php
      */
     public function testConvertFullQuoteConvertsNonBaseCurrencyQuote(): void
@@ -277,8 +276,8 @@ class QuoteConverterTest extends TestCase
                     'label' => 'Flat Rate - Fixed',
                     'type' => 'SHIPPING',
                     'amount' => [
-                        'currency_code' => 'CNY',
-                        'value' => '70.00',
+                        'currency_code' => 'EUR',
+                        'value' => '7.07',
                     ],
                 ],
                 'shipping_options' => [
@@ -287,8 +286,8 @@ class QuoteConverterTest extends TestCase
                         'label' => 'Flat Rate - Fixed',
                         'type' => 'SHIPPING',
                         'amount' => [
-                            'currency_code' => 'CNY',
-                            'value' => '70.00',
+                            'currency_code' => 'EUR',
+                            'value' => '7.07',
                         ],
                     ],
                 ],
@@ -297,28 +296,28 @@ class QuoteConverterTest extends TestCase
                         'name' => 'Simple Product',
                         'sku' => 'simple',
                         'unit_amount' => [
-                            'currency_code' => 'CNY',
-                            'value' => '70.00',
+                            'currency_code' => 'EUR',
+                            'value' => '7.07',
                         ],
                         'quantity' => 2,
                         'is_shipping_required' => true,
                     ],
                 ],
                 'amount' => [
-                    'currency_code' => 'CNY',
-                    'value' => '185.50',
+                    'currency_code' => 'EUR',
+                    'value' => '18.74',
                 ],
                 'item_total' => [
-                    'currency_code' => 'CNY',
-                    'value' => '140.00',
+                    'currency_code' => 'EUR',
+                    'value' => '14.14',
                 ],
                 'tax_total' => [
-                    'currency_code' => 'CNY',
-                    'value' => '10.50',
+                    'currency_code' => 'EUR',
+                    'value' => '1.06',
                 ],
                 'discount' => [
-                    'currency_code' => 'CNY',
-                    'value' => '35.00',
+                    'currency_code' => 'EUR',
+                    'value' => '3.53',
                 ],
             ],
         ];

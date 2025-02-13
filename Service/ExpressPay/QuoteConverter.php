@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
@@ -36,14 +37,21 @@ class QuoteConverter
      * @var ScopeConfigInterface
      */
     private $scopeConfig;
+
+    /**
+     * @var Config
+     */
+    private $config;
+
     /**
      * @var bool
      */
     private $areTotalsCollected = false;
 
-    public function __construct(ScopeConfigInterface $scopeConfig)
+    public function __construct(ScopeConfigInterface $scopeConfig, Config $config)
     {
         $this->scopeConfig = $scopeConfig;
+        $this->config = $config;
     }
 
     /**
@@ -230,16 +238,22 @@ class QuoteConverter
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $taxIncluded = $this->config->isTaxIncludedInPrices($websiteId);
         $convertedQuote = [
             'order_data' => [
                 'items' => array_map(
-                    static function (CartItemInterface $cartItem) use ($currencyCode): array {
+                    static function (CartItemInterface $cartItem) use ($taxIncluded, $currencyCode): array {
+                        $itemData = $cartItem->getData();
+
+                        $price = $taxIncluded ? (float)$itemData['base_price_incl_tax'] - (float)$itemData['tax_amount'] : (float)$cartItem->getPrice();
+
                         return [
                             'name' => $cartItem->getName() ?? '',
                             'sku' => $cartItem->getSku() ?? '',
                             'unit_amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' => number_format((float)$cartItem->getPrice(), 2, '.', '')
+                                'value' => number_format($price, 2, '.', '')
                             ],
                             'quantity' => (int)(ceil($cartItem->getQty()) ?: $cartItem->getQty()),
                             'is_shipping_required' => !in_array(
@@ -260,8 +274,11 @@ class QuoteConverter
                     'value' => number_format(
                         array_sum(
                             array_map(
-                                static function (CartItemInterface $cartItem) {
-                                    return $cartItem->getPrice() * $cartItem->getQty();
+                                static function (CartItemInterface $cartItem) use ($taxIncluded) {
+                                    $itemData = $cartItem->getData();
+                                    $price = $taxIncluded ? $itemData['base_price_incl_tax'] - $itemData['tax_amount'] : $cartItem->getPrice();
+
+                                    return $price * $cartItem->getQty();
                                 },
                                 $quoteItems
                             )

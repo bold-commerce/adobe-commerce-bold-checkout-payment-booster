@@ -35,7 +35,7 @@ define([
 
     const AGREEMENT_VALIDITY_DURATION = 5 * 60 * 1000;
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
-    const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method.';
+    const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
         if (!window.location.href.includes("#payment")) {

@@ -215,6 +215,6 @@ class ExpressPay implements ArgumentInterface
      */
     private function getCustomer(): CustomerInterface
     {
-        return $this->customerRepository->getById($this->customerSession->getCustomerId());
+        return $this->customerRepository->getById($this->httpContext->getValue('customer_id'));
     }
 }

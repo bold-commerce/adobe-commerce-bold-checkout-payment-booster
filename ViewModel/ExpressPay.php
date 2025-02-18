@@ -157,7 +157,12 @@ class ExpressPay implements ArgumentInterface
         $customerData = [];
 
         if ($this->isCustomerLoggedIn()) {
-            $customer = $this->getCustomer();
+            try {
+                $customer = $this->getCustomer();
+            } catch (LocalizedException $localizedException) {
+                return $customerData;
+            }
+
             $customerData = $customer->__toArray();
             $customerData['addresses'] = $this->customerAddressDataProvider->getAddressDataByCustomer($customer);
         }

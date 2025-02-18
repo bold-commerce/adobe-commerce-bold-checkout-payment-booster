@@ -7,7 +7,8 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Address\CustomerAddressDataProvider;
-use Magento\Customer\Model\Session as CustomerSession;
+use Magento\Customer\Model\Context as CustomerContext;
+use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -57,9 +58,9 @@ class ExpressPay implements ArgumentInterface
     private $paymentBoosterConfigProvider;
 
     /**
-     * @var CustomerSession
+     * @var HttpContext
      */
-    private $customerSession;
+    private $httpContext;
 
     /**
      * @var mixed[]
@@ -84,7 +85,7 @@ class ExpressPay implements ArgumentInterface
         CheckoutData $checkoutData,
         Config $config,
         PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
-        CustomerSession $customerSession,
+        HttpContext $httpContext,
         CustomerRepositoryInterface $customerRepository,
         CustomerAddressDataProvider $customerAddressDataProvider
     ) {
@@ -95,7 +96,7 @@ class ExpressPay implements ArgumentInterface
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
-        $this->customerSession = $customerSession;
+        $this->httpContext = $httpContext;
         $this->customerRepository = $customerRepository;
         $this->customerAddressDataProvider = $customerAddressDataProvider;
     }
@@ -146,7 +147,7 @@ class ExpressPay implements ArgumentInterface
      */
     public function isCustomerLoggedIn(): bool
     {
-        return (bool)$this->customerSession->isLoggedIn();
+        return (bool)$this->httpContext->getValue(CustomerContext::CONTEXT_AUTH);
     }
 
     /**

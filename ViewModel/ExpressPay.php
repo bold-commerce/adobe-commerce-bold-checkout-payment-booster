@@ -108,7 +108,16 @@ class ExpressPay implements ArgumentInterface
     {
         $quoteId = $this->checkoutSession->getQuote()->getId();
         if ($quoteId !== null) {
-            $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+            try {
+                $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
+            } catch (NoSuchEntityException $noSuchEntityException) {
+                // Suppress error thrown when customer ID is not found and fall back to our config
+                if ($this->checkoutData->getPublicOrderId() !== null) {
+                    $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfig();
+                } else {
+                    $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
+                }
+            }
         } else {
             $this->checkoutData->initCheckoutData();
             $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();

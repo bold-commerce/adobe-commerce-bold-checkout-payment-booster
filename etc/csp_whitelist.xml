@@ -69,6 +69,7 @@
         </policy>
         <policy id="style-src">
             <values>
+                <value id="bold_internal" type="host">*.bold.ninja</value>
                 <value id="bold_eps_static" type="host">static-eps.secure.boldcommerce.com</value>
                 <value id="bold_staging_eps_static" type="host">static-eps.secure.staging.boldcommerce.com</value>
             </values>

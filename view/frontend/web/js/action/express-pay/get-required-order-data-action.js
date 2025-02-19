@@ -84,7 +84,7 @@ define(
                         };
                         break;
                     case 'items':
-                        let quoteItems = quote.getItems();
+                        let quoteItems = quote.getItems() ?? [];
 
                         if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
                             quoteItems = getProductItemData();

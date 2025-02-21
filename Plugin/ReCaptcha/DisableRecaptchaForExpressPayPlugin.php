@@ -2,14 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\Plugin\ReCaptcha\Model;
+namespace Bold\CheckoutPaymentBooster\Plugin\ReCaptcha;
 
 use Magento\Framework\App\Request\DataPersistorInterface;
+use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
 use Magento\ReCaptchaUi\Model\IsCaptchaEnabledInterface;
 use Magento\ReCaptchaValidationApi\Api\Data\ValidationConfigInterface;
 use Magento\ReCaptchaWebapiApi\Api\Data\EndpointInterface;
-use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
-use Psr\Log\LoggerInterface;
 
 class DisableRecaptchaForExpressPayPlugin
 {
@@ -26,23 +25,15 @@ class DisableRecaptchaForExpressPayPlugin
     private $dataPersistor;
 
     /**
-     * @var LoggerInterface $logger
-     */
-    private $logger;
-
-    /**
      * @param IsCaptchaEnabledInterface $isEnabled
      * @param DataPersistorInterface $dataPersistor
-     * @param LoggerInterface $logger
      */
     public function __construct(
         IsCaptchaEnabledInterface $isEnabled,
-        DataPersistorInterface $dataPersistor,
-        LoggerInterface $logger,
+        DataPersistorInterface $dataPersistor
     ) {
         $this->isEnabled = $isEnabled;
         $this->dataPersistor = $dataPersistor;
-        $this->logger = $logger;
     }
 
     /**
@@ -52,8 +43,11 @@ class DisableRecaptchaForExpressPayPlugin
      * @return ValidationConfigInterface|null
      * @throws \Magento\Framework\Exception\InputException
      */
-    public function aroundGetConfigFor(WebapiConfigProvider $subject, \Closure $proceed, EndpointInterface $endpoint): ?ValidationConfigInterface
-    {
+    public function aroundGetConfigFor(
+        WebapiConfigProvider $subject,
+        \Closure $proceed,
+        EndpointInterface $endpoint
+    ): ?ValidationConfigInterface {
         if ($endpoint->getServiceMethod() === 'savePaymentInformationAndPlaceOrder'
             || $endpoint->getServiceClass() === 'Magento\QuoteGraphQl\Model\Resolver\SetPaymentAndPlaceOrder'
             || $endpoint->getServiceClass() === 'Magento\QuoteGraphQl\Model\Resolver\PlaceOrder'

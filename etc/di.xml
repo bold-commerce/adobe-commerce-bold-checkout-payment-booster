@@ -26,7 +26,7 @@
         <plugin name="disable_bold_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableBoldAddressValidationPlugin" />
     </type>
     <type name="Magento\ReCaptchaCheckout\Model\WebapiConfigProvider">
-        <plugin name="DisableReCaptchaForExpressPay" type="Bold\CheckoutPaymentBooster\Plugin\ReCaptcha\Model\DisableRecaptchaForExpressPayPlugin" />
+        <plugin name="DisableReCaptchaForExpressPay" type="Bold\CheckoutPaymentBooster\Plugin\ReCaptcha\DisableRecaptchaForExpressPayPlugin" />
     </type>
     <type name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger">
         <arguments>

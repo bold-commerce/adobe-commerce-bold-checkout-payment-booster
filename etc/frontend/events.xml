@@ -4,4 +4,13 @@
     <event name="shortcut_buttons_container">
         <observer name="add_express_pay_buttons" instance="Bold\CheckoutPaymentBooster\Observer\ShortcutButtons\AddExpressPayButtonsObserver"/>
     </event>
+    <event name="controller_action_predispatch_checkout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
+    </event>
+    <event name="controller_action_predispatch_onestepcheckout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
+    </event>
+    <event name="controller_action_predispatch_firecheckout_index_index">
+        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
+    </event>
 </config>

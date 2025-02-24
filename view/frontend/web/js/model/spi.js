@@ -222,6 +222,11 @@ define([
 
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
+                    },
+                    onCancelPaymentOrder: async function () {
+                        if (isProductPageActive) {
+                            deactivateQuote();
+                        }
                     }
                 }
             };

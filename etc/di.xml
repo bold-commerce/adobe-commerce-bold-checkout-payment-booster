@@ -200,4 +200,12 @@
             <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
         </arguments>
     </type>
+
+    <type name="Magento\Framework\App\Http\Context">
+        <arguments>
+            <argument name="default" xsi:type="array">
+                <item name="customer_id" xsi:type="null"/>
+            </argument>
+        </arguments>
+    </type>
 </config>

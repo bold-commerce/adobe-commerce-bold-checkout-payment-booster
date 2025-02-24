@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
@@ -37,14 +38,21 @@ class QuoteConverter
      */
     private $scopeConfig;
 
+
+    /**
+     * @var Config
+     */
+    private $config;
+
     /**
      * @var bool
      */
     private $areTotalsCollected = false;
 
-    public function __construct(ScopeConfigInterface $scopeConfig)
+    public function __construct(ScopeConfigInterface $scopeConfig, Config $config)
     {
         $this->scopeConfig = $scopeConfig;
+        $this->config = $config;
     }
 
     /**
@@ -231,22 +239,26 @@ class QuoteConverter
         }
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $taxIncluded = $this->config->isTaxIncludedInPrices($websiteId);
+
         $convertedQuote = [
             'order_data' => [
                 'items' => array_map(
-                    static function (CartItemInterface $cartItem) use ($currencyCode): array {
-                        $itemPrice = number_format(
-                            $cartItem->getRowTotal() / $cartItem->getQty(),
-                            2,
-                            '.',
-                            ''
-                        );
+                    static function (CartItemInterface $cartItem) use ($currencyCode, $taxIncluded): array {
+                        $itemPrice = $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getBaseTaxAmount() : $cartItem->getRowTotal();
+
                         return [
                             'name' => $cartItem->getName() ?? '',
                             'sku' => $cartItem->getSku() ?? '',
                             'unit_amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' => $itemPrice,
+                                'value' =>  number_format(
+                                    $itemPrice / $cartItem->getQty(),
+                                    2,
+                                    '.',
+                                    ''
+                                ),
                             ],
                             'quantity' => (int)(ceil($cartItem->getQty()) ?: $cartItem->getQty()),
                             'is_shipping_required' => !in_array(
@@ -267,8 +279,8 @@ class QuoteConverter
                     'value' => number_format(
                         array_sum(
                             array_map(
-                                static function (CartItemInterface $cartItem) {
-                                    return $cartItem->getRowTotal();
+                                static function (CartItemInterface $cartItem) use ($taxIncluded) {
+                                    return $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getBaseTaxAmount() : $cartItem->getRowTotal();
                                 },
                                 $quoteItems
                             )

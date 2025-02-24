@@ -10,7 +10,7 @@ patch < app/code/Bold/CheckoutPaymentBooster/patches/CSP-PAYMENT-BOOSTER_2.3.x.p
 
 ### Composer Version CSP Patch:
 ```
-patch < vendor/bold-commerce/module-checkout-payment-booster/patches/CSP-PAYMENT-BOOSTER_2.3.x.patch
+patch < vendor/bold-commerce/module-checkout-payment-booster/patches/CSP-PAYMENT-BOOSTER_COMPOSER_2.3.x.patch
 ```
 
 #### On-prem

@@ -43,7 +43,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Add wallet pay shortcut buttons to the product, cart and mini cart pages
+     * Add Digital Wallets shortcut buttons to the product, cart and mini cart pages
      *
      * @param Observer $observer
      * @return void
@@ -66,7 +66,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Add wallet pay shortcut to the product page.
+     * Add Digital Wallets shortcut to the product page.
      *
      * @param LayoutInterface $layout
      * @param ShortcutButtons $container
@@ -83,7 +83,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Add wallet pay shortcut to the cart page.
+     * Add Digital Wallets shortcut to the cart page.
      *
      * @param LayoutInterface $layout
      * @param ShortcutButtons $container
@@ -98,7 +98,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Add wallet pay shortcut to the mini cart.
+     * Add Digital Wallets shortcut to the mini cart.
      *
      * @param LayoutInterface $layout
      * @param ShortcutButtons $container
@@ -114,7 +114,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Verify if wallet pay shortcut should be added to the product page.
+     * Verify if Digital Wallets shortcut should be added to the product page.
      *
      * @param Event $event
      * @param int $websiteId
@@ -131,7 +131,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Verify if wallet pay shortcut should be added to the cart page.
+     * Verify if Digital Wallets shortcut should be added to the cart page.
      *
      * @param Event $event
      * @param int $websiteId
@@ -143,7 +143,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     }
 
     /**
-     * Verify if wallet pay shortcut should be added to the mini cart.
+     * Verify if Digital Wallets shortcut should be added to the mini cart.
      *
      * @param Event $event
      * @param int $websiteId

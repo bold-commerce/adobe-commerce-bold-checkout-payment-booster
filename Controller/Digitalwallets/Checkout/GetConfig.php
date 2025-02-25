@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Controller\Digitalwallets\Checkout;
@@ -9,7 +10,7 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 
 /**
- * Get Checkout config for ExpressPay controller.
+ * Get Checkout config for Digital Wallets.
  */
 class GetConfig implements HttpGetActionInterface
 {
@@ -36,7 +37,7 @@ class GetConfig implements HttpGetActionInterface
     }
 
     /**
-     * Get Checkout non-cache config for ExpressPay on product|cart|mini-cart pages.
+     * Get Checkout non-cache config for Digital Wallets on product|cart|mini-cart pages.
      *
      * @return Json
      */

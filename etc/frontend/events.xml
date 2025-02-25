@@ -7,10 +7,4 @@
     <event name="controller_action_predispatch_checkout_index_index">
         <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
     </event>
-    <event name="controller_action_predispatch_onestepcheckout_index_index">
-        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
-    </event>
-    <event name="controller_action_predispatch_firecheckout_index_index">
-        <observer name="initialize_bold_order" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver"/>
-    </event>
 </config>

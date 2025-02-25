@@ -171,13 +171,24 @@ class CheckoutData
     }
 
     /**
-     * Get EPS gateway ID from checkout session.
+     * Get Flow Payment Gateway ID from checkout session.
      *
      * @return int|null
      */
-    public function getEpsGatewayId(): ?int
+    public function getFlowPaymentGatewayId(): ?int
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
         return $checkoutData['data']['flow_settings']['eps_gateway_id'] ?? null;
+    }
+
+    /**
+     * Get EPS payment gateways from checkout session.
+     *
+     * @return array
+     */
+    public function getPaymentGateways(): array
+    {
+        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        return $checkoutData['data']['payment_gateways'] ?? [];
     }
 }

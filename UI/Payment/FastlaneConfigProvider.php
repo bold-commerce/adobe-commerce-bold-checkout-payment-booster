@@ -9,6 +9,8 @@ use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Psr\Log\LoggerInterface;
 
+use function __;
+
 /**
  * Config provider for Bold Fastlane.
  */

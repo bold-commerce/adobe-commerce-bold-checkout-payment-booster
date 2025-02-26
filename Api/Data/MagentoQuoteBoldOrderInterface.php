@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Api\Data;
 
 /**
  * @method int|string|null getId()
+ * @method MagentoQuoteBoldOrderInterface setId(int|string $id)
  */
 interface MagentoQuoteBoldOrderInterface
 {

@@ -115,10 +115,10 @@ define([
                 'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
                 'group_label': window.checkoutConfig.bold.configurationGroupLabel,
                 'trace_id': window.checkoutConfig.bold.publicOrderId,
-                'payment_gateways': window.checkoutConfig.bold.payment_gateways.map(gw => ({
-                    gateway_id: gw.id,
-                    auth_token: gw.auth_token,
-                    currency: gw.currency,
+                'payment_gateways': window.checkoutConfig.bold.payment_gateways.map(paymentGateway => ({
+                    gateway_id: paymentGateway.id,
+                    auth_token: paymentGateway.auth_token,
+                    currency: paymentGateway.currency,
                 })),
                 'callbacks': {
                     'onClickPaymentOrder': async (paymentType, paymentPayload) => {
@@ -232,7 +232,7 @@ define([
             window.boldFastlaneInstance = await fastlane.getFastlaneInstance(paymentsInstance);
             await paymentsInstance.initialize;
 
-            const braintreeGateway = paymentsInstance.paymentGateways?.find((gw) => gw.type === 'braintree');
+            const braintreeGateway = paymentsInstance.paymentGateways?.find((paymentGateway) => paymentGateway.type === 'braintree');
             if (braintreeGateway) {
                 await this._loadBraintreeScripts(paymentsInstance, braintreeGateway); //todo: remove as soon as payments.js is adapted to use requirejs
             }

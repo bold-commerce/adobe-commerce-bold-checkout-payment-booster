@@ -171,11 +171,11 @@ class CheckoutData
     }
 
     /**
-     * Get Flow Payment Gateway ID from checkout session.
+     * Get Payment Gateway ID from the flow in the checkout session.
      *
      * @return int|null
      */
-    public function getFlowPaymentGatewayId(): ?int
+    public function getPaymentGatewayId(): ?int
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
         return $checkoutData['data']['flow_settings']['eps_gateway_id'] ?? null;

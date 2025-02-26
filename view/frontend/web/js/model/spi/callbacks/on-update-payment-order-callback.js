@@ -34,7 +34,7 @@ define(
             await updateQuoteShippingMethodAction(paymentData['shipping_options']);
 
             if (paymentType === 'ppcp' && !isWalletPayment) {
-                await updateWalletPayOrderAction(paymentPayload);
+                await updateWalletPayOrderAction(paymentData['order_id'], paymentPayload['gateway_id']);
             }
 
             return getRequiredOrderDataAction(

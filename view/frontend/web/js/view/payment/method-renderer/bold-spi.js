@@ -35,6 +35,7 @@ define([
 
     const AGREEMENT_VALIDITY_DURATION = 5 * 60 * 1000;
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+    const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
         if (!window.location.href.includes("#payment")) {
@@ -240,6 +241,8 @@ define([
         tokenize: function () {
             const iframeWindow = document.getElementById('spi_frame_SPI')?.contentWindow;
             if (!iframeWindow) {
+                fullscreenLoader.stopLoader();
+                messageList.addErrorMessage({message: $t(PAYMENT_FAILED_MESSAGE)});
                 return;
             }
             const billingAddress = quote.billingAddress();
@@ -307,20 +310,14 @@ define([
                         }
                         if (paymentId === undefined && data.payload?.success === false) {
                             // Error message for empty or invalid CC details, temporary fix until CHK-7079 is resolved
-                            messageList.addErrorMessage({message: $t('Payment failed. Please try again or select a different payment method in the "Pay With" section.')});
+                            messageList.addErrorMessage({message: $t(PAYMENT_FAILED_MESSAGE)});
                         }
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);
                         console.log('Failed to tokenize');
-                        fullscreenLoader.stopLoader();
                         this.isSpiLoading(false);
-                        break;
                     case 'EVENT_SPI_PAYMENT_ORDER_SCA':
-                        fullscreenLoader.stopLoader();
-                        break;
                     case 'EVENT_SPI_ENABLE_FULLSCREEN':
-                        fullscreenLoader.stopLoader();
-                        break;
                     case 'EVENT_SPI_DISABLE_FULLSCREEN':
                         fullscreenLoader.startLoader();
                         break;

@@ -57,7 +57,7 @@ class FastlaneConfigProvider implements ConfigProviderInterface
 
         $paymentGatewayId = $this->checkoutData->getPaymentGatewayId();
         if (!$paymentGatewayId) {
-            $this->logger->critical("__('Could not get payment gateway ID.')");
+            $this->logger->critical(__('Could not get payment gateway ID.'));
             return [];
         }
 

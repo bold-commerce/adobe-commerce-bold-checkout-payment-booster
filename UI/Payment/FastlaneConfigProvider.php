@@ -55,16 +55,15 @@ class FastlaneConfigProvider implements ConfigProviderInterface
             return [];
         }
 
-        $flowPaymentGatewayId = $this->checkoutData->getFlowPaymentGatewayId();
-        if (!$flowPaymentGatewayId) {
-            $errorMsg = '$flowPaymentGatewayId is null.';
-            $this->logger->critical('Error in FastlaneConfigProvider->getConfig(): ' . $errorMsg);
+        $paymentGatewayId = $this->checkoutData->getPaymentGatewayId();
+        if (!$paymentGatewayId) {
+            $this->logger->critical("__('Could not get payment gateway ID.')");
             return [];
         }
 
         return [
             'bold' => [
-                'flowPaymentGatewayId' => $flowPaymentGatewayId,
+                'paymentGatewayId' => $paymentGatewayId,
                 'fastlane' => [
                     'payment' => [
                         'method' => Service::CODE_FASTLANE,

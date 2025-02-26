@@ -52,13 +52,13 @@ define(
                 this.isWalletPayLoading(true);
                 const boldPaymentsInstance = await spi.getPaymentsClient();
 
-                const isPaymentsButtonsVisible = boldPaymentsInstance.paymentGateways?.some(gw => {
-                    return gw.gateway_services.paypal
-                        || gw.gateway_services.paylater
-                        || gw.gateway_services.venmo
-                        || gw.gateway_services.google_pay
-                        || gw.gateway_services.apple_pay
-                        || gw.gateway_services.standard_payments
+                const isPaymentsButtonsVisible = boldPaymentsInstance.paymentGateways?.some(paymentGateway => {
+                    return paymentGateway.gateway_services.paypal
+                        || paymentGateway.gateway_services.paylater
+                        || paymentGateway.gateway_services.venmo
+                        || paymentGateway.gateway_services.google_pay
+                        || paymentGateway.gateway_services.apple_pay
+                        || paymentGateway.gateway_services.standard_payments
                 });
 
                 if (isPaymentsButtonsVisible) {

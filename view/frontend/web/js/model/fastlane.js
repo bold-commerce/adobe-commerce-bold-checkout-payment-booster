@@ -63,7 +63,7 @@ define([
             try {
                 if (!this.gatewayData) {
                     boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
-                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.flowPaymentGatewayId] || null;
+                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.paymentGatewayId] || null;
                 }
                 if (!this.gatewayData) {
                     window.boldFastlaneInstanceCreateInProgress = false;

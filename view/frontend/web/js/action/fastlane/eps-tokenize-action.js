@@ -13,7 +13,7 @@ define(
          * Tokenize EPS.
          */
         return async function (tokenId) {
-            if (!window.checkoutConfig.bold.epsAuthToken || !window.checkoutConfig.bold.flowPaymentGatewayId) {
+            if (!window.checkoutConfig.bold.epsAuthToken || !window.checkoutConfig.bold.paymentGatewayId) {
                 return;
             }
 
@@ -21,7 +21,7 @@ define(
             const body = {
                 'version': 1,
                 'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                'gateway_id': Number(window.checkoutConfig.bold.flowPaymentGatewayId),
+                'gateway_id': Number(window.checkoutConfig.bold.paymentGatewayId),
                 'tender_type': 'credit_card',
                 'currency': quote.totals()['base_currency_code'],
                 'payload_type': 'card_token',

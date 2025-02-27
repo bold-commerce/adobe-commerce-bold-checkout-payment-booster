@@ -32,7 +32,7 @@ class Create
      * @var MaskedQuoteIdToQuoteIdInterface
      */
     private $maskedQuoteIdToQuoteId;
-    
+
     /**
      * @var CartRepositoryInterface
      */
@@ -69,13 +69,14 @@ class Create
 
     /**
      * @param string|int $quoteMaskId
+     * @param string $publicOrderId
      * @param string $gatewayId
      * @param string $shippingStrategy
      * @return array
      * @phpstan-return array{order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $gatewayId, $shippingStrategy): array
+    public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -118,6 +119,7 @@ class Create
 
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
         $expressPayData['shipping_strategy'] = $shippingStrategy;
+        $expressPayData['public_order_id'] = $publicOrderId;
 
         try {
             $result = $this->httpClient->post($websiteId, $uri, $expressPayData);

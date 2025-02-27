@@ -17,6 +17,15 @@ define(
             }
 
             await createQuote();
+
+            if (
+                !window.checkoutConfig?.quoteData?.hasOwnProperty('extension_attributes')
+                || !window.checkoutConfig?.quoteData?.extension_attributes?.hasOwnProperty('bold_order_id')
+            ) {
+                return;
+            }
+
+            window.boldPaymentsInstance.setTraceId(window.checkoutConfig.quoteData.extension_attributes.bold_order_id);
         };
     }
 );

@@ -42,8 +42,11 @@ define([
             window.initExpressCheckoutInProcess = true;
             $.ajax({
                 url: '/bold_booster/digitalwallets_checkout/getconfig',
-                type: 'GET',
+                type: 'POST',
                 dataType: 'json',
+                data: {
+                    pageSource: this.pageSource,
+                },
                 async: false,
                 success: function (checkoutConfig) {
                     window.checkoutConfig = checkoutConfig;

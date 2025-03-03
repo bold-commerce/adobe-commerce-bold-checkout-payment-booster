@@ -1,49 +1,76 @@
 define([
     'uiComponent',
     'underscore',
-    'Bold_CheckoutPaymentBooster/js/model/spi',
-    'Magento_Customer/js/customer-data'
+    'jquery'
 ], function (
     Component,
     _,
-    spi,
-    customerData
+    $
 ) {
     'use strict'
 
     return Component.extend({
+        defaults: {
+            pageSource: '',
+            containerId: '',
+        },
+
         initialize: async function () {
             this._super();
+            console.log('Bold Express Payments initialized for ' + this.pageSource);
+            await this._getCheckoutConfig();
+            require(['Bold_CheckoutPaymentBooster/js/model/spi'], (spi) => {
+                this._renderExpressPayments(spi);
+            });
 
-            this._initConfig();
-            this._renderExpressPayments();
         },
 
-        _initConfig: async function () {
-            if (!window?.checkoutConfig?.bold?.epsUrl) {
-                window.checkoutConfig.bold = customerData.get('bold-checkout-data')();
-            }
-        },
-
-        _renderExpressPayments: async function () {
-            let boldPaymentsInstance;
-            try {
-                boldPaymentsInstance = await spi.getPaymentsClient();
-            } catch (error) {
-                console.error('Could not instantiate Bold Payments Client.', error);
+        _getCheckoutConfig: async function () {
+            if (window.checkoutConfig) {
                 return;
             }
+            if (window.initExpressCheckoutInProcess) {
+                new Promise(function (resolve) {
+                    var interval = setInterval(function () {
+                        if (!window.initExpressCheckoutInProcess) {
+                            clearInterval(interval);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+            window.initExpressCheckoutInProcess = true;
+            $.ajax({
+                url: '/bold_booster/digitalwallets_checkout/getconfig',
+                type: 'GET',
+                dataType: 'json',
+                async: false,
+                success: function (checkoutConfig) {
+                    window.checkoutConfig = checkoutConfig;
+                    window.initExpressCheckoutInProcess = false;
+                },
+                fail: function () {
+                    window.initExpressCheckoutInProcess = false;
+                }
+            });
+        },
 
-            const allowedCountries = this._getAllowedCountryCodes();
-            const walletOptions = {
-                shopName: window.checkoutConfig.bold?.shopName ?? '',
-                isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
-                fastlane: window.checkoutConfig.bold?.fastlane,
-                allowedCountryCodes: allowedCountries,
-                pageSource: this.pageSource
-            };
+        _renderExpressPayments: async function (spi) {
+            try {
+                const boldPaymentsInstance = await spi.getPaymentsClient();
+                const allowedCountries = this._getAllowedCountryCodes();
+                const walletOptions = {
+                    shopName: window.checkoutConfig.bold?.shopName ?? '',
+                    isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
+                    fastlane: window.checkoutConfig.bold?.fastlane,
+                    allowedCountryCodes: allowedCountries,
+                    pageSource: this.pageSource
+                };
 
-            boldPaymentsInstance.renderWalletPayments(this.containerId, walletOptions);
+                boldPaymentsInstance.renderWalletPayments(this.containerId, walletOptions);
+            } catch (error) {
+                console.error('Could not instantiate Bold Payments Client.', error);
+            }
         },
 
         _getAllowedCountryCodes: function () {

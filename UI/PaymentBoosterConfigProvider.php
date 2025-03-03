@@ -4,21 +4,20 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI;
 
-use Magento\Directory\Model\AllowedCountries;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
+use Magento\Directory\Model\AllowedCountries;
 use Magento\Directory\Model\Country;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
-use Magento\Framework\Escaper;
-use Psr\Log\LoggerInterface;
-use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
-use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Escaper;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\UrlInterface;
-
+use Psr\Log\LoggerInterface;
 
 /**
  * Config provider for Payment Booster.
@@ -163,7 +162,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             'bold' => [
                 'epsAuthToken' => $epsAuthToken,
                 'configurationGroupLabel' => $configurationGroupLabel,
-                'epsUrl' => $this->config->getEpsUrl($websiteId),
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,
@@ -186,7 +184,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                         'method' => Service::CODE,
                     ],
                 ],
-                'currency' => $currency
+                'currency' => $currency,
             ],
         ];
     }
@@ -253,7 +251,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'shipping/shipping_policy/enable_shipping_policy',
                 ScopeInterface::SCOPE_STORE
             ),
-            'shippingPolicyContent' => $policyContent ? nl2br($policyContent) : ''
+            'shippingPolicyContent' => $policyContent ? nl2br($policyContent) : '',
         ];
 
         return $result;

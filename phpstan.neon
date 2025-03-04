@@ -1,0 +1,9 @@
+parameters:
+	level: 7
+	fileExtensions:
+		- php
+		- phtml
+	paths:
+		- .
+	treatPhpDocTypesAsCertain: false
+	reportUnmatchedIgnoredErrors: false

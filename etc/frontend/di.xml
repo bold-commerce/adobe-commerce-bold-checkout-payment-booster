@@ -22,12 +22,4 @@
     <type name="Magento\Framework\App\FrontController">
         <plugin name="boldCheckoutDataPlugin" type="Bold\CheckoutPaymentBooster\Plugin\Framework\App\FrontControllerPlugin" sortOrder="-1"/>
     </type>
-
-    <type name="Magento\Quote\Api\CartRepositoryInterface">
-        <plugin name="bold_booster_add_public_order_id" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Api\CartRepositoryInterfacePlugin"/>
-    </type>
-
-    <type name="Magento\Payment\Model\Checks\CanUseCheckout">
-        <plugin name="bold_booster_can_use_checkout_digital_wallets" type="Bold\CheckoutPaymentBooster\Plugin\Payment\Model\Checks\CanUseCheckoutPlugin"/>
-    </type>
 </config>

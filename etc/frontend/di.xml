@@ -30,4 +30,14 @@
     <type name="Magento\Payment\Model\Checks\CanUseCheckout">
         <plugin name="bold_booster_can_use_checkout_digital_wallets" type="Bold\CheckoutPaymentBooster\Plugin\Payment\Model\Checks\CanUseCheckoutPlugin"/>
     </type>
+
+    <type name="Bold\CheckoutPaymentBooster\Plugin\Framework\App\ActionInterfacePlugin">
+        <arguments>
+            <argument name="customerSession" xsi:type="object">Magento\Customer\Model\Session\Proxy</argument>
+        </arguments>
+    </type>
+
+    <type name="Magento\Framework\App\ActionInterface">
+        <plugin name="bold_booster_customer_id_context" type="Bold\CheckoutPaymentBooster\Plugin\Framework\App\ActionInterfacePlugin" sortOrder="15"/>
+    </type>
 </config>

@@ -20,7 +20,7 @@ define([
         },
 
         _initConfig: async function () {
-            if (!window?.checkoutConfig?.bold?.epsUrl) {
+            if (!window?.checkoutConfig?.bold) {
                 window.checkoutConfig.bold = customerData.get('bold-checkout-data')();
             }
         },

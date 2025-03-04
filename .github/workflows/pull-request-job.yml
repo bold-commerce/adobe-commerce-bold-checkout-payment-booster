@@ -1,0 +1,118 @@
+name: Pull Request
+run-name: Deploy by ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/dependabot.*'
+      - '**/*.md'
+      - '**/*.txt'
+
+permissions:
+  contents: read
+
+jobs:
+  setup-and-run:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php-version : "7.2"
+            magento-version: "2.3.5"
+            composer-version: "v1"
+          - php-version: "7.4"
+            magento-version: "2.4.3"
+            composer-version: "v2"
+          - php-version: "8.2"
+            magento-version: "2.4.7-p4"
+            composer-version: "v2"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      mariadb:
+        image: mariadb:10.6
+        env:
+          MYSQL_PASSWORD: root
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: magento_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      redis:
+        image: redis:7.2
+        ports:
+          - 6379:6379
+        options: --health-cmd="redis-cli -h localhost -p 6379 ping" --health-interval=10s --health-timeout=5s --health-retries=10
+      opensearch:
+        image: opensearchproject/opensearch:2.12.0
+        env:
+          OPENSEARCH_INITIAL_ADMIN_PASSWORD: magento2Root!
+          discovery.type: single-node
+          DISABLE_SECURITY_PLUGIN: true
+        ports:
+          - 9200:9200
+        options: --health-cmd="curl --silent --show-error --fail -ku admin:magento2Root! http://localhost:9200/_cluster/health || exit 1" --health-interval=10s --health-timeout=10s --health-retries=10
+
+      rabbitmq:
+        image: rabbitmq:3.13
+        ports:
+          - 5672:5672
+        options: --health-cmd="rabbitmq-diagnostics -q ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ${{ matrix.php-version}}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version}}
+          # tools: composer:${{ matrix.composer-version }}
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: integration-pipeline-test/vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+
+      - name: Install dependencies
+        run: |
+          cd integration-pipeline-test
+          composer config --global http-basic.repo.magento.com ${{ secrets.COMPOSER_MAGENTO_USERNAME }} ${{ secrets.COMPOSER_MAGENTO_PASSWORD }}
+          composer config --global github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+
+          META_PACKAGE=magento/project-community-edition META_VERSION=${{ matrix.magento-version }}
+
+          composer create-project --no-install --repository-url=https://repo.magento.com/ \
+              "${META_PACKAGE}" /tmp/exampleproject "${META_VERSION}"
+
+          rsync -a /tmp/exampleproject/ ./
+          rm -rf /tmp/exampleproject/
+          echo rysnc and delete complete
+
+          composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin true
+          composer config --no-plugins allow-plugins.magento/* true
+          composer config --no-plugins allow-plugins.php-http/discovery true
+
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref }} --no-scripts
+          echo require complete
+          composer require magento/product-community-edition:${{ matrix.magento-version }} --no-scripts
+          composer install --prefer-dist --no-progress --no-suggest --no-scripts
+          echo install complete
+
+          cp install-config-mysql-ci.php dev/tests/integration/etc/install-config-mysql.php
+          cp dev/tests/integration/etc/config-global.php.dist dev/tests/integration/etc/config-global.php
+          cp dev/tests/integration/phpunit.xml.dist dev/tests/integration/phpunit.xml
+
+          composer require --dev dms/phpunit-arraysubset-asserts
+
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
+
+          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

@@ -7,6 +7,12 @@ let config = {
             'Magento_Checkout/js/model/step-navigator': {
                 'Bold_CheckoutPaymentBooster/js/model/step-navigator-mixin': true
             },
+            'Magento_CheckoutAgreements/js/model/agreements-assigner': {
+                'Bold_CheckoutPaymentBooster/js/model/agreements-assigner-mixin': true
+            },
+            'Magento_Checkout/js/model/customer-email-validator': {
+                'Bold_CheckoutPaymentBooster/js/model/customer-email-validator-mixin': true
+            }
         },
     },
     paths: {

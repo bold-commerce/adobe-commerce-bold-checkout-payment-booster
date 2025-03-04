@@ -132,11 +132,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $publicOrderId = $this->checkoutData->getPublicOrderId();
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
-        $epsGatewayId = $this->checkoutData->getEpsGatewayId();
+        $paymentGateways = $this->checkoutData->getPaymentGateways();
         $currency = $store->getCurrentCurrency()->getCode();
         $shopUrl = $store->getBaseUrl();
 
-        if ($jwtToken === null || $epsAuthToken === null || $epsGatewayId === null) {
+        if ($jwtToken === null || $epsAuthToken === null || $paymentGateways === []) {
             $errorMsgs = [];
             if ($jwtToken === null) {
                 $errorMsgs[] = '$jwtToken is null.';
@@ -146,8 +146,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 $errorMsgs[] = '$epsAuthToken is null.';
             }
 
-            if ($epsGatewayId === null) {
-                $errorMsgs[] = '$epsGatewayId is null.';
+            if ($paymentGateways === []) {
+                $errorMsgs[] = '$paymentGateways is empty.';
             }
 
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): ' . implode(', ', $errorMsgs));
@@ -165,7 +165,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'configurationGroupLabel' => $configurationGroupLabel,
                 'epsUrl' => $this->config->getEpsUrl($websiteId),
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
-                'gatewayId' => $epsGatewayId,
+                'payment_gateways' => $paymentGateways,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
                 'shopId' => $shopId,

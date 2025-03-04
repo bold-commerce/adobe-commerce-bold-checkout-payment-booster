@@ -38,9 +38,6 @@ define([
     const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
-        if (!window.location.href.includes("#payment")) {
-            return true;
-        }
         if (!additionalValidators.validate()) {
             messageList.addErrorMessage({
                 message: $t('Please agree to all the terms and conditions before placing the order.')

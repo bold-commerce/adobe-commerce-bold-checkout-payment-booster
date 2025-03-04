@@ -85,19 +85,20 @@ define(
                         break;
                     case 'items':
                         let quoteItems = quote.getItems() ?? [];
+                        let requiredQuoteItems;
 
                         if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
-                            quoteItems = getProductItemData();
+                            requiredQuoteItems = getProductItemData();
                         }
 
                         if (quoteItems.length > 0) {
-                            quoteItems = quote.getItems().map(item => ({
+                            requiredQuoteItems = quoteItems.map(item => ({
                                 amount: parseInt(parseFloat(item.base_price) * 100),
                                 label: item.name
                             }));
                         }
 
-                        payload[requirement] = quoteItems;
+                        payload[requirement] = requiredQuoteItems;
 
                         break;
                     case 'billing_address':

@@ -7,8 +7,7 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Address\CustomerAddressDataProvider;
-use Magento\Customer\Model\Context as CustomerContext;
-use Magento\Framework\App\Http\Context as HttpContext;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -58,9 +57,9 @@ class ExpressPay implements ArgumentInterface
     private $paymentBoosterConfigProvider;
 
     /**
-     * @var HttpContext
+     * @var CustomerSession
      */
-    private $httpContext;
+    private $customerSession;
 
     /**
      * @var mixed[]
@@ -85,7 +84,7 @@ class ExpressPay implements ArgumentInterface
         CheckoutData $checkoutData,
         Config $config,
         PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
-        HttpContext $httpContext,
+        CustomerSession $customerSession,
         CustomerRepositoryInterface $customerRepository,
         CustomerAddressDataProvider $customerAddressDataProvider
     ) {
@@ -96,7 +95,7 @@ class ExpressPay implements ArgumentInterface
         $this->checkoutData = $checkoutData;
         $this->config = $config;
         $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
-        $this->httpContext = $httpContext;
+        $this->customerSession = $customerSession;
         $this->customerRepository = $customerRepository;
         $this->customerAddressDataProvider = $customerAddressDataProvider;
     }
@@ -108,16 +107,7 @@ class ExpressPay implements ArgumentInterface
     {
         $quoteId = $this->checkoutSession->getQuote()->getId();
         if ($quoteId !== null) {
-            try {
-                $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
-            } catch (NoSuchEntityException $noSuchEntityException) {
-                // Suppress error thrown when customer ID is not found and fall back to our config
-                if ($this->checkoutData->getPublicOrderId() !== null) {
-                    $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfig();
-                } else {
-                    $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
-                }
-            }
+            $this->jsLayout['checkoutConfig'] = $this->configProvider->getConfig();
         } else {
             $this->checkoutData->initCheckoutData();
             $this->jsLayout['checkoutConfig'] = $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
@@ -156,7 +146,7 @@ class ExpressPay implements ArgumentInterface
      */
     public function isCustomerLoggedIn(): bool
     {
-        return (bool)$this->httpContext->getValue(CustomerContext::CONTEXT_AUTH);
+        return (bool)$this->customerSession->isLoggedIn();
     }
 
     /**
@@ -167,12 +157,7 @@ class ExpressPay implements ArgumentInterface
         $customerData = [];
 
         if ($this->isCustomerLoggedIn()) {
-            try {
-                $customer = $this->getCustomer();
-            } catch (LocalizedException $localizedException) {
-                return $customerData;
-            }
-
+            $customer = $this->getCustomer();
             $customerData = $customer->__toArray();
             $customerData['addresses'] = $this->customerAddressDataProvider->getAddressDataByCustomer($customer);
         }
@@ -224,6 +209,6 @@ class ExpressPay implements ArgumentInterface
      */
     private function getCustomer(): CustomerInterface
     {
-        return $this->customerRepository->getById($this->httpContext->getValue('customer_id'));
+        return $this->customerRepository->getById($this->customerSession->getCustomerId());
     }
 }

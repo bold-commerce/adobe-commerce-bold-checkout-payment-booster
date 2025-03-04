@@ -44,7 +44,6 @@ class FrontControllerPlugin
         'catalog_category_view',
         'catalog_product_view',
         'checkout_cart_index',
-        'checkout_cart_add',
         'checkout_index_index',
         'firecheckout_index_index',
         'customer_account_create',

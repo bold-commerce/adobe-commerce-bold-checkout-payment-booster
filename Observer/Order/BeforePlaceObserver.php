@@ -90,7 +90,7 @@ class BeforePlaceObserver implements ObserverInterface
         }
         $quoteId = $order->getQuoteId();
         $quote = $this->cartRepository->get($quoteId);
-        $publicOrderId = $this->checkoutData->getPublicOrderId();
+        $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId);

@@ -84,17 +84,17 @@ define(
                         };
                         break;
                     case 'items':
-                        let quoteItems = [];
+                        let quoteItems = quote.getItems() ?? [];
 
-                        if (window.checkoutConfig?.hasOwnProperty('quoteItemData')) {
+                        if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
+                            quoteItems = getProductItemData();
+                        }
+
+                        if (quoteItems.length > 0) {
                             quoteItems = quote.getItems().map(item => ({
                                 amount: parseInt(parseFloat(item.base_price) * 100),
                                 label: item.name
                             }));
-                        }
-
-                        if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
-                            quoteItems = getProductItemData();
                         }
 
                         payload[requirement] = quoteItems;

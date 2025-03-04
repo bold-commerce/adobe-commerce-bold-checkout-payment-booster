@@ -10,7 +10,6 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
-    'Bold_CheckoutPaymentBooster/js/action/digital-wallets/deactivate-quote',
     'Magento_Ui/js/model/messageList',
     'mage/url',
     'mage/translate'
@@ -26,7 +25,6 @@ define([
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
-    deactivateQuote,
     messageList,
     urlBuilder,
     $t
@@ -175,11 +173,6 @@ define([
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
-
-                            if (isProductPageActive) {
-                                deactivateQuote(); // calling this here as the error callback isn't triggered
-                            }
-
                             throw e;
                         }
                     },
@@ -207,26 +200,12 @@ define([
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
-
-                            if (isProductPageActive) {
-                                deactivateQuote(); // calling this here as the error callback isn't triggered
-                            }
-
                             throw e;
                         }
                     },
                     'onErrorPaymentOrder': async function (errors) {
-                        if (isProductPageActive) {
-                            deactivateQuote();
-                        }
-
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
-                    },
-                    onCancelPaymentOrder: async function () {
-                        if (isProductPageActive) {
-                            deactivateQuote();
-                        }
                     }
                 }
             };

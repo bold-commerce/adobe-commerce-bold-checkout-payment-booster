@@ -24,6 +24,7 @@ class GetConfig implements HttpPostActionInterface
      * @var JsonFactory
      */
     private $jsonFactory;
+
     /**
      * @var ExpressPay
      */

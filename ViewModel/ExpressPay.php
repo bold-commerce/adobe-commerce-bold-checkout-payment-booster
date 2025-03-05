@@ -50,6 +50,7 @@ class ExpressPay implements ArgumentInterface
      * @var CustomerRepositoryInterface
      */
     private $customerRepository;
+
     /**
      * @var CustomerAddressDataProvider
      */

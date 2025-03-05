@@ -2,10 +2,29 @@
 
 declare(strict_types=1);
 
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
+use Magento\Framework\View\Element\Template;
+
+/** @var Template $block */
+
+/** @var ExpressPay $expressPayViewModel */
+$expressPayViewModel = $block->getData('express_pay_view_model');
+$isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
+$customerData = $expressPayViewModel->getCustomerData();
 ?>
 <div id="express-pay-container-product" data-testid="express-pay-container-product">
     <div id="express-pay-buttons-product-details"></div>
 </div>
+
+<script>
+    if (!window.hasOwnProperty('isCustomerLoggedIn')) {
+        window.isCustomerLoggedIn = <?= /* @noEscape */ json_encode($isCustomerLoggedIn) ?>;
+    }
+
+    if (!window.hasOwnProperty('customerData')) {
+        window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
+    }
+</script>
 
 <script type="text/x-magento-init">
     {

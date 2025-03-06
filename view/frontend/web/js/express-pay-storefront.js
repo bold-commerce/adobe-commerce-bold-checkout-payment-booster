@@ -50,6 +50,7 @@ define([
                 type: 'POST',
                 dataType: 'json',
                 data: {
+                    form_key: $.mage.cookies.get('form_key'),
                     pageSource: this.pageSource,
                 },
                 async: false,

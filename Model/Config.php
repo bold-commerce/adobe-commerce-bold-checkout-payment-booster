@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
@@ -32,8 +31,7 @@ class Config
     private const PATH_BOLD_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/bold_booster_flow_id';
     private const PATH_IS_EXPRESS_PAY_ENABLED = 'checkout/bold_checkout_payment_booster/is_express_pay_enabled';
     private const PATH_IS_CART_WALLET_PAY_ENABLED = 'checkout/bold_checkout_payment_booster/is_cart_wallet_pay_enabled';
-    private const PATH_IS_PRODUCT_WALLET_PAY_ENABLED =
-        'checkout/bold_checkout_payment_booster/is_product_wallet_pay_enabled';
+    private const PATH_IS_PRODUCT_WALLET_PAY_ENABLED = 'checkout/bold_checkout_payment_booster/is_product_wallet_pay_enabled';
     private const PATH_IS_TAX_INCLUDED_IN_PRICES = 'tax/calculation/price_includes_tax';
     private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
 
@@ -323,8 +321,8 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
-    }
-
+    }    
+    
     /**
      * Check if Wallet Express Pay buttons are enabled On the cart and mini cart pages.
      *
@@ -339,7 +337,7 @@ class Config
             $websiteId
         );
     }
-
+    
     /**
      * Check if Wallet Express Pay buttons are enabled on the product pages.
      *
@@ -348,11 +346,13 @@ class Config
      */
     public function isProductWalletPayEnabled(int $websiteId): bool
     {
-        return $this->scopeConfig->isSetFlag(
-            self::PATH_IS_PRODUCT_WALLET_PAY_ENABLED,
-            ScopeInterface::SCOPE_WEBSITES,
-            $websiteId
-        );
+        return false;
+        
+        // $this->scopeConfig->isSetFlag(
+        // self::PATH_IS_PRODUCT_WALLET_PAY_ENABLED,
+        // ScopeInterface::SCOPE_WEBSITES,
+        // $websiteId
+        // );
     }
 
     /**

@@ -6,14 +6,17 @@ namespace Bold\CheckoutPaymentBooster\Controller\Digitalwallets\Checkout;
 
 use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
 use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Data\Form\FormKey\Validator as FormKeyValidator;
 
 /**
  * Get Checkout config for Digital Wallets.
  */
-class GetConfig implements HttpPostActionInterface
+class GetConfig implements HttpPostActionInterface, CsrfAwareActionInterface
 {
     /**
      * @var RequestInterface
@@ -31,18 +34,26 @@ class GetConfig implements HttpPostActionInterface
     private $expressPayViewModel;
 
     /**
+     * @var FormKeyValidator
+     */
+    private $formKeyValidator;
+
+    /**
      * @param RequestInterface $request
      * @param JsonFactory $jsonFactory
      * @param ExpressPay $expressPayViewModel
+     * @param FormKeyValidator $formKeyValidator
      */
     public function __construct(
         RequestInterface $request,
         JsonFactory $jsonFactory,
-        ExpressPay $expressPayViewModel
+        ExpressPay $expressPayViewModel,
+        FormKeyValidator $formKeyValidator
     ) {
         $this->request = $request;
         $this->jsonFactory = $jsonFactory;
         $this->expressPayViewModel = $expressPayViewModel;
+        $this->formKeyValidator = $formKeyValidator;
     }
 
     /**
@@ -61,5 +72,16 @@ class GetConfig implements HttpPostActionInterface
         return $this->jsonFactory->create()->setData(
             $this->expressPayViewModel->getCheckoutConfig($requestParameters['pageSource'])
         );
+    }
+
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
+    {
+        return null;
+    }
+
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        // @phpstan-ignore-next-line
+        return $request->isPost() && $request->isXmlHttpRequest() && $this->formKeyValidator->validate($request);
     }
 }

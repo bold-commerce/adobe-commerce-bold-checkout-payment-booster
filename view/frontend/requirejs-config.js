@@ -7,6 +7,9 @@ let config = {
             'Magento_Checkout/js/model/step-navigator': {
                 'Bold_CheckoutPaymentBooster/js/model/step-navigator-mixin': true
             },
+            'Magento_Checkout/js/view/payment/default': {
+                'Bold_CheckoutPaymentBooster/js/mixin/payment-default-mixin': true
+            }
         },
     },
     paths: {

@@ -17,6 +17,13 @@ $customerData = $expressPayViewModel->getCustomerData();
 </div>
 
 <script>
+    if (!window.hasOwnProperty('checkoutConfig')) {
+        window.checkoutConfig = {
+            quoteData: {
+            },
+        };
+    }
+
     if (!window.hasOwnProperty('isCustomerLoggedIn')) {
         window.isCustomerLoggedIn = <?= /* @noEscape */ json_encode($isCustomerLoggedIn) ?>;
     }

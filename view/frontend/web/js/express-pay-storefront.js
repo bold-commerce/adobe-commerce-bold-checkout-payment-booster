@@ -26,7 +26,12 @@ define([
         },
 
         _getCheckoutConfig: async function () {
-            if (window.checkoutConfig) {
+            if (
+                window.hasOwnProperty('checkoutConfig')
+                && window.checkoutConfig.hasOwnProperty('quoteData')
+                && window.checkoutConfig.quoteData.hasOwnProperty('entity_id')
+                && window.checkoutConfig.quoteData.entity_id !== ''
+            ) {
                 return;
             }
             if (window.initExpressCheckoutInProcess) {
@@ -42,11 +47,27 @@ define([
             window.initExpressCheckoutInProcess = true;
             $.ajax({
                 url: '/bold_booster/digitalwallets_checkout/getconfig',
-                type: 'GET',
+                type: 'POST',
                 dataType: 'json',
+                data: {
+                    pageSource: this.pageSource,
+                },
                 async: false,
                 success: function (checkoutConfig) {
-                    window.checkoutConfig = checkoutConfig;
+                    /* Set values at property level instead of overwriting entire object to preserve its reference in
+                       memory. */
+                    if (checkoutConfig.hasOwnProperty('quoteData')) {
+                        Object.keys(checkoutConfig.quoteData).forEach(key => {
+                            window.checkoutConfig.quoteData[key] = checkoutConfig.quoteData[key];
+                        });
+
+                        delete checkoutConfig.quoteData;
+                    }
+
+                    Object.keys(checkoutConfig).forEach(function (key) {
+                        window.checkoutConfig[key] = checkoutConfig[key];
+                    });
+
                     window.initExpressCheckoutInProcess = false;
                 },
                 fail: function () {

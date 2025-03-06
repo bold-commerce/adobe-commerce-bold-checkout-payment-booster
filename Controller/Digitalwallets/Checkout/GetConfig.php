@@ -5,15 +5,21 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Controller\Digitalwallets\Checkout;
 
 use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay;
-use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\Action\HttpPostActionInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 
 /**
  * Get Checkout config for Digital Wallets.
  */
-class GetConfig implements HttpGetActionInterface
+class GetConfig implements HttpPostActionInterface
 {
+    /**
+     * @var RequestInterface
+     */
+    private $request;
+
     /**
      * @var JsonFactory
      */
@@ -25,13 +31,16 @@ class GetConfig implements HttpGetActionInterface
     private $expressPayViewModel;
 
     /**
+     * @param RequestInterface $request
      * @param JsonFactory $jsonFactory
      * @param ExpressPay $expressPayViewModel
      */
     public function __construct(
+        RequestInterface $request,
         JsonFactory $jsonFactory,
         ExpressPay $expressPayViewModel
     ) {
+        $this->request = $request;
         $this->jsonFactory = $jsonFactory;
         $this->expressPayViewModel = $expressPayViewModel;
     }
@@ -43,6 +52,14 @@ class GetConfig implements HttpGetActionInterface
      */
     public function execute(): Json
     {
-        return $this->jsonFactory->create()->setData($this->expressPayViewModel->getCheckoutConfig());
+        $requestParameters = $this->request->getParams();
+
+        if (empty($requestParameters['pageSource'])) {
+            return $this->jsonFactory->create()->setData([]);
+        }
+
+        return $this->jsonFactory->create()->setData(
+            $this->expressPayViewModel->getCheckoutConfig($requestParameters['pageSource'])
+        );
     }
 }

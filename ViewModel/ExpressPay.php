@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\ViewModel;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+use Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider;
 use Exception;
 use Magento\Checkout\Model\CompositeConfigProvider;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Psr\Log\LoggerInterface;
 
@@ -19,9 +19,9 @@ class ExpressPay implements ArgumentInterface
     private $configProvider;
 
     /**
-     * @var Session
+     * @var PaymentBoosterConfigProvider
      */
-    private $checkoutSession;
+    private $paymentBoosterConfigProvider;
 
     /**
      * @var CheckoutData
@@ -35,18 +35,18 @@ class ExpressPay implements ArgumentInterface
 
     /**
      * @param CompositeConfigProvider $configProvider
-     * @param Session $checkoutSession
+     * @param PaymentBoosterConfigProvider $paymentBoosterConfigProvider
      * @param CheckoutData $checkoutData
      * @param LoggerInterface $logger
      */
     public function __construct(
         CompositeConfigProvider $configProvider,
-        Session $checkoutSession,
+        PaymentBoosterConfigProvider $paymentBoosterConfigProvider,
         CheckoutData $checkoutData,
         LoggerInterface $logger
     ) {
         $this->configProvider = $configProvider;
-        $this->checkoutSession = $checkoutSession;
+        $this->paymentBoosterConfigProvider = $paymentBoosterConfigProvider;
         $this->checkoutData = $checkoutData;
         $this->logger = $logger;
     }
@@ -56,14 +56,15 @@ class ExpressPay implements ArgumentInterface
      *
      * @return array
      */
-    public function getCheckoutConfig(): array
+    public function getCheckoutConfig(string $pageSource): array
     {
         try {
-            $quote = $this->checkoutSession->getQuote();
-            if (!$quote->getId()) {
-                $quote->save();
-            }
             $this->checkoutData->initCheckoutData();
+
+            if ($pageSource === PaymentBoosterConfigProvider::PAGE_SOURCE_PRODUCT) {
+                return $this->paymentBoosterConfigProvider->getConfigWithoutQuote();
+            }
+
             return $this->configProvider->getConfig();
         } catch (Exception $e) {
             $this->logger->error('ExpressPay: ' . $e->getMessage());

@@ -7,6 +7,15 @@ declare(strict_types=1);
     <div id="express-pay-buttons-product-details"></div>
 </div>
 
+<script>
+    if (!window.hasOwnProperty('checkoutConfig')) {
+        window.checkoutConfig = {
+            quoteData: {
+            },
+        };
+    }
+</script>
+
 <script type="text/x-magento-init">
     {
         "#express-pay-container-product": {

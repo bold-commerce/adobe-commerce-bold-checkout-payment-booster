@@ -9,7 +9,6 @@ use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
 use Magento\ReCaptchaUi\Model\IsCaptchaEnabledInterface;
 use Magento\ReCaptchaValidationApi\Api\Data\ValidationConfigInterface;
 use Magento\ReCaptchaWebapiApi\Api\Data\EndpointInterface;
-use Psr\Log\LoggerInterface;
 
 class DisableRecaptchaForExpressPayPlugin
 {
@@ -26,23 +25,15 @@ class DisableRecaptchaForExpressPayPlugin
     private $dataPersistor;
 
     /**
-     * @var LoggerInterface $logger
-     */
-    private $logger;
-
-    /**
      * @param IsCaptchaEnabledInterface $isEnabled
      * @param DataPersistorInterface $dataPersistor
-     * @param LoggerInterface $logger
      */
     public function __construct(
         IsCaptchaEnabledInterface $isEnabled,
-        DataPersistorInterface $dataPersistor,
-        LoggerInterface $logger
+        DataPersistorInterface $dataPersistor
     ) {
         $this->isEnabled = $isEnabled;
         $this->dataPersistor = $dataPersistor;
-        $this->logger = $logger;
     }
 
     /**

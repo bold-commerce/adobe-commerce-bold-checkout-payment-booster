@@ -38,7 +38,7 @@ class DisableRecaptchaForExpressPayPlugin
     public function __construct(
         IsCaptchaEnabledInterface $isEnabled,
         DataPersistorInterface $dataPersistor,
-        LoggerInterface $logger,
+        LoggerInterface $logger
     ) {
         $this->isEnabled = $isEnabled;
         $this->dataPersistor = $dataPersistor;

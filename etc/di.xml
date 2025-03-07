@@ -23,9 +23,6 @@
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_bold_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableBoldAddressValidationPlugin" />
     </type>
-    <type name="Magento\ReCaptchaCheckout\Model\WebapiConfigProvider">
-        <plugin name="DisableReCaptchaForExpressPay" type="Bold\CheckoutPaymentBooster\Plugin\ReCaptcha\Model\DisableRecaptchaForExpressPayPlugin" />
-    </type>
     <type name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger">
         <arguments>
             <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
@@ -176,12 +173,6 @@
     <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get">
         <arguments>
             <argument name="httpClient" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\BoldClient</argument>
-        </arguments>
-    </type>
-
-    <type name="Bold\CheckoutPaymentBooster\Service\ExpressPay\Callback\OnApprove">
-        <arguments>
-            <argument name="checkoutSession" xsi:type="object">Magento\Checkout\Model\Session\Proxy</argument>
         </arguments>
     </type>
 

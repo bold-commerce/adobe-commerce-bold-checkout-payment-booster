@@ -14,6 +14,9 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @magentoAppIsolation enabled
+ */
 class CreatorPluginTest extends TestCase
 {
     use AssertPluginIsConfiguredCorrectly;

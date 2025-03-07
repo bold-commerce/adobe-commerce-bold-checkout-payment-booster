@@ -18,6 +18,10 @@ define([
                 agreementData,
                 agreementIds;
 
+            if(!agreementForm.length) {
+                return;
+            }
+
             agreementData = agreementForm.serializeArray();
             agreementIds = [];
 

@@ -47,7 +47,7 @@ class OnApprove
         SessionManagerInterface         $checkoutSession,
         CartRepositoryInterface         $cartRepository,
         DataPersistorInterface          $dataPersistor,
-        LoggerInterface                 $logger,
+        LoggerInterface                 $logger
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->checkoutSession = $checkoutSession;

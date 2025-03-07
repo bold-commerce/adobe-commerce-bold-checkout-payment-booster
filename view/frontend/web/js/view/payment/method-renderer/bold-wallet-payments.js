@@ -51,9 +51,16 @@ define(
             renderPaymentsButtons: async function () {
                 this.isWalletPayLoading(true);
                 const boldPaymentsInstance = await spi.getPaymentsClient();
-                const gatewayData = boldPaymentsInstance.paymentGateways[0] || null;
-                const isBraintreeWalletPayments = gatewayData.type === 'braintree' && (gatewayData.credentials.is_paypal_enabled || gatewayData.credentials.is_google_pay_enabled || gatewayData.credentials.is_paypal_enabled);
-                const isPaymentsButtonsVisible = gatewayData && (gatewayData.type === 'ppcp' || isBraintreeWalletPayments);
+
+                const isPaymentsButtonsVisible = boldPaymentsInstance.paymentGateways?.some(paymentGateway => {
+                    return paymentGateway.gateway_services.paypal
+                        || paymentGateway.gateway_services.paylater
+                        || paymentGateway.gateway_services.venmo
+                        || paymentGateway.gateway_services.google_pay
+                        || paymentGateway.gateway_services.apple_pay
+                        || paymentGateway.gateway_services.standard_payments
+                });
+
                 if (isPaymentsButtonsVisible) {
                     const walletPaymentOptions = {
                         shopName: window.checkoutConfig.bold?.shopName ?? '',

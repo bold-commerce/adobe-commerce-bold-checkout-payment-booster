@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Plugin\ReCaptcha\Model;
 
 use Magento\Framework\App\Request\DataPersistorInterface;
-use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
 use Magento\ReCaptchaUi\Model\IsCaptchaEnabledInterface;
 use Magento\ReCaptchaValidationApi\Api\Data\ValidationConfigInterface;
 use Magento\ReCaptchaWebapiApi\Api\Data\EndpointInterface;
+use Magento\ReCaptchaCheckout\Model\WebapiConfigProvider;
 use Psr\Log\LoggerInterface;
 
 class DisableRecaptchaForExpressPayPlugin

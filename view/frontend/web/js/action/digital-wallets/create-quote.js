@@ -8,7 +8,7 @@ define(
         'use strict';
 
         /**
-         * @returns {Promise<void>}
+         * @returns {Promise<{}>}
          * @throws Error
          */
         return async function () {
@@ -64,6 +64,8 @@ define(
             window.checkoutConfig.quoteItemData = createQuoteResult.quoteItemData;
 
             quote.setTotals(createQuoteResult.totalsData);
+
+            return createQuoteResult;
         };
     }
 );

@@ -18,6 +18,12 @@ define(
 
             await createQuote();
 
+            // TODO: Create frontend logic to retrieve payment gateways via AJAX
+
+            if () {
+                window.boldPaymentsInstance.updateGatewaysAuthToken(.boldPaymentGateways);
+            }
+
             if (
                 !window.checkoutConfig?.quoteData?.hasOwnProperty('extension_attributes')
                 || !window.checkoutConfig?.quoteData?.extension_attributes?.hasOwnProperty('bold_order_id')

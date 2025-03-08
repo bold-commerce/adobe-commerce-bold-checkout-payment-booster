@@ -13,6 +13,7 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Model\AbstractModel;
 
 use function __;
 
@@ -61,6 +62,22 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
         if ($magentoQuoteBoldOrder->getId() === null) {
             throw new NoSuchEntityException(
                 __('Magento Quote to Bold Order link with quote identifier "%1" does not exist.', $quoteId)
+            );
+        }
+
+        return $magentoQuoteBoldOrder;
+    }
+
+    public function getByBoldOrderId(string $boldOrderId): MagentoQuoteBoldOrderInterface
+    {
+        /** @var MagentoQuoteBoldOrderInterface&AbstractModel $magentoQuoteBoldOrder */
+        $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
+
+        $this->resourceModel->load($magentoQuoteBoldOrder, $boldOrderId, 'bold_order_id');
+
+        if ($magentoQuoteBoldOrder->getId() === null) {
+            throw new NoSuchEntityException(
+                __('Magento Quote to Bold Order link with Bold order identifier "%1" does not exist.', $boldOrderId)
             );
         }
 

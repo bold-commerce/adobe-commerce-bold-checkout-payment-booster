@@ -179,7 +179,8 @@ define([
                 this.isVisible(false);
             }
 
-            if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
+            const isPlaceOrderButtonNotVisible = paymentsInstance.paymentGateways?.every((paymentGateway) => paymentGateway.gateway_services.credit_card_form === false);
+            if (isPlaceOrderButtonNotVisible) {
                 this.isPlaceOrderButtonVisible(false);
             }
         },

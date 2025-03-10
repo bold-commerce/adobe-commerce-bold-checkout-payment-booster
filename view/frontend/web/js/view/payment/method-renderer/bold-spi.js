@@ -38,7 +38,8 @@ define([
     const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
-        if (!window.location.href.includes("#payment")) {
+        if ((!window.location.href.includes("#payment")) &&
+            (!window.location.href.includes("#shipping"))) {
             return true;
         }
         if (!additionalValidators.validate()) {

@@ -38,7 +38,8 @@ define([
     const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
-        if (!window.location.href.includes("#payment")) {
+        if ((!window.location.href.includes("#payment")) &&
+            (!window.location.href.includes("#shipping"))) {
             return true;
         }
         if (!additionalValidators.validate()) {
@@ -178,7 +179,8 @@ define([
                 this.isVisible(false);
             }
 
-            if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
+            const isPlaceOrderButtonNotVisible = paymentsInstance.paymentGateways?.every((paymentGateway) => paymentGateway.gateway_services.credit_card_form === false);
+            if (isPlaceOrderButtonNotVisible) {
                 this.isPlaceOrderButtonVisible(false);
             }
         },

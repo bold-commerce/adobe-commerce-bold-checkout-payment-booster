@@ -8,6 +8,8 @@ use Bold\CheckoutPaymentBooster\Block\ShortcutButtons\ExpressPayShortcutButtonsC
 use Bold\CheckoutPaymentBooster\Block\ShortcutButtons\ExpressPayShortcutButtonsMiniCart;
 use Bold\CheckoutPaymentBooster\Block\ShortcutButtons\ExpressPayShortcutButtonsProduct;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPay as ExpressPayViewModel;
+use Bold\CheckoutPaymentBooster\ViewModel\ExpressPayFactory as ExpressPayViewModelFactory;
 use Magento\Catalog\Block\ShortcutButtons;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
@@ -28,17 +30,27 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     private $config;
 
     /**
+     * @var ExpressPayViewModelFactory
+     */
+    private $expressPayViewModelFactory;
+
+    /**
      * @var StoreManagerInterface
      */
     private $storeManager;
 
     /**
      * @param StoreManagerInterface $storeManager
+     * @param ExpressPayViewModelFactory $expressPayViewModelFactory
      * @param Config $config
      */
-    public function __construct(StoreManagerInterface $storeManager, Config $config)
-    {
+    public function __construct(
+        StoreManagerInterface $storeManager,
+        ExpressPayViewModelFactory $expressPayViewModelFactory,
+        Config $config
+    ) {
         $this->storeManager = $storeManager;
+        $this->expressPayViewModelFactory = $expressPayViewModelFactory;
         $this->config = $config;
     }
 
@@ -75,9 +87,16 @@ class AddExpressPayButtonsObserver implements ObserverInterface
         LayoutInterface $layout,
         ShortcutButtons $container
     ) {
+        /** @var ExpressPayViewModel $expressPayViewModel */
+        $expressPayViewModel = $this->expressPayViewModelFactory->create();
         $shortCut = $layout->createBlock(
             ExpressPayShortcutButtonsProduct::class,
-            ExpressPayShortcutButtonsProduct::NAME
+            ExpressPayShortcutButtonsProduct::NAME,
+            [
+                'data' => [
+                    'express_pay_view_model' => $expressPayViewModel,
+                ]
+            ]
         );
         $container->addShortcut($shortCut);
     }
@@ -106,9 +125,16 @@ class AddExpressPayButtonsObserver implements ObserverInterface
      */
     private function addMiniCartShortcut(LayoutInterface $layout, ShortcutButtons $container)
     {
+        /** @var ExpressPayViewModel $expressPayViewModel */
+        $expressPayViewModel = $this->expressPayViewModelFactory->create();
         $miniCartShortcut = $layout->createBlock(
             ExpressPayShortcutButtonsMiniCart::class,
-            ExpressPayShortcutButtonsMiniCart::NAME
+            ExpressPayShortcutButtonsMiniCart::NAME,
+            [
+                'data' => [
+                    'express_pay_view_model' => $expressPayViewModel,
+                ]
+            ]
         );
         $container->addShortcut($miniCartShortcut);
     }

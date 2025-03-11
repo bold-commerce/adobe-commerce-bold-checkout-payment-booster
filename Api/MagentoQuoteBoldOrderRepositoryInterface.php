@@ -26,6 +26,13 @@ interface MagentoQuoteBoldOrderRepositoryInterface
     public function getByQuoteId($quoteId): MagentoQuoteBoldOrderInterface;
 
     /**
+     * @param string $boldOrderId
+     * @return MagentoQuoteBoldOrderInterface
+     * @throws NoSuchEntityException
+     */
+    public function getByBoldOrderId(string $boldOrderId): MagentoQuoteBoldOrderInterface;
+
+    /**
      * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrderId
      * @return void
      * @throws AlreadyExistsException

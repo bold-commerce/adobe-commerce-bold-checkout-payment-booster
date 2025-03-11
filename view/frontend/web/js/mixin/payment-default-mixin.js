@@ -1,4 +1,4 @@
-define(['jquery', 'Magento_Checkout/js/model/quote'], function ($, quote) {
+define(['Magento_Checkout/js/model/quote'], function (quote) {
     'use strict';
 
     return function (originalComponent) {
@@ -7,11 +7,11 @@ define(['jquery', 'Magento_Checkout/js/model/quote'], function ($, quote) {
              * @returns {boolean}
              */
             isPlaceOrderActionAllowed: function () {
-                var method = quote.paymentMethod()
+                const method = quote.paymentMethod()
                     ? quote.paymentMethod().method
                     : null;
 
-                if (method === 'bold') {
+                if (method === 'bold_wallet') {
                     return false;
                 }
 

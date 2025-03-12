@@ -104,6 +104,47 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>
                 </field>
+                <group id="digital_wallets_quote_cleanup" translate="label" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Digital Wallets Quote Cleanup</label>
+                    <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Enable Digital Wallets Quote Cleanup</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_enabled</config_path>
+                        <comment>If "Yes," Digital Wallets quotes older than the configured time period will automatically be deactivated.</comment>
+                    </field>
+                    <field id="frequency" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Frequency</label>
+                        <source_model>Bold\CheckoutPaymentBooster\Model\Config\Source\Frequency</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_frequency</config_path>
+                        <depends>
+                            <field id="enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="occurrence" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Run Every</label>
+                        <validate>validate-digits validate-number-range number-range-1-31</validate>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_occurrence</config_path>
+                        <comment>How often to perform the cleanup: 1-23 for hours or 1-31 for days.</comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                            <field id="frequency" separator=",">hourly,daily</field>
+                        </depends>
+                    </field>
+                    <field id="sequence" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Cron Sequence</label>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_sequence</config_path>
+                        <comment><![CDATA[See <a href="https://crontab.guru/" target="_blank">Crontab Guru</a> for examples.]]></comment>
+                        <depends>
+                            <field id="enabled">1</field>
+                            <field id="frequency">custom</field>
+                        </depends>
+                    </field>
+                    <field id="retention_period" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                        <label>Deactivate Quotes Older Than (Hours)</label>
+                        <validate>validate-digits validate-number-range number-range-1-24</validate>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_retention_period</config_path>
+                    </field>
+                </group>
             </group>
         </section>
     </system>

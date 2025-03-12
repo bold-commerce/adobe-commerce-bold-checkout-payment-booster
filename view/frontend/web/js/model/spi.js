@@ -4,11 +4,13 @@ define([
     'Magento_Checkout/js/model/payment/additional-validators',
     'Bold_CheckoutPaymentBooster/js/model/fastlane',
     'Bold_CheckoutPaymentBooster/js/action/general/load-script-action',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-click-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-create-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-update-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/action/digital-wallets/deactivate-quote',
     'Magento_Ui/js/model/messageList',
     'mage/url',
     'mage/translate'
@@ -18,16 +20,22 @@ define([
     additionalValidators,
     fastlane,
     loadScriptAction,
+    onClickPaymentOrderCallback,
     onCreatePaymentOrderCallback,
     onUpdatePaymentOrderCallback,
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
+    deactivateQuote,
     messageList,
     urlBuilder,
     $t
 ) {
     'use strict';
+
+    let isProductPageActive = false;
+    let onClickCallbackError = null;
+    let onClickCallbackPromise;
 
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
 
@@ -107,16 +115,35 @@ define([
                 'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
                 'group_label': window.checkoutConfig.bold.configurationGroupLabel,
                 'trace_id': window.checkoutConfig.bold.publicOrderId,
-                'payment_gateways': [
-                    {
-                        'gateway_id': Number(window.checkoutConfig.bold.gatewayId),
-                        'auth_token': window.checkoutConfig.bold.epsAuthToken,
-                        'currency': window.checkoutConfig.bold.currency,
-                    }
-                ],
+                'payment_gateways': window.checkoutConfig.bold.payment_gateways.map(paymentGateway => ({
+                    gateway_id: paymentGateway.id,
+                    auth_token: paymentGateway.auth_token,
+                    currency: paymentGateway.currency,
+                })),
                 'callbacks': {
+                    'onClickPaymentOrder': async (paymentType, paymentPayload) => {
+                        isProductPageActive = paymentPayload.containerId.includes('product-detail');
+
+                        if (onClickCallbackError instanceof Error) {
+                            onClickCallbackError = null;
+                        }
+
+                        try {
+                            if (['apple', 'google'].includes(paymentPayload.payment_data.payment_type)) {
+                                onClickCallbackPromise = onClickPaymentOrderCallback(paymentType, paymentPayload);
+                            } else {
+                                await onClickPaymentOrderCallback(paymentType, paymentPayload);
+                            }
+                        } catch (error) {
+                            onClickCallbackError = error;
+                        }
+                    },
                     'onCreatePaymentOrder': async (paymentType, paymentPayload) => {
-                        if (!validateAgreements()) {
+                        if (onClickCallbackError instanceof Error) {
+                            throw onClickCallbackError;
+                        }
+
+                        if (!isProductPageActive && !validateAgreements()) {
                             throw new Error('Agreements not accepted');
                         }
 
@@ -129,6 +156,14 @@ define([
                         }
                     },
                     'onUpdatePaymentOrder': async (paymentType, paymentPayload) => {
+                        if (isProductPageActive && onClickCallbackPromise !== undefined) {
+                            await onClickCallbackPromise;
+                        }
+
+                        if (onClickCallbackError instanceof Error) {
+                            throw onClickCallbackError;
+                        }
+
                         if (!validateAgreements()) {
                             throw new Error('Agreements not accepted');
                         }
@@ -138,6 +173,11 @@ define([
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
+
+                            if (isProductPageActive) {
+                                deactivateQuote(); // calling this here as the error callback isn't triggered
+                            }
+
                             throw e;
                         }
                     },
@@ -165,20 +205,36 @@ define([
                         } catch (e) {
                             console.error(e);
                             fullScreenLoader.stopLoader();
+
+                            if (isProductPageActive) {
+                                deactivateQuote(); // calling this here as the error callback isn't triggered
+                            }
+
                             throw e;
                         }
                     },
                     'onErrorPaymentOrder': async function (errors) {
+                        if (isProductPageActive) {
+                            deactivateQuote();
+                        }
+
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
+                    },
+                    onCancelPaymentOrder: async function () {
+                        if (isProductPageActive) {
+                            deactivateQuote();
+                        }
                     }
                 }
             };
             const paymentsInstance = new window.bold.Payments(initialData);
             window.boldFastlaneInstance = await fastlane.getFastlaneInstance(paymentsInstance);
             await paymentsInstance.initialize;
-            if (paymentsInstance.paymentGateways[0]?.type === 'braintree') {
-                await this._loadBraintreeScripts(paymentsInstance); //todo: remove as soon as payments.js is adapted to use requirejs
+
+            const braintreeGateway = paymentsInstance.paymentGateways?.find((paymentGateway) => paymentGateway.type === 'braintree');
+            if (braintreeGateway) {
+                await this._loadBraintreeScripts(paymentsInstance, braintreeGateway); //todo: remove as soon as payments.js is adapted to use requirejs
             }
             window.boldPaymentsInstance = paymentsInstance;
             window.createBoldPaymentsInstanceInProgress = false;
@@ -202,21 +258,22 @@ define([
          * @return {Promise<void>}
          * @private
          */
-        _loadBraintreeScripts: async function (paymentsInstance) {
+        _loadBraintreeScripts: async function (paymentsInstance, braintreeGateway) {
             await loadScriptAction('bold_braintree_client', 'braintree.client');
             await loadScriptAction('bold_braintree_data_collector', 'braintree.dataCollector');
-            const gatewayData = paymentsInstance.paymentGateways[0].credentials || null;
-            if (!gatewayData) {
+
+            const gatewayServices = braintreeGateway.gateway_services;
+            if (!gatewayServices) {
                 return;
             }
-            if (gatewayData.is_paypal_enabled) {
+            if (gatewayServices.paypal) {
                 await loadScriptAction('bold_braintree_paypal_checkout', 'braintree.paypalCheckout');
             }
-            if (gatewayData.is_google_pay_enabled) {
+            if (gatewayServices.google_pay) {
                 await loadScriptAction('bold_braintree_google_payment', 'braintree.googlePayment');
                 await loadScriptAction('bold_google_pay');
             }
-            if (gatewayData.is_apple_pay_enabled) {
+            if (gatewayServices.apple_pay) {
                 await loadScriptAction('bold_apple_pay', 'braintree.applePay');
             }
         },

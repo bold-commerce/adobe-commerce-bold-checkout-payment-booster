@@ -11,7 +11,7 @@ interface CreateInterface
      * @param string $publicOrderId
      * @param string $gatewayId
      * @param string $shippingStrategy
-     * @return array
+     * @return string[]
      * @phpstan-return array{order_id: string}
      * @throws \Magento\Framework\Exception\LocalizedException
      */

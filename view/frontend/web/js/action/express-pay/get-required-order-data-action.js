@@ -78,9 +78,7 @@ define(
 
         function getQuoteTotalsData() {
             const totals = quote.getTotals();
-            const order_balance = window.checkoutConfig.bold.isTaxIncludedInPrices ?
-            parseFloat(totals()['grand_total'] + totals()['tax_amount'] || 0) * 100 :
-            parseFloat(totals()['grand_total'] || 0) * 100;
+            const order_balance = parseFloat(totals()['grand_total'] || 0) * 100;
 
             return {
                 order_total: parseFloat(totals()['grand_total'] || 0) * 100,
@@ -155,6 +153,7 @@ define(
                         } else {
                             payload[requirement] = getQuoteTotalsData();
                         }
+
                         break;
                 }
             }

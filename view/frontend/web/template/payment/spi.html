@@ -38,7 +38,7 @@
                             data-bind="
                             click: placeOrderClick,
                             attr: {title: $t('Place Order')},
-                            css: {disabled: isSpiLoading()},
+                            css: {disabled: isSpiLoading() || !isPlaceOrderActionAllowed()},
                             enable: (getCode() == isChecked())
                             "
                             disabled>

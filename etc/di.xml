@@ -5,6 +5,7 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\Order"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface" type="Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface" type="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface" type="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\UpdateInterface" type="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface" type="Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrderRepository"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface" type="Bold\CheckoutPaymentBooster\Model\Order\GuestHydrateOrder"/>

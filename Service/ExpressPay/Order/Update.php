@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\UpdateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
-use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Checkout\Model\Session;

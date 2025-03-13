@@ -36,7 +36,7 @@ interface PaymentInterface
     public function getPaymentMethod(): string;
 
     /**
-     * @param $provider
+     * @param mixed $provider
      * @return PaymentInterface
      */
     public function setProvider($provider): PaymentInterface;
@@ -69,13 +69,13 @@ interface PaymentInterface
     public function getTransaction(): TransactionInterface;
 
     /**
-     * @param array $customAttributes
+     * @param mixed[] $customAttributes
      * @return PaymentInterface
      */
     public function setCustomAttributes(array $customAttributes): PaymentInterface;
 
     /**
-     * @return array
+     * @return mixed[]
      */
     public function getCustomAttributes(): array;
 }

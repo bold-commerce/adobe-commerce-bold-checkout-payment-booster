@@ -115,6 +115,7 @@
                     <field id="frequency" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
                         <label>Frequency</label>
                         <source_model>Bold\CheckoutPaymentBooster\Model\Config\Source\Frequency</source_model>
+                        <backend_model>Bold\CheckoutPaymentBooster\Model\Config\Backend\DigitalWallets\DeactivateQuotes</backend_model>
                         <config_path>checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_frequency</config_path>
                         <depends>
                             <field id="enabled">1</field>

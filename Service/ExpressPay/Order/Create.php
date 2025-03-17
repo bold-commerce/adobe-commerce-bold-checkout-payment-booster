@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
@@ -23,10 +24,7 @@ use function is_array;
 use function is_numeric;
 use function strlen;
 
-/**
- * @api
- */
-class Create
+class Create implements CreateInterface
 {
     /**
      * @var MaskedQuoteIdToQuoteIdInterface
@@ -67,15 +65,6 @@ class Create
         $this->checkoutSession = $checkoutSession;
     }
 
-    /**
-     * @param string|int $quoteMaskId
-     * @param string $publicOrderId
-     * @param string $gatewayId
-     * @param string $shippingStrategy
-     * @return array
-     * @phpstan-return array{order_id: string}
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {

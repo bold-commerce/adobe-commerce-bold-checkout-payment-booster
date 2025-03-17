@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface as GetExpressPayOrder;
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\UpdateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
-use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -24,10 +25,7 @@ use function is_array;
 use function is_numeric;
 use function strlen;
 
-/**
- * @api
- */
-class Update
+class Update implements UpdateInterface
 {
     /**
      * @var MaskedQuoteIdToQuoteIdInterface
@@ -53,7 +51,7 @@ class Update
      * @var GetExpressPayOrder
      */
     private $getExpressPayOrder;
-    
+
     /**
      * @var SessionManagerInterface
      */
@@ -75,13 +73,6 @@ class Update
         $this->checkoutSession = $checkoutSession;
     }
 
-    /**
-     * @param string|int $quoteMaskId
-     * @param string $gatewayId
-     * @param string $paypalOrderId
-     * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
     public function execute($quoteMaskId, $gatewayId, $paypalOrderId): void
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {

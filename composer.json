@@ -31,6 +31,9 @@
   "replace": {
     "bold-commerce/module-checkout":"*"
   },
+  "suggest": {
+    "colinodell/psr-testlogger": "For asserting that messages are logged correctly during testing"
+  },
   "autoload": {
     "files": [
       "registration.php"

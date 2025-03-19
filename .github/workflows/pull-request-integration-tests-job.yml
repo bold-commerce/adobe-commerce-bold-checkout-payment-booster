@@ -120,6 +120,12 @@ jobs:
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 
+      - name: install-php8-deps
+        if: matrix.php-version >= '8'
+        working-directory: integration-pipeline-test
+        run: |
+          composer require --dev colinodell/psr-testlogger --no-scripts
+
       - name: copy needed configs
         working-directory: integration-pipeline-test
         run: |

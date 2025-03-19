@@ -104,7 +104,8 @@ define([
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             this.isVisible.subscribe((isVisible) => {
-                if (isVisible) {
+                if (isVisible && typeof window.boldSpiRendered === 'undefined') {
+                    window.boldSpiRendered = true;
                     this.subscribeToSpiEvents();
                     this.initPaymentForm();
                     this.removeFullScreenLoaderOnError();

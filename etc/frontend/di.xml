@@ -40,4 +40,8 @@
     <type name="Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Creator">
         <plugin name="bold_booster_reinit_order_data" type="Bold\CheckoutPaymentBooster\Plugin\Booster\Service\DigitalWallets\MagentoQuote\CreatorPlugin"/>
     </type>
+
+    <type name="Magento\Checkout\Model\Session">
+        <plugin name="bold_booster_prevent_session_clear" type="Bold\CheckoutPaymentBooster\Plugin\Checkout\Model\SessionPlugin"/>
+    </type>
 </config>

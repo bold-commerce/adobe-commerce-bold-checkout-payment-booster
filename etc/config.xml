@@ -67,6 +67,11 @@
                 <api_url>https://api.boldcommerce.com/</api_url>
                 <eps_url>https://eps.secure.boldcommerce.com/</eps_url>
                 <static_eps_url>https://static-eps.secure.boldcommerce.com</static_eps_url>
+                <digital_wallets_quote_cleanup_enabled>0</digital_wallets_quote_cleanup_enabled>
+                <digital_wallets_quote_cleanup_frequency>H</digital_wallets_quote_cleanup_frequency>
+                <digital_wallets_quote_cleanup_occurrence>1</digital_wallets_quote_cleanup_occurrence>
+                <digital_wallets_quote_cleanup_sequence>* * * * *</digital_wallets_quote_cleanup_sequence>
+                <digital_wallets_quote_cleanup_retention_period>1</digital_wallets_quote_cleanup_retention_period>
             </bold_checkout_payment_booster_advanced>
         </checkout>
     </default>

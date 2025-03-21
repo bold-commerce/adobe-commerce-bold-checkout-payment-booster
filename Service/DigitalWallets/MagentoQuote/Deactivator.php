@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote;
 
-use DateMalformedStringException;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
@@ -191,7 +190,7 @@ class Deactivator
 
         try {
             $oldestTime = new DateTimeImmutable("-$retentionPeriod hours", new DateTimeZone('UTC'));
-        } catch (DateMalformedStringException $dateMalformedStringException) {
+        } catch (Exception $exception) {
             return gmdate('Y-m-d H:i:s');
         }
 

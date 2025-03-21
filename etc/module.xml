@@ -10,6 +10,7 @@
             <module name="Magento_Config"/>
             <module name="Magento_Cron"/>
             <module name="Magento_Customer"/>
+            <module name="Magento_Directory"/>
             <module name="Magento_Quote"/>
             <module name="Magento_PageCache"/>
             <module name="Magento_Payment"/>

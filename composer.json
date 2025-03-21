@@ -10,6 +10,7 @@
     "php": "^7.2 || ^8.0",
     "ext-intl": "*",
     "ext-json": "*",
+    "ext-pcre": "*",
     "psr/log": "^1.0 || ^2.0 || ^3.0",
     "magento/framework": ">=102.0.1 <103.0.8",
     "magento/module-checkout": ">=100.3.1 <100.4.8",

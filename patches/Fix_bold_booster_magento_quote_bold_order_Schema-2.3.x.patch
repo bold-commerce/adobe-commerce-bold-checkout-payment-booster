@@ -1,0 +1,13 @@
+diff --git a/etc/db_schema.xml b/etc/db_schema.xml
+index 9d409bf..a5f3494 100644
+--- a/etc/db_schema.xml
++++ b/etc/db_schema.xml
+@@ -16,7 +16,7 @@
+     </table>
+     <table name="bold_booster_magento_quote_bold_order" resource="checkout" engine="innodb" comment="Magento Quote Link to Bold Order">
+         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true"/>
+-        <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" comment="Magento Quote Identifier"/>
++        <column xsi:type="int" name="quote_id" padding="10" unsigned="true" nullable="false" comment="Magento Quote Identifier"/>
+         <column xsi:type="varchar" name="bold_order_id" nullable="false" length="255" comment="Bold Public Order Identifier"/>
+         <constraint xsi:type="primary" referenceId="PRIMARY">
+             <column name="id"/>

@@ -186,10 +186,10 @@ class BoldClient implements ClientInterface
         $apiUrl = $this->config->getApiUrl($websiteId);
 
         if (strpos($apiUrl, 'bold.ninja') !== false) {
-            $parseApiUrl = parse_url($apiUrl);
-            $scheme = $parseApiUrl['scheme'];
-            $host = $parseApiUrl['host'];
-            $path = $parseApiUrl['path'];
+            $parseApiUrl = parse_url($apiUrl) ?: [];
+            $scheme = $parseApiUrl['scheme'] ?? 'https';
+            $host = $parseApiUrl['host'] ?? '';
+            $path = $parseApiUrl['path'] ?? '';
             $tunnelDomain = ltrim($path, '/');
             $baseApiUrl = $scheme . '://' . $host . '/';
 

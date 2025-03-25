@@ -72,7 +72,7 @@ class Result implements ResultInterface
     /**
      * Get response body.
      *
-     * @return array
+     * @return mixed[]
      */
     public function getBody(): array
     {

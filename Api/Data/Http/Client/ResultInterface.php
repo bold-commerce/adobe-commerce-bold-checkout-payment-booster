@@ -28,7 +28,7 @@ interface ResultInterface extends ExtensibleDataInterface
     /**
      * Retrieve response body.
      *
-     * @return array
+     * @return mixed[]
      */
     public function getBody(): array;
 

@@ -58,7 +58,7 @@ class PutCommand
      * @param int $websiteId
      * @param string $url
      * @param array<string, string> $headers
-     * @param array $data
+     * @param mixed[] $data
      * @return ResultInterface
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface

@@ -38,7 +38,7 @@ class Config
     private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
 
     /**
-     * @var ScopeConfigInterface
+     * @var ScopeConfigInterface&\Magento\Framework\App\Config
      */
     private $scopeConfig;
 
@@ -58,7 +58,7 @@ class Config
     private $encryptor;
 
     /**
-     * @param ScopeConfigInterface $scopeConfig
+     * @param ScopeConfigInterface&\Magento\Framework\App\Config $scopeConfig
      * @param WriterInterface $configWriter
      * @param TypeListInterface $cacheTypeList
      * @param EncryptorInterface $encryptor

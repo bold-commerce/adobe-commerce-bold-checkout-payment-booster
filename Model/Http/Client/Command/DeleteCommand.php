@@ -65,7 +65,7 @@ class DeleteCommand
     {
         $this->logger->logRequest($websiteId, $url, 'DELETE', $data);
         $this->client->setHeaders($headers);
-        $this->client->delete($url, $this->json->serialize($data));
+        $this->client->delete($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->responseFactory->create(
             [

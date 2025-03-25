@@ -65,7 +65,7 @@ class PatchCommand
     {
         $this->logger->logRequest($websiteId, $url, 'PATCH', $data);
         $this->client->setHeaders($headers);
-        $this->client->patch($url, $this->json->serialize($data));
+        $this->client->patch($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->resultFactory->create(
             [

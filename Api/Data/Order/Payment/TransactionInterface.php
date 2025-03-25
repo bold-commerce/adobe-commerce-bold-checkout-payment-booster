@@ -16,7 +16,7 @@ interface TransactionInterface
      * @param string $type
      * @return TransactionInterface
      */
-    public function setType(string $products): TransactionInterface;
+    public function setType(string $type): TransactionInterface;
 
     /**
      * @return string

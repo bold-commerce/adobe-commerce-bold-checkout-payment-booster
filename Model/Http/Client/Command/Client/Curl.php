@@ -45,6 +45,7 @@ class Curl extends CurlCore
 
     /**
      * @inheritDoc
+     * @phpstan-param string|mixed[] $params
      */
     protected function makeRequest($method, $uri, $params = [])
     {

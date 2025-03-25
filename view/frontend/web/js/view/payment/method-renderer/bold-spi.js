@@ -314,15 +314,20 @@ define([
                         if (paymentId === undefined && data.payload?.success === false) {
                             // Error message for empty or invalid CC details, temporary fix until CHK-7079 is resolved
                             messageList.addErrorMessage({message: $t(PAYMENT_FAILED_MESSAGE)});
+                            fullscreenLoader.stopLoader();
                         }
+                        break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);
-                        console.log('Failed to tokenize');
                         this.isSpiLoading(false);
-                    case 'EVENT_SPI_PAYMENT_ORDER_SCA':
+                        fullscreenLoader.stopLoader();
+                        console.log('Failed to tokenize');
+                        break;
                     case 'EVENT_SPI_ENABLE_FULLSCREEN':
-                    case 'EVENT_SPI_DISABLE_FULLSCREEN':
                         fullscreenLoader.startLoader();
+                        break;
+                    case 'EVENT_SPI_DISABLE_FULLSCREEN':
+                        fullscreenLoader.stopLoader();
                         break;
                 }
             });

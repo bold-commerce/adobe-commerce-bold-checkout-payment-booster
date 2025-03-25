@@ -65,7 +65,7 @@ class PutCommand
     {
         $this->logger->logRequest($websiteId, $url, 'PUT', $data);
         $this->client->setHeaders($headers);
-        $this->client->put($url, $this->json->serialize($data));
+        $this->client->put($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->resultFactory->create(
             [

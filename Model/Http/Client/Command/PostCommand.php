@@ -65,7 +65,7 @@ class PostCommand
     {
         $this->logger->logRequest($websiteId, $url, 'POST', $data);
         $this->client->setHeaders($headers);
-        $this->client->post($url, $this->json->serialize($data));
+        $this->client->post($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->responseFactory->create(
             [

@@ -140,7 +140,7 @@ class CheckoutData
     /**
      * Get Fastlane styles from checkout session.
      *
-     * @return array
+     * @return array{privacy: "yes"|"no", input: string[], root: string[]}
      */
     public function getFastlaneStyles(): array
     {

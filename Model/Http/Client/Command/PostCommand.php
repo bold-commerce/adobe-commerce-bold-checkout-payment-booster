@@ -57,7 +57,7 @@ class PostCommand
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $headers
+     * @param array<string, string> $headers
      * @param array $data
      * @return ResultInterface
      */

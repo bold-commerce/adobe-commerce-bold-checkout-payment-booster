@@ -21,7 +21,7 @@ interface ResultInterface extends ExtensibleDataInterface
     /**
      * Retrieve response errors.
      *
-     * @return array
+     * @return string[]|array{message: string, type: string, field: string, severity: string, sub_type: string}[]
      */
     public function getErrors(): array;
 

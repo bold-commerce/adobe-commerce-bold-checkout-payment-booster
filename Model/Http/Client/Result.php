@@ -57,7 +57,7 @@ class Result implements ResultInterface
     /**
      * Get errors from response body.
      *
-     * @return array
+     * @return string[]|array{message: string, type: string, field: string, severity: string, sub_type: string}[]
      */
     public function getErrors(): array
     {

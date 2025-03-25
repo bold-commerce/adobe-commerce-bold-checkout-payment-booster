@@ -215,7 +215,7 @@ class Config
      * Get saved Bold API token.
      *
      * @param int $websiteId
-     * @return void
+     * @return string|null
      */
     public function getApiToken(int $websiteId): ?string
     {

@@ -62,7 +62,7 @@ class Result implements ResultInterface
     public function getErrors(): array
     {
         try {
-            $body = $this->json->unserialize($this->client->getBody());
+            $body = (array)$this->json->unserialize($this->client->getBody());
         } catch (Exception $e) {
             $body = [];
         }

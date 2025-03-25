@@ -60,7 +60,7 @@ class RequestsLogger
      * @param int $websiteId
      * @param string $url
      * @param string $method
-     * @param array|null $data
+     * @param mixed[]|null $data
      * @return void
      */
     public function logRequest(int $websiteId, string $url, string $method, ?array $data = null)

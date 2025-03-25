@@ -27,7 +27,7 @@ interface TransactionInterface
      * @param string $status
      * @return TransactionInterface
      */
-    public function setStatus(string $paymentMethod): TransactionInterface;
+    public function setStatus(string $status): TransactionInterface;
 
     /**
      * @return string

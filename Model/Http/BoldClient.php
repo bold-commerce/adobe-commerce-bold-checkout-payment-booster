@@ -102,7 +102,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function post(int $websiteId, string $path, array $data): ResultInterface
@@ -117,7 +117,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function put(int $websiteId, string $path, array $data): ResultInterface
@@ -132,7 +132,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function patch(int $websiteId, string $path, array $data): ResultInterface
@@ -147,7 +147,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function delete(int $websiteId, string $path, array $data): ResultInterface

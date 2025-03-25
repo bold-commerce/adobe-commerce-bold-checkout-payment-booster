@@ -88,7 +88,7 @@ class Result implements ResultInterface
      * Retrieve errors from response body.
      *
      * @param mixed[] $body
-     * @return array
+     * @return string[]|array{message: string, type: string, field: string, severity: string, sub_type: string}[]
      */
     private function getErrorsFromBody(array $body): array
     {

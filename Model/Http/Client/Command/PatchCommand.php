@@ -7,7 +7,6 @@ use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client\Curl;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
@@ -42,7 +41,7 @@ class PatchCommand
      * @param RequestsLogger $logger
      */
     public function __construct(
-        ResultFactory $resultFactory,
+        ResultInterfaceFactory $resultFactory,
         Curl $client,
         Json $json,
         RequestsLogger $logger

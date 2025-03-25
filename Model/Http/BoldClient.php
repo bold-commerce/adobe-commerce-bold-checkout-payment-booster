@@ -161,7 +161,7 @@ class BoldClient implements ClientInterface
      * Get request headers.
      *
      * @param int $websiteId
-     * @return array
+     * @return array<string, string>
      */
     private function getHeaders(int $websiteId): array
     {

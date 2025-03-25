@@ -35,7 +35,7 @@ class PostCommand
     private $json;
 
     /**
-     * @param ResultInterfaceFactory $resultFactory
+     * @param ResultInterfaceFactory $responseFactory
      * @param ClientInterface $client
      * @param Json $json
      * @param RequestsLogger $logger

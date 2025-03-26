@@ -58,7 +58,7 @@ class SharedSecretAuthorization
             return false;
         }
         $sharedSecret = $this->config->getSharedSecret($websiteId);
-        $signatureHeader = $this->request->getHeader('Signature');
+        $signatureHeader = (string)$this->request->getHeader('Signature', '');
         preg_match('/signature="(\S*?)"/', $signatureHeader, $matches);
         $signature = $matches[1] ?? null;
         if (!$signature) {

@@ -53,7 +53,7 @@ class SharedSecretAuthorization
      */
     public function isAuthorized(int $websiteId): bool
     {
-        $timestampHeader = $this->request->getHeader('X-HMAC-Timestamp');
+        $timestampHeader = (string)$this->request->getHeader('X-HMAC-Timestamp', '');
         if (!$this->validateTimestamp($timestampHeader)) {
             return false;
         }

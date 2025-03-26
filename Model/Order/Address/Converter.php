@@ -26,7 +26,7 @@ class Converter
      * Convert order address to array.
      *
      * @param OrderAddressInterface $address
-     * @return array
+     * @return array<string, int|string|null>
      */
     public function convert(OrderAddressInterface $address): array
     {

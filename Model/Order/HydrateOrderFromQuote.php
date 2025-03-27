@@ -200,7 +200,7 @@ class HydrateOrderFromQuote
      * Looks at total segments and makes unrecognized segments into fees and discounts
      *
      * @param array<string, array{code: string, value: float, title: string}> $totals
-     * @return array
+     * @return array{line_text?: string, description?: string, value: float}[][]
      */
     private function getFeesAndDiscounts(array $totals): array
     {

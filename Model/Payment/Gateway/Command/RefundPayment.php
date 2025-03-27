@@ -67,12 +67,12 @@ class RefundPayment implements CommandInterface
             if ((float)$order->getGrandTotal() <= $amount) {
                 $transactionId = $this->gatewayService->refundFull($order);
                 $payment->setTransactionId($transactionId)
-                    ->setIsTransactionClosed(1)
+                    ->setIsTransactionClosed(true)
                     ->setShouldCloseParentTransaction(true);
                 return;
             }
             $transactionId = $this->gatewayService->refundPartial($order, $amount);
-            $payment->setTransactionId($transactionId)->setIsTransactionClosed(1);
+            $payment->setTransactionId($transactionId)->setIsTransactionClosed(true);
             if ((float)$payment->getBaseAmountPaid() === $payment->getBaseAmountRefunded() + $amount) {
                 $payment->setShouldCloseParentTransaction(true);
             }

@@ -138,7 +138,7 @@ class Service
     /**
      * Refund a payment for the full order amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return string
      * @throws Exception
      */

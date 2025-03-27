@@ -110,6 +110,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function deleteById($magentoQuoteBoldOrderId): void
     {
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->get($magentoQuoteBoldOrderId);
 
         $this->delete($magentoQuoteBoldOrder);

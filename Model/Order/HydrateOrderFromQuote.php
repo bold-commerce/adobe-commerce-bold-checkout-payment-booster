@@ -109,7 +109,7 @@ class HydrateOrderFromQuote
         }
 
         [$fees, $discounts] = $this->getFeesAndDiscounts($totals);
-        $discountTotal = array_reduce($discounts, function ($sum, $discountLine) {
+        $discountTotal = array_reduce($discounts, function (?float $sum, $discountLine) {
             return $sum + $discountLine['value'];
         });
 

@@ -10,6 +10,7 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
 
 /**
@@ -82,7 +83,7 @@ class HydrateOrderFromQuote
     /**
      * Hydrate and post Bold order from Magento quote.
      *
-     * @param CartInterface $quote
+     * @param CartInterface&Quote $quote
      * @param string $publicOrderId
      * @return void
      * @throws LocalizedException

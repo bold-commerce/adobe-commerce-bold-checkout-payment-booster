@@ -12,6 +12,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
+use Magento\Sales\Api\Data\OrderAddressInterface;
+use Magento\Sales\Model\Order\Address;
 
 /**
  * Hydrate Bold order from Magento quote.
@@ -92,6 +94,7 @@ class HydrateOrderFromQuote
     {
         $quote->collectTotals();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
+        /** @var OrderAddressInterface&Address $billingAddress */
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
         $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
 

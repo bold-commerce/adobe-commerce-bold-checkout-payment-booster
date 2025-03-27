@@ -96,6 +96,7 @@ class HydrateOrderFromQuote
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         /** @var OrderAddressInterface&Address $billingAddress */
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
+        /** @var OrderAddressInterface&Address $shippingAddress */
         $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
 
         if ($quote->getIsVirtual()) {

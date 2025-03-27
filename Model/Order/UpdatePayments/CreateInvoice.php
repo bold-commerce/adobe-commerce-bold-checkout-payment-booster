@@ -142,6 +142,7 @@ class CreateInvoice
     }
 
     /**
+     * @param OrderInterface&Order $order
      * @param OrderPaymentInterface&Payment $payment
      */
     private function updateAuthorization(OrderInterface $order, OrderPaymentInterface $payment): void

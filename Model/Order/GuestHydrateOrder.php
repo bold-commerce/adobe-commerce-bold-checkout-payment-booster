@@ -68,7 +68,7 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
     public function hydrate(string $shopId, string $cartId, string $publicOrderId, AddressInterface $address): void
     {
         try {
-            $quoteIdMask = $this->quoteIdMaskFactory->create()->load($cartId, 'masked_id');
+            $quoteIdMask = $this->quoteIdMaskFactory->create()->load((int)$cartId, 'masked_id');
             $quote = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
             $storeId = (int)$quote->getStoreId();
             $this->shopIdValidator->validate($shopId, $storeId);

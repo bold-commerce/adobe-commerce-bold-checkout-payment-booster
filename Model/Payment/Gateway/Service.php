@@ -208,7 +208,7 @@ class Service
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $body
+     * @param array{email_notification: bool, reason: string, source: string, amount?: float} $body
      * @return string
      * @throws Exception
      */

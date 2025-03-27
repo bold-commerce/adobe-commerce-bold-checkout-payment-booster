@@ -238,7 +238,7 @@ class HydrateOrderFromQuote
     }
 
     /**
-     * @param array $cartItems
+     * @param mixed[] $cartItems
      * @return array
      */
     private function formatCartItems(array $cartItems): array

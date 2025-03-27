@@ -9,6 +9,8 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Capture order payment on bold side.
@@ -46,6 +48,7 @@ class CapturePayment implements CommandInterface
     public function execute(array $commandSubject): void
     {
         $paymentDataObject = $commandSubject['payment'];
+        /** @var InfoInterface&Payment $payment */
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $amount = (float)$commandSubject['amount'];

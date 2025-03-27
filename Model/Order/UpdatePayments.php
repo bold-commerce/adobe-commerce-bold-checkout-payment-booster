@@ -136,7 +136,7 @@ class UpdatePayments implements UpdatePaymentsInterface
     /**
      * Process update based on financial status.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param OrderExtensionData $orderExtensionData
      * @param string $financialStatus
      * @param PaymentInterface[] $payments

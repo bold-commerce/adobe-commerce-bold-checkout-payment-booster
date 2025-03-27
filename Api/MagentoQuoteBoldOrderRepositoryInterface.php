@@ -33,12 +33,12 @@ interface MagentoQuoteBoldOrderRepositoryInterface
     public function getByBoldOrderId(string $boldOrderId): MagentoQuoteBoldOrderInterface;
 
     /**
-     * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrderId
+     * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder
      * @return void
      * @throws AlreadyExistsException
      * @throws CouldNotSaveException
      */
-    public function save(MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrderId): void;
+    public function save(MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder): void;
 
     /**
      * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder

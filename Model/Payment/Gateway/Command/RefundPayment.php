@@ -10,6 +10,7 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 
 /**
  * Refund bold order payment.
@@ -40,6 +41,7 @@ class RefundPayment implements CommandInterface
     /**
      * @inheritDoc
      *
+     * @param array{payment: PaymentDataObjectInterface, amount: float} $commandSubject
      * @throws Exception
      */
     public function execute(array $commandSubject): void

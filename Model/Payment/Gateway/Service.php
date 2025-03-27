@@ -104,7 +104,7 @@ class Service
     /**
      * Cancel order via bold.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param string $operation
      * @return void
      * @throws Exception

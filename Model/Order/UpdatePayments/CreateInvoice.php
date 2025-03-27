@@ -13,6 +13,7 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
@@ -75,7 +76,7 @@ class CreateInvoice
     /**
      * Create order invoice in case payment has been captured on bold checkout.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param PaymentInterface[] $payloadPayments
      * @return void
      * @throws AlreadyExistsException

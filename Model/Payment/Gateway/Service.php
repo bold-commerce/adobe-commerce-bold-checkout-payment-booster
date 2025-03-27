@@ -158,7 +158,7 @@ class Service
     /**
      * Refund a payment by an arbitrary amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param float $amount
      * @return string
      * @throws Exception

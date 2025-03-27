@@ -17,7 +17,7 @@ class CheckPaymentMethod
     private $boldPaymentMethods;
 
     /**
-     * @param array $boldPaymentMethods
+     * @param string[] $boldPaymentMethods
      */
     public function __construct(array $boldPaymentMethods = [])
     {

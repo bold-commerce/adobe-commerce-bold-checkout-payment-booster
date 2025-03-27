@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 
 /**
  * Cancel bold order.
@@ -39,6 +40,7 @@ class CancelOrder implements CommandInterface
     /**
      * {@inheritDoc}
      *
+     * @param array{payment: PaymentDataObjectInterface} $commandSubject
      * @throws Exception
      */
     public function execute(array $commandSubject): void

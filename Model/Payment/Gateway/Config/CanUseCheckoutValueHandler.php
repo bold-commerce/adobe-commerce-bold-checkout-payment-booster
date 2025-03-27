@@ -26,6 +26,7 @@ class CanUseCheckoutValueHandler implements ValueHandlerInterface
 
     /**
      * @inheritDoc
+     * @phpstan-param mixed[] $subject
      */
     public function handle(array $subject, $storeId = null): bool
     {

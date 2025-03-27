@@ -132,7 +132,7 @@ class CreateInvoice
                 ->setFailSafe(true)
                 ->build(Transaction::TYPE_CAPTURE);
 
-            $capture->setIsClosed(true);
+            $capture->setIsClosed(1);
 
             $this->transactionRepository->save($capture);
         } catch (\Exception $e) {

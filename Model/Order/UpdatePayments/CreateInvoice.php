@@ -15,6 +15,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Psr\Log\LoggerInterface;
@@ -140,6 +141,9 @@ class CreateInvoice
         }
     }
 
+    /**
+     * @param OrderPaymentInterface&Payment $payment
+     */
     private function updateAuthorization(OrderInterface $order, OrderPaymentInterface $payment): void
     {
         try {

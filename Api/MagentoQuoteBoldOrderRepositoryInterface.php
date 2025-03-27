@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Api;
 
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
+use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
@@ -34,6 +35,7 @@ interface MagentoQuoteBoldOrderRepositoryInterface
 
     /**
      * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder
+     * @phpstan-param MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder
      * @return void
      * @throws AlreadyExistsException
      * @throws CouldNotSaveException

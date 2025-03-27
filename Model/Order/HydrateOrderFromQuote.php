@@ -219,7 +219,7 @@ class HydrateOrderFromQuote
                 continue;
             }
 
-            $description = $totalSegment['title'] ?? ucfirst(str_replace('_', ' ', $segment['code']));
+            $description = $segment['title'] ?? ucfirst(str_replace('_', ' ', $segment['code']));
 
             if ($segment['value'] > 0) {
                 $fees[] = [

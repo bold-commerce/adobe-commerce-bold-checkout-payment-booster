@@ -92,6 +92,7 @@ class CreateInvoice
         $orderExtensionData->setIsCaptureInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
         try {
+            /** @var PaymentInterface&Payment $payment */
             $payment = $order->getPayment();
             $invoice = $order->prepareInvoice();
             $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);

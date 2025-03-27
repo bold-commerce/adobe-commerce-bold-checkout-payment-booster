@@ -44,6 +44,7 @@ interface MagentoQuoteBoldOrderRepositoryInterface
 
     /**
      * @param MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder
+     * @phpstan-param MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder
      * @return void
      * @throws CouldNotDeleteException
      */

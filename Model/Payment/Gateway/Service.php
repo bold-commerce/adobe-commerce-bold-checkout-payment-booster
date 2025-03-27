@@ -182,7 +182,7 @@ class Service
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $body
+     * @param array{reauth: bool, idempotent_key: string, source: string, amount?: float} $body
      * @return string
      * @throws Exception
      */

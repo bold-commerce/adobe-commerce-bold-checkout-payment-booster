@@ -95,7 +95,7 @@ class CreateInvoice
             $invoice = $order->prepareInvoice();
             $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
             $invoice->register();
-            $invoice->setEmailSent(true);
+            $invoice->setEmailSent(1);
             $invoice->setTransactionId($payment->getLastTransId());
             $invoice->getOrder()->setCustomerNoteNotify(true);
             $invoice->getOrder()->setIsInProcess(true);

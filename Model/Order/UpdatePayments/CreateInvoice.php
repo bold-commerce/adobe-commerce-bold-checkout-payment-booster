@@ -158,7 +158,7 @@ class CreateInvoice
 
             /** @var Transaction $auth */
             foreach ($transactionList as $auth) {
-                $auth->setIsClosed(true);
+                $auth->setIsClosed(1);
                 $this->transactionRepository->save($auth);
             }
         } catch (\Exception $e) {

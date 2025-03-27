@@ -97,7 +97,7 @@ class CreateInvoice
             $invoice->register();
             $invoice->setEmailSent(1);
             $invoice->setTransactionId($payment->getLastTransId());
-            $invoice->getOrder()->setCustomerNoteNotify(true);
+            $invoice->getOrder()->setCustomerNoteNotify(1);
             $invoice->getOrder()->setIsInProcess(true);
             $order->addRelatedObject($invoice);
 

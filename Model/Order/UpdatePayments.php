@@ -18,6 +18,7 @@ use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 
 /**
  * Update payments.
@@ -118,6 +119,7 @@ class UpdatePayments implements UpdatePaymentsInterface
         if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Public Order ID does not match.'));
         }
+        /** @var OrderInterface&Order $order */
         $order = $this->orderRepository->get($platformOrderId);
         $this->processUpdate($order, $orderExtensionData, $financialStatus, $payments);
 

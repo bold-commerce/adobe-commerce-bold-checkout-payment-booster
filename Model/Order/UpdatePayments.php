@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface;
@@ -138,6 +139,7 @@ class UpdatePayments implements UpdatePaymentsInterface
      * @param OrderInterface $order
      * @param OrderExtensionData $orderExtensionData
      * @param string $financialStatus
+     * @param PaymentInterface[] $payments
      * @return void
      * @throws LocalizedException
      * @throws AlreadyExistsException

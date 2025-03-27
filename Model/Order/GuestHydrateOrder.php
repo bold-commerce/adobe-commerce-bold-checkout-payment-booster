@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValida
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -72,7 +73,12 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
             $quote = $this->cartRepository->getActive($quoteIdMask->getQuoteId());
             $storeId = (int)$quote->getStoreId();
             $this->shopIdValidator->validate($shopId, $storeId);
-            $quote->getBillingAddress()->addData($address->getData());
+
+            /** @var AddressInterface&Address $billingAddress */
+            $billingAddress = $quote->getBillingAddress();
+
+            $billingAddress->addData($address->getData());
+
             $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
         } catch (Throwable $e) {
             $this->logger->error(

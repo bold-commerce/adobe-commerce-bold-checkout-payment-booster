@@ -11,6 +11,7 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 
 /**
  * Bold gateway service.
@@ -61,7 +62,7 @@ class Service
     /**
      * Capture a payment for the full order amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return string
      * @throws Exception
      */

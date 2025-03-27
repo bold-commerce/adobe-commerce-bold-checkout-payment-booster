@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order\Address;
 
 use Magento\Directory\Model\CountryFactory;
 use Magento\Sales\Api\Data\OrderAddressInterface;
+use Magento\Sales\Model\Order\Address;
 
 /**
  * Quote address to bold address converter.
@@ -26,6 +27,7 @@ class Converter
      * Convert order address to array.
      *
      * @param OrderAddressInterface $address
+     * @phpstan-param OrderAddressInterface&Address $address
      * @return array<string, int|string|null>
      */
     public function convert(OrderAddressInterface $address): array

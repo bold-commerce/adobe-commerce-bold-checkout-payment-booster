@@ -180,7 +180,7 @@ class HydrateOrderFromQuote
      * Get formatted tax lines
      *
      * @param array{id: string|int, base_amount: float}[] $taxes
-     * @return array
+     * @return array{name: string, value: float}[]
      */
     private function getTaxLines(array $taxes): array
     {

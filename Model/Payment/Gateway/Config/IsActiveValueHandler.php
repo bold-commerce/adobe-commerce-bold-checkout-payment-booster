@@ -36,6 +36,7 @@ class IsActiveValueHandler implements ValueHandlerInterface
 
     /**
      * @inheirtDoc
+     * @phpstan-param mixed[] $subject
      */
     public function handle(array $subject, $storeId = null)
     {

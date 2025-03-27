@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
+use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 
 /**
  * Capture order payment on bold side.
@@ -39,6 +40,7 @@ class CapturePayment implements CommandInterface
     /**
      * {@inheritDoc}
      *
+     * @param array{payment: PaymentDataObjectInterface, amount: float} $commandSubject
      * @throws Exception
      */
     public function execute(array $commandSubject): void

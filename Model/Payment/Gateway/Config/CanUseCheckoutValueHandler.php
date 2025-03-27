@@ -5,6 +5,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Magento\Payment\Gateway\Config\ValueHandlerInterface;
+use Magento\Quote\Model\Quote;
 
 /**
  * Is Bold Checkout payment is applicable for current quote.
@@ -30,7 +31,10 @@ class CanUseCheckoutValueHandler implements ValueHandlerInterface
      */
     public function handle(array $subject, $storeId = null): bool
     {
+        /** @var Quote $quote */
+        $quote = $this->checkoutData->getQuote();
+
         return $this->checkoutData->getPublicOrderId() !== null
-            && !$this->checkoutData->getQuote()->getIsMultiShipping();
+            && !$quote->getIsMultiShipping();
     }
 }

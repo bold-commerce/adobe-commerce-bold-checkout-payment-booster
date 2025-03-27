@@ -7,6 +7,8 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
@@ -136,8 +138,10 @@ class HydrateOrderFromQuote
                 'order_total' => $this->convertToCents((float)$grandTotal),
             ],
         ];
+        /** @var CustomerInterface&Customer $customer */
+        $customer = $quote->getCustomer();
 
-        if ($quote->getCustomer()->getId()) {
+        if ($customer->getId()) {
             $body['customer'] = [
                 'platform_id' => (string)$quote->getCustomerId(),
                 'first_name' => $quote->getCustomerFirstname(),

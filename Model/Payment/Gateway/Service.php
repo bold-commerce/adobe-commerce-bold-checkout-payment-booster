@@ -11,7 +11,9 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Bold gateway service.
@@ -237,13 +239,15 @@ class Service
      */
     private function keepTransactionAdditionalData(OrderInterface $order): void
     {
-        $lastTransaction = $order->getPayment()->getAuthorizationTransaction();
+        /** @var OrderPaymentInterface&Payment $orderPayment */
+        $orderPayment = $order->getPayment();
+        $lastTransaction = $orderPayment->getAuthorizationTransaction();
         if (!$lastTransaction) {
             return;
         }
         $transactionAdditionalInfo = $lastTransaction->getAdditionalInformation() ?: [];
         foreach ($transactionAdditionalInfo as $key => $value) {
-            $order->getPayment()->setTransactionAdditionalInfo($key, $value);
+            $orderPayment->setTransactionAdditionalInfo($key, $value);
         }
     }
 }

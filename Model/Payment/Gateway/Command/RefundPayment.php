@@ -11,6 +11,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Refund bold order payment.
@@ -49,7 +51,7 @@ class RefundPayment implements CommandInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = $commandSubject['payment'];
         $amount = (float)$commandSubject['amount'];
-
+        /** @var InfoInterface&Payment $payment */
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());

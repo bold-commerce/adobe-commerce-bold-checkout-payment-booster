@@ -110,7 +110,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
      * @param LayoutInterface $layout
      * @param ShortcutButtons $container
      */
-    private function addCartShortcut(LayoutInterface $layout, ShortcutButtons $container)
+    private function addCartShortcut(LayoutInterface $layout, ShortcutButtons $container): void
     {
         $cartShortcut = $layout->createBlock(
             ExpressPayShortcutButtonsCart::class,

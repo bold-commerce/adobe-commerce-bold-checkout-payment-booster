@@ -47,6 +47,21 @@ class FastlaneConfigProvider implements ConfigProviderInterface
 
     /**
      * @inheirtDoc
+     * @phpstan-return array{
+     *     bold?: array{
+     *         paymentGatewayId: int,
+     *         fastlane: array{
+     *             payment: array{
+     *                 method: string
+     *             },
+     *             styles: array{
+     *                 privacy: "yes"|"no",
+     *                 input: string[],
+     *                 root: string[]
+     *             }
+     *         }
+     *     }
+     * }
      */
     public function getConfig(): array
     {

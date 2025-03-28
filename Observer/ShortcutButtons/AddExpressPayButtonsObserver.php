@@ -14,6 +14,8 @@ use Magento\Catalog\Block\ShortcutButtons;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\View\Element\BlockInterface;
+use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -89,6 +91,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     ): void {
         /** @var ExpressPayViewModel $expressPayViewModel */
         $expressPayViewModel = $this->expressPayViewModelFactory->create();
+        /** @var BlockInterface&Template $shortCut */
         $shortCut = $layout->createBlock(
             ExpressPayShortcutButtonsProduct::class,
             ExpressPayShortcutButtonsProduct::NAME,

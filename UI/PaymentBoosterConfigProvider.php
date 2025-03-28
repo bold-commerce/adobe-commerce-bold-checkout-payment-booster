@@ -15,6 +15,8 @@ use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -129,6 +131,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $store = $this->storeManager->getStore();
 
         if ($fromQuote) {
+            /** @var CartInterface&Quote $quote */
             $quote = $this->checkoutData->getQuote();
             $store = $quote->getStore();
         }

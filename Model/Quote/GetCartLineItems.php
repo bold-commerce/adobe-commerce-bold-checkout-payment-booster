@@ -12,6 +12,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -61,7 +62,7 @@ class GetCartLineItems
     /**
      * Extract line items data.
      *
-     * @param CartInterface $quote
+     * @param CartInterface&Quote $quote
      * @return array<array{
      *     id: int,
      *     quantity: int,

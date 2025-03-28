@@ -94,7 +94,18 @@ class GetCartLineItems
      * Extract quote item entity data into array.
      *
      * @param CartItemInterface $item
-     * @return array
+     * @return array{
+     *     id: int,
+     *     quantity: int,
+     *     title: string,
+     *     product_title: string,
+     *     weight: float,
+     *     taxable: bool,
+     *     image: string,
+     *     requires_shipping: bool,
+     *     line_item_key: string,
+     *     price: int
+     * }
      */
     private function getLineItem(CartItemInterface $item): array
     {

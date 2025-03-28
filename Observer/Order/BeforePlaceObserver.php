@@ -130,7 +130,7 @@ class BeforePlaceObserver implements ObserverInterface
         $orderPayment = $order->getPayment();
 
         $orderPayment->setTransactionId($transactionId);
-        $orderPayment->setIsTransactionClosed(0);
+        $orderPayment->setIsTransactionClosed(false);
         $orderPayment->addTransaction(TransactionInterface::TYPE_AUTH);
         $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;
         if ($cardDetails) {

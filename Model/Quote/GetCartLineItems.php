@@ -197,7 +197,7 @@ class GetCartLineItems
     /**
      * Get quote item quantity considering product type.
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return int
      */
     private function extractLineItemQuantity(CartItemInterface $item): int

@@ -55,7 +55,6 @@ class GetPaymentGatewaysTest extends AbstractController
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($boldCheckoutDataStub, CheckoutData::class);
 
         $request
@@ -114,7 +113,6 @@ class GetPaymentGatewaysTest extends AbstractController
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($boldCheckoutDataStub, CheckoutData::class);
 
         if ($isPost) {

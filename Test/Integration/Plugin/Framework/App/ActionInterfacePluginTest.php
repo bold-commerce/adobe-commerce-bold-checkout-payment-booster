@@ -44,13 +44,13 @@ class ActionInterfacePluginTest extends TestCase
         /** @var CustomerSession $customerSession */
         $customerSession = $objectManager->get(CustomerSession::class);
         /** @var InterfaceOnlyFrontendAction $action */
-        $action = $objectManager->create(InterfaceOnlyFrontendAction::class); // @phpstan-ignore-line
+        $action = $objectManager->create(InterfaceOnlyFrontendAction::class);
         /** @var HttpContext $httpContext */
         $httpContext = $objectManager->get(HttpContext::class);
 
         $customerSession->setCustomerId($customer->getId());
 
-        $action->execute(); // @phpstan-ignore-line
+        $action->execute();
 
         self::assertSame($customer->getId(), $httpContext->getValue('customer_id'));
     }

@@ -41,7 +41,7 @@ class FlowService
     /**
      * Create a new flow.
      *
-     * @param int $shopId
+     * @param int $websiteId
      * @return string
      * @throws LocalizedException
      */

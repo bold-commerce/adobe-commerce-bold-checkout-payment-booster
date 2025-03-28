@@ -56,7 +56,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $logger;
 
     /**
-     * @var array
+     * @var array<array{
+     *     value: string,
+     *     label: string,
+     *     is_region_required?: bool,
+     *     is_region_visible?: bool,
+     *     is_zipcode_optional?: bool
+     * }>
      */
     private $countries = [];
 

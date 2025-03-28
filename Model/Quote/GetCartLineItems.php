@@ -81,7 +81,7 @@ class GetCartLineItems
     public function getItems(CartInterface $quote): array
     {
         $lineItems = [];
-        /** @var CartItemInterface $cartItem */
+        /** @var CartItemInterface&Item $cartItem */
         foreach ($quote->getAllVisibleItems() as $cartItem) {
             $lineItems[] = $this->getLineItem($cartItem);
         }

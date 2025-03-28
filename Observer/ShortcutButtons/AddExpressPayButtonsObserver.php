@@ -86,7 +86,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     private function addCatalogProductShortcut(
         LayoutInterface $layout,
         ShortcutButtons $container
-    ) {
+    ): void {
         /** @var ExpressPayViewModel $expressPayViewModel */
         $expressPayViewModel = $this->expressPayViewModelFactory->create();
         $shortCut = $layout->createBlock(

@@ -261,6 +261,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         return $this->urlBuilder->getUrl('checkout/onepage/success/');
     }
 
+    /**
+     * @return array{isEnabled: bool, shippingPolicyContent: string}
+     */
     private function getShippingPolicy(): array
     {
         $policyContent = $this->scopeConfig->getValue(

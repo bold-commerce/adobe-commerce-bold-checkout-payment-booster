@@ -303,7 +303,7 @@ class CreateTest extends AbstractController
     }
 
     /**
-     * @return array{string, array{string, string|int|null}}
+     * @return array<string, array<string, string|int|null>>
      */
     public function incorrectProductParameterDataProvider(): array
     {

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Quote;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Image\UrlBuilder;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -179,6 +181,7 @@ class GetCartLineItems
     private function getLineItemImage(CartItemInterface $item): string
     {
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+        /** @var ProductInterface&Product $product */
         $product = $this->productRepository->getById($item->getProductId());
         if ($product->getImage() && $product->getImage() !== 'no_selection') {
             return $baseUrl . 'catalog/product' . $product->getImage();

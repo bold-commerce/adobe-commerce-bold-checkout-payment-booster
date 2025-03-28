@@ -127,7 +127,7 @@ class GetCartLineItems
     /**
      * Gets the product's name from the line item
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return string
      */
     private function getLineItemName(CartItemInterface $item): string

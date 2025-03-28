@@ -256,7 +256,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         return $this->countries;
     }
 
-    private function getDefaultSuccessPageUrl()
+    private function getDefaultSuccessPageUrl(): string
     {
         return $this->urlBuilder->getUrl('checkout/onepage/success/');
     }

@@ -188,6 +188,7 @@ class GetCartLineItems
         }
         // Attempting to get the parent product if there is one
         if ($item->getParentItem()) {
+            /** @var ProductInterface&Product $parentProduct */
             $parentProduct = $this->productRepository->getById($item->getParentItem()->getProductId());
             return $baseUrl . 'catalog/product' . $parentProduct->getImage();
         }

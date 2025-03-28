@@ -16,7 +16,9 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Authorize Bold payments before placing order.
@@ -123,12 +125,16 @@ class BeforePlaceObserver implements ObserverInterface
         if (!$transactionId) {
             return;
         }
-        $order->getPayment()->setTransactionId($transactionId);
-        $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->addTransaction(TransactionInterface::TYPE_AUTH);
+
+        /** @var OrderPaymentInterface&Payment $orderPayment */
+        $orderPayment = $order->getPayment();
+
+        $orderPayment->setTransactionId($transactionId);
+        $orderPayment->setIsTransactionClosed(0);
+        $orderPayment->addTransaction(TransactionInterface::TYPE_AUTH);
         $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;
         if ($cardDetails) {
-            $order->getPayment()->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
+            $orderPayment->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
         }
     }
 }

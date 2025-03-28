@@ -266,11 +266,11 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
      */
     private function getShippingPolicy(): array
     {
-        $policyContent = $this->scopeConfig->getValue(
+        $policyContent = (string)$this->scopeConfig->getValue(
             'shipping/shipping_policy/shipping_policy_content',
             ScopeInterface::SCOPE_STORE
         );
-        $policyContent = $this->escaper->escapeHtml($policyContent);
+        $policyContent = (string)$this->escaper->escapeHtml($policyContent);
         $result = [
             'isEnabled' => $this->scopeConfig->isSetFlag(
                 'shipping/shipping_policy/enable_shipping_policy',

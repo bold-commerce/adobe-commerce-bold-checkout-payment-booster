@@ -131,6 +131,7 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     {
         /** @var ExpressPayViewModel $expressPayViewModel */
         $expressPayViewModel = $this->expressPayViewModelFactory->create();
+        /** @var BlockInterface&Template $miniCartShortcut */
         $miniCartShortcut = $layout->createBlock(
             ExpressPayShortcutButtonsMiniCart::class,
             ExpressPayShortcutButtonsMiniCart::NAME,

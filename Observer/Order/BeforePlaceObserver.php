@@ -101,7 +101,17 @@ class BeforePlaceObserver implements ObserverInterface
      * Add Bold transaction data to order payment.
      *
      * @param OrderInterface $order
-     * @param array $transactionData
+     * @param array{
+     *     data: array{
+     *         transactions: array<array{
+     *             transaction_id: string,
+     *             tender_details: array{
+     *                 account: string,
+     *                 email: string
+     *             }
+     *         }>
+     *     }
+     * } $transactionData
      * @return void
      */
     private function saveTransactionData(OrderInterface $order, array $transactionData)

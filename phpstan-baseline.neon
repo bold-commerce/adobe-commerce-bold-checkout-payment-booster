@@ -1,6 +1,66 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isPost\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Checkout/GetConfig.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isXmlHttpRequest\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Checkout/GetConfig.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isPost\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Checkout/GetPaymentGateways.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isXmlHttpRequest\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Checkout/GetPaymentGateways.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isPost\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Create.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isXmlHttpRequest\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Create.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Quote\\\\Api\\\\Data\\\\CartExtensionInterface\\:\\:__toArray\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Create.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Quote\\\\Api\\\\Data\\\\CartInterface\\:\\:getAllVisibleItems\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Create.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Quote\\\\Api\\\\Data\\\\CartInterface\\:\\:toArray\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Create.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isPost\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Deactivate.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\RequestInterface\\:\\:isXmlHttpRequest\\(\\)\\.$#"
+			count: 1
+			path: Controller/Digitalwallets/Quote/Deactivate.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\App\\\\Config\\\\ValueInterface\\:\\:load\\(\\)\\.$#"
+			count: 1
+			path: Model/Config/Backend/DigitalWallets/DeactivateQuotes.php
+
+		-
 			message: "#^Parameter \\#1 \\$handle of function curl_close expects CurlHandle, resource given\\.$#"
 			count: 1
 			path: Model/Http/Client/Command/Client/Curl.php
@@ -76,6 +136,26 @@ parameters:
 			path: Observer/Checkout/ConfigureShopObserver.php
 
 		-
+			message: "#^Parameter \\#1 \\$product of method Magento\\\\Quote\\\\Model\\\\Quote\\:\\:addProduct\\(\\) expects Magento\\\\Catalog\\\\Model\\\\Product, Magento\\\\Catalog\\\\Api\\\\Data\\\\ProductInterface given\\.$#"
+			count: 1
+			path: Service/DigitalWallets/MagentoQuote/Creator.php
+
+		-
+			message: "#^Property Bold\\\\CheckoutPaymentBooster\\\\Service\\\\DigitalWallets\\\\MagentoQuote\\\\Creator\\:\\:\\$customerSession \\(Magento\\\\Customer\\\\Model\\\\Session\\) does not accept Magento\\\\Framework\\\\Session\\\\SessionManagerInterface\\.$#"
+			count: 1
+			path: Service/DigitalWallets/MagentoQuote/Creator.php
+
+		-
+			message: "#^Use service contracts to persist entities in favour of Magento\\\\Quote\\\\Model\\\\QuoteIdMask\\:\\:save\\(\\) method$#"
+			count: 1
+			path: Service/DigitalWallets/MagentoQuote/Creator.php
+
+		-
+			message: "#^Use service contracts to persist entities in favour of Magento\\\\Quote\\\\Model\\\\Quote\\:\\:save\\(\\) method$#"
+			count: 1
+			path: Service/DigitalWallets/MagentoQuote/Deactivator.php
+
+		-
 			message: "#^Parameter \\#1 \\$callback of function array_map expects \\(callable\\(Magento\\\\Quote\\\\Api\\\\Data\\\\TotalsItemInterface\\)\\: mixed\\)\\|null, Closure\\(Magento\\\\Quote\\\\Model\\\\Cart\\\\Totals\\\\Item\\)\\: array given\\.$#"
 			count: 1
 			path: Service/DigitalWallets/MagentoQuote/TotalsRetriever.php
@@ -104,6 +184,51 @@ parameters:
 			message: "#^Call to an undefined method Magento\\\\Quote\\\\Api\\\\Data\\\\CartItemInterface\\:\\:getTaxAmount\\(\\)\\.$#"
 			count: 2
 			path: Service/ExpressPay/QuoteConverter.php
+
+		-
+			message: "#^Parameter \\#2 \\$callback of function array_filter expects \\(callable\\(Magento\\\\Framework\\\\DataObject\\)\\: bool\\)\\|null, Closure\\(Magento\\\\Quote\\\\Model\\\\Quote\\\\Address\\\\Rate\\)\\: bool given\\.$#"
+			count: 1
+			path: Service/ExpressPay/QuoteConverter.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\ObjectManagerInterface\\:\\:addSharedInstance\\(\\)\\.$#"
+			count: 2
+			path: Test/Integration/Controller/Digitalwallets/Checkout/GetPaymentGatewaysTest.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\ObjectManagerInterface\\:\\:addSharedInstance\\(\\)\\.$#"
+			count: 9
+			path: Test/Integration/Controller/Digitalwallets/Quote/CreateTest.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\ObjectManagerInterface\\:\\:addSharedInstance\\(\\)\\.$#"
+			count: 4
+			path: Test/Integration/Controller/Digitalwallets/Quote/DeactivateTest.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\ObjectManagerInterface\\:\\:addSharedInstance\\(\\)\\.$#"
+			count: 5
+			path: Test/Integration/Model/Config/Backend/DigitalWallets/DeactivateQuotesTest.php
+
+		-
+			message: "#^Call to an undefined method Magento\\\\Framework\\\\ObjectManagerInterface\\:\\:addSharedInstance\\(\\)\\.$#"
+			count: 1
+			path: Test/Integration/Plugin/Booster/Service/DigitalWallets/MagentoQuote/CreatorPluginTest.php
+
+		-
+			message: "#^Call to method execute\\(\\) on an unknown class Magento\\\\Framework\\\\App\\\\TestStubs\\\\InterfaceOnlyFrontendAction\\.$#"
+			count: 1
+			path: Test/Integration/Plugin/Framework/App/ActionInterfacePluginTest.php
+
+		-
+			message: "#^Class Magento\\\\Framework\\\\App\\\\TestStubs\\\\InterfaceOnlyFrontendAction not found\\.$#"
+			count: 1
+			path: Test/Integration/Plugin/Framework/App/ActionInterfacePluginTest.php
+
+		-
+			message: "#^PHPDoc tag @var for variable \\$action contains unknown class Magento\\\\Framework\\\\App\\\\TestStubs\\\\InterfaceOnlyFrontendAction\\.$#"
+			count: 1
+			path: Test/Integration/Plugin/Framework/App/ActionInterfacePluginTest.php
 
 		-
 			message: "#^Parameter \\#1 \\$product of method Magento\\\\Catalog\\\\Model\\\\Product\\\\Type\\\\AbstractType\\:\\:getAssociatedProducts\\(\\) expects Magento\\\\Catalog\\\\Model\\\\Product\\\\Type\\\\AbstractType, Magento\\\\Catalog\\\\Model\\\\Product given\\.$#"

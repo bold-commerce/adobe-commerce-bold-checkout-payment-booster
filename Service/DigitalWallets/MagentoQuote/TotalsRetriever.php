@@ -6,6 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartTotalRepositoryInterface;
+use Magento\Quote\Api\Data\TotalSegmentExtension;
+use Magento\Quote\Api\Data\TotalSegmentExtensionInterface;
 use Magento\Quote\Model\Cart\Totals\Item;
 use Magento\Quote\Model\Cart\TotalSegment;
 
@@ -47,9 +49,11 @@ class TotalsRetriever
         /** @var TotalSegment $totalSegment */
         foreach ($totals->getTotalSegments() as $totalSegment) {
             $totalSegmentArray = $totalSegment->toArray();
+            /** @var TotalSegmentExtensionInterface&TotalSegmentExtension $totalSegmentExtension */
+            $totalSegmentExtension = $totalSegment->getExtensionAttributes();
 
-            if (is_object($totalSegment->getExtensionAttributes())) {
-                $totalSegmentArray['extension_attributes'] = $totalSegment->getExtensionAttributes()->__toArray();
+            if (is_object($totalSegmentExtension)) {
+                $totalSegmentArray['extension_attributes'] = $totalSegmentExtension->__toArray();
             }
 
             $totalSegmentsData[] = $totalSegmentArray;

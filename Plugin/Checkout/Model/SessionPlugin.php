@@ -8,6 +8,8 @@ use Closure;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 
 class SessionPlugin
 {
@@ -30,6 +32,7 @@ class SessionPlugin
         }
 
         try {
+            /** @var CartInterface&Quote $lastQuote */
             $lastQuote = $this->quoteRepository->get($lastQuoteId);
         } catch (NoSuchEntityException $e) {
             return $proceed();

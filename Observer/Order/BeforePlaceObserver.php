@@ -13,6 +13,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 
@@ -89,6 +91,7 @@ class BeforePlaceObserver implements ObserverInterface
             return;
         }
         $quoteId = $order->getQuoteId();
+        /** @var CartInterface&Quote $quote */
         $quote = $this->cartRepository->get($quoteId);
         $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
         $websiteId = (int)$quote->getStore()->getWebsiteId();

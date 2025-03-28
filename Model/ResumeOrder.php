@@ -32,7 +32,32 @@ class ResumeOrder
      *
      * @param string $publicOrderId
      * @param int $websiteId
-     * @return array
+     * @return array{
+     *     data?: array{
+     *         flow_settings: array{
+     *             eps_auth_token: string,
+     *             eps_gateway_id: string,
+     *             eps_gateway_type: string,
+     *             flow_id: string,
+     *             flow_type: string,
+     *             is_test_mode: bool,
+     *             fastlane_styles: array{
+     *                 privacy: "yes"|"no",
+     *                 input: string[],
+     *                 root: string[]
+     *             }
+     *         },
+     *         jwt_token: string,
+     *         payment_gateways: array{
+     *             auth_token: string,
+     *             currency: string,
+     *             gateway: string,
+     *             id: int,
+     *             is_test_mode: bool
+     *         }[],
+     *         public_order_id: string
+     *     }
+     * }
      */
     public function resume(string $publicOrderId, int $websiteId): array
     {

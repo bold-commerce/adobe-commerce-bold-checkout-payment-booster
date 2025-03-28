@@ -173,7 +173,7 @@ class GetCartLineItems
      * Gets the line item's image. Falls back to the parent item (If available) if the direct
      * item does not have an image
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return string
      */
     private function getLineItemImage(CartItemInterface $item): string

@@ -62,7 +62,18 @@ class GetCartLineItems
      * Extract line items data.
      *
      * @param CartInterface $quote
-     * @return array
+     * @return array<array{
+     *     id: int,
+     *     quantity: int,
+     *     title: string,
+     *     product_title: string,
+     *     weight: float,
+     *     taxable: bool,
+     *     image: string,
+     *     requires_shipping: bool,
+     *     line_item_key: string,
+     *     price: int
+     * }>
      * @throws LocalizedException
      */
     public function getItems(CartInterface $quote): array

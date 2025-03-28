@@ -222,7 +222,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     /**
      * Get allowed countries for Billing address mapping.
      *
-     * @return Country[]
+     * @return array<array{
+     *     value: string,
+     *     label: string,
+     *     is_region_required?: bool,
+     *     is_region_visible?: bool,
+     *     is_zipcode_optional?: bool
+     * }>
      */
     private function getAllowedCountries(): array
     {

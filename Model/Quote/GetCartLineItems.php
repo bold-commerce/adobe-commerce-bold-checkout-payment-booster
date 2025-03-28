@@ -13,6 +13,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -93,7 +94,7 @@ class GetCartLineItems
     /**
      * Extract quote item entity data into array.
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return array{
      *     id: int,
      *     quantity: int,

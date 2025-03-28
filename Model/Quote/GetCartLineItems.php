@@ -139,7 +139,7 @@ class GetCartLineItems
     /**
      * Gets the price of a line item
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return int
      */
     private function getLineItemPrice(CartItemInterface $item): int

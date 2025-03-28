@@ -17,7 +17,9 @@ use Magento\Framework\Escaper;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
+use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -128,11 +130,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return [];
         }
 
+        /** @var StoreInterface&Store $store */
         $store = $this->storeManager->getStore();
 
         if ($fromQuote) {
             /** @var CartInterface&Quote $quote */
             $quote = $this->checkoutData->getQuote();
+            /** @var StoreInterface&Store $store */
             $store = $quote->getStore();
         }
 

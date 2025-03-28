@@ -296,7 +296,6 @@ class DeactivatorTest extends TestCase
 
     /**
      * @param \ColinODell\PsrTestLogger\TestLogger|null $testLogger
-     * @param int[][] $deactivatedQuoteIdsByWebsite
      */
     private static function assertUnsuccessfulQuoteDeactivationsWereLogged(
         $testLogger,

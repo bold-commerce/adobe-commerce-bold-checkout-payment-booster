@@ -53,12 +53,12 @@ class SharedSecretAuthorization
      */
     public function isAuthorized(int $websiteId): bool
     {
-        $timestampHeader = $this->request->getHeader('X-HMAC-Timestamp');
+        $timestampHeader = (string)$this->request->getHeader('X-HMAC-Timestamp', '');
         if (!$this->validateTimestamp($timestampHeader)) {
             return false;
         }
         $sharedSecret = $this->config->getSharedSecret($websiteId);
-        $signatureHeader = $this->request->getHeader('Signature');
+        $signatureHeader = (string)$this->request->getHeader('Signature', '');
         preg_match('/signature="(\S*?)"/', $signatureHeader, $matches);
         $signature = $matches[1] ?? null;
         if (!$signature) {

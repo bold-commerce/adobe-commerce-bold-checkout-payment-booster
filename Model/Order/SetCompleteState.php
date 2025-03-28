@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -49,7 +50,7 @@ class SetCompleteState
     /**
      * Mark order as completed.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return void
      * @throws LocalizedException
      */

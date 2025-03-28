@@ -37,7 +37,7 @@ class GetFastlaneStyles
      *
      * @param int $websiteId
      * @param string $baseUrl
-     * @return array
+     * @return array{privacy: "yes"|"no", input: string[], root: string[]}
      */
     public function getStyles(int $websiteId, string $baseUrl): array
     {

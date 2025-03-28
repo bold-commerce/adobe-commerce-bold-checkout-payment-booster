@@ -7,10 +7,15 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Api\Data\CustomerInterface;
+use Magento\Customer\Model\Customer;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
+use Magento\Sales\Api\Data\OrderAddressInterface;
+use Magento\Sales\Model\Order\Address;
 
 /**
  * Hydrate Bold order from Magento quote.
@@ -82,7 +87,7 @@ class HydrateOrderFromQuote
     /**
      * Hydrate and post Bold order from Magento quote.
      *
-     * @param CartInterface $quote
+     * @param CartInterface&Quote $quote
      * @param string $publicOrderId
      * @return void
      * @throws LocalizedException
@@ -91,7 +96,9 @@ class HydrateOrderFromQuote
     {
         $quote->collectTotals();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
+        /** @var OrderAddressInterface&Address $billingAddress */
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
+        /** @var OrderAddressInterface&Address $shippingAddress */
         $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
 
         if ($quote->getIsVirtual()) {
@@ -102,7 +109,7 @@ class HydrateOrderFromQuote
         }
 
         [$fees, $discounts] = $this->getFeesAndDiscounts($totals);
-        $discountTotal = array_reduce($discounts, function ($sum, $discountLine) {
+        $discountTotal = array_reduce($discounts, function (?float $sum, $discountLine) {
             return $sum + $discountLine['value'];
         });
 
@@ -131,8 +138,10 @@ class HydrateOrderFromQuote
                 'order_total' => $this->convertToCents((float)$grandTotal),
             ],
         ];
+        /** @var CustomerInterface&Customer $customer */
+        $customer = $quote->getCustomer();
 
-        if ($quote->getCustomer()->getId()) {
+        if ($customer->getId()) {
             $body['customer'] = [
                 'platform_id' => (string)$quote->getCustomerId(),
                 'first_name' => $quote->getCustomerFirstname(),
@@ -170,8 +179,8 @@ class HydrateOrderFromQuote
     /**
      * Get formatted tax lines
      *
-     * @param array $taxes
-     * @return array
+     * @param array{id: string|int, base_amount: float}[] $taxes
+     * @return array{name: string, value: float}[]
      */
     private function getTaxLines(array $taxes): array
     {
@@ -190,8 +199,8 @@ class HydrateOrderFromQuote
     /**
      * Looks at total segments and makes unrecognized segments into fees and discounts
      *
-     * @param array $totals
-     * @return array
+     * @param array<string, array{code: string, value: float, title: string}> $totals
+     * @return array{line_text?: string, description?: string, value: float}[][]
      */
     private function getFeesAndDiscounts(array $totals): array
     {
@@ -210,7 +219,7 @@ class HydrateOrderFromQuote
                 continue;
             }
 
-            $description = $totalSegment['title'] ?? ucfirst(str_replace('_', ' ', $segment['code']));
+            $description = $segment['title'] ?? ucfirst(str_replace('_', ' ', $segment['code']));
 
             if ($segment['value'] > 0) {
                 $fees[] = [
@@ -229,8 +238,8 @@ class HydrateOrderFromQuote
     }
 
     /**
-     * @param array $cartItems
-     * @return array
+     * @param mixed[] $cartItems
+     * @return mixed[]
      */
     private function formatCartItems(array $cartItems): array
     {

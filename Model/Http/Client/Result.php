@@ -57,12 +57,12 @@ class Result implements ResultInterface
     /**
      * Get errors from response body.
      *
-     * @return array
+     * @return string[]|array{message: string, type: string, field: string, severity: string, sub_type: string}[]
      */
     public function getErrors(): array
     {
         try {
-            $body = $this->json->unserialize($this->client->getBody());
+            $body = (array)$this->json->unserialize($this->client->getBody());
         } catch (Exception $e) {
             $body = [];
         }
@@ -72,12 +72,12 @@ class Result implements ResultInterface
     /**
      * Get response body.
      *
-     * @return array
+     * @return mixed[]
      */
     public function getBody(): array
     {
         try {
-            $body = $this->json->unserialize($this->client->getBody());
+            $body = (array)$this->json->unserialize($this->client->getBody());
         } catch (Exception $e) {
             $body = [];
         }
@@ -87,8 +87,8 @@ class Result implements ResultInterface
     /**
      * Retrieve errors from response body.
      *
-     * @param array $body
-     * @return array
+     * @param mixed[] $body
+     * @return string[]|array{message: string, type: string, field: string, severity: string, sub_type: string}[]
      */
     private function getErrorsFromBody(array $body): array
     {

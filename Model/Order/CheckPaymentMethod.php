@@ -12,12 +12,12 @@ use Magento\Sales\Api\Data\OrderInterface;
 class CheckPaymentMethod
 {
     /**
-     * @var array
+     * @var string[]
      */
     private $boldPaymentMethods;
 
     /**
-     * @param array $boldPaymentMethods
+     * @param string[] $boldPaymentMethods
      */
     public function __construct(array $boldPaymentMethods = [])
     {

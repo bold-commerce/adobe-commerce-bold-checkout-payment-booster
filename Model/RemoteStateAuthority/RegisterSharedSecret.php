@@ -8,7 +8,9 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
+use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\Website;
 
 /**
  * Shared secret registration service
@@ -53,7 +55,9 @@ class RegisterSharedSecret
      */
     public function execute(int $websiteId, string $sharedSecret): void
     {
-        $storeId = $this->storeManager->getWebsite($websiteId)->getDefaultStore()->getId();
+        /** @var WebsiteInterface&Website $website */
+        $website = $this->storeManager->getWebsite($websiteId);
+        $storeId = $website->getDefaultStore()->getId();
         $body = [
             'url' => $this->storeManager->getStore($storeId)->getBaseUrl(UrlInterface::URL_TYPE_WEB) . 'rest/V1',
             'shared_secret' => $sharedSecret,

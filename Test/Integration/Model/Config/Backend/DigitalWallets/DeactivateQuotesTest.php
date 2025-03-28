@@ -66,7 +66,6 @@ class DeactivateQuotesTest extends TestCase
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($configureShopObserverStub, ConfigureShopObserver::class);
 
         $config->save();
@@ -126,7 +125,6 @@ class DeactivateQuotesTest extends TestCase
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($configureShopObserverStub, ConfigureShopObserver::class);
 
         $config->save();
@@ -198,7 +196,6 @@ class DeactivateQuotesTest extends TestCase
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($configureShopObserverStub, ConfigureShopObserver::class);
 
         $config->save();
@@ -281,9 +278,7 @@ class DeactivateQuotesTest extends TestCase
                 ]
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($configureShopObserverStub, ConfigureShopObserver::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($valueFactoryStub, ValueFactory::class);
 
         $config->save();

@@ -42,7 +42,6 @@ class DeactivateTest extends AbstractController
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($magentoQuoteDeactivatorStub, MagentoQuoteDeactivator::class);
 
         if (is_string($quoteId)) {
@@ -59,7 +58,6 @@ class DeactivateTest extends AbstractController
                     ],
                 ]
             );
-            // @phpstan-ignore-next-line
             $objectManager->addSharedInstance($maskedQuoteIdToQuoteId, MaskedQuoteIdToQuoteId::class);
         }
 
@@ -118,7 +116,6 @@ class DeactivateTest extends AbstractController
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($magentoQuoteDeactivatorStub, MagentoQuoteDeactivator::class);
 
         if (is_string($quoteId)) {
@@ -137,7 +134,6 @@ class DeactivateTest extends AbstractController
                     ],
                 ]
             );
-            // @phpstan-ignore-next-line
             $objectManager->addSharedInstance($maskedQuoteIdToQuoteId, MaskedQuoteIdToQuoteId::class);
         }
 

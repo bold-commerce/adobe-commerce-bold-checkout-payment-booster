@@ -71,7 +71,7 @@ class Creator
         $this->quoteFactory = $quoteFactory;
         $this->quoteRepository = $quoteRepository;
         $this->quoteAddressFactory = $quoteAddressFactory;
-        $this->customerSession = $customerSession; // @phpstan-ignore-line
+        $this->customerSession = $customerSession;
         $this->eventManager = $eventManager;
         $this->dataObjectFactory = $dataObjectFactory;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
@@ -116,7 +116,7 @@ class Creator
 
         try {
             $quoteItem = $quote->addProduct(
-                $product, // @phpstan-ignore-line
+                $product,
                 $this->dataObjectFactory->create(
                     [
                         'data' => array_merge(['qty' => 1], $productRequestData)
@@ -184,7 +184,6 @@ class Creator
         $quoteIdMask = $this->quoteIdMaskFactory->create();
 
         try {
-            // @phpstan-ignore-next-line
             $quoteIdMask->setQuoteId($quote->getId())
                 ->save();
         } catch (Exception $exception) {

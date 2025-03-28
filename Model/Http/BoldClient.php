@@ -102,7 +102,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function post(int $websiteId, string $path, array $data): ResultInterface
@@ -117,7 +117,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function put(int $websiteId, string $path, array $data): ResultInterface
@@ -132,7 +132,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function patch(int $websiteId, string $path, array $data): ResultInterface
@@ -147,7 +147,7 @@ class BoldClient implements ClientInterface
      *
      * @param int $websiteId
      * @param string $path
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      */
     public function delete(int $websiteId, string $path, array $data): ResultInterface
@@ -161,7 +161,7 @@ class BoldClient implements ClientInterface
      * Get request headers.
      *
      * @param int $websiteId
-     * @return array
+     * @return array<string, string>
      */
     private function getHeaders(int $websiteId): array
     {
@@ -186,10 +186,10 @@ class BoldClient implements ClientInterface
         $apiUrl = $this->config->getApiUrl($websiteId);
 
         if (strpos($apiUrl, 'bold.ninja') !== false) {
-            $parseApiUrl = parse_url($apiUrl);
-            $scheme = $parseApiUrl['scheme'];
-            $host = $parseApiUrl['host'];
-            $path = $parseApiUrl['path'];
+            $parseApiUrl = parse_url($apiUrl) ?: [];
+            $scheme = $parseApiUrl['scheme'] ?? 'https';
+            $host = $parseApiUrl['host'] ?? '';
+            $path = $parseApiUrl['path'] ?? '';
             $tunnelDomain = ltrim($path, '/');
             $baseApiUrl = $scheme . '://' . $host . '/';
 

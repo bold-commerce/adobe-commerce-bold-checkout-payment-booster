@@ -143,7 +143,7 @@ class Deactivator
                 $quote->setIsActive(false);
 
                 try {
-                    $quote->save(); // @phpstan-ignore-line
+                    $quote->save();
 
                     $deactivatedQuoteIds[] = $quote->getId();
                 } catch (Exception $exception) {

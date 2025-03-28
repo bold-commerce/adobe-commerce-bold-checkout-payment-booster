@@ -10,6 +10,9 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Payment\Gateway\CommandInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObject;
+use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Refund bold order payment.
@@ -40,6 +43,7 @@ class RefundPayment implements CommandInterface
     /**
      * @inheritDoc
      *
+     * @param array{payment: PaymentDataObjectInterface, amount: float} $commandSubject
      * @throws Exception
      */
     public function execute(array $commandSubject): void
@@ -47,7 +51,7 @@ class RefundPayment implements CommandInterface
         /** @var PaymentDataObject $paymentDataObject */
         $paymentDataObject = $commandSubject['payment'];
         $amount = (float)$commandSubject['amount'];
-
+        /** @var InfoInterface&Payment $payment */
         $payment = $paymentDataObject->getPayment();
         $order = $payment->getOrder();
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
@@ -63,12 +67,12 @@ class RefundPayment implements CommandInterface
             if ((float)$order->getGrandTotal() <= $amount) {
                 $transactionId = $this->gatewayService->refundFull($order);
                 $payment->setTransactionId($transactionId)
-                    ->setIsTransactionClosed(1)
+                    ->setIsTransactionClosed(true)
                     ->setShouldCloseParentTransaction(true);
                 return;
             }
             $transactionId = $this->gatewayService->refundPartial($order, $amount);
-            $payment->setTransactionId($transactionId)->setIsTransactionClosed(1);
+            $payment->setTransactionId($transactionId)->setIsTransactionClosed(true);
             if ((float)$payment->getBaseAmountPaid() === $payment->getBaseAmountRefunded() + $amount) {
                 $payment->setShouldCloseParentTransaction(true);
             }

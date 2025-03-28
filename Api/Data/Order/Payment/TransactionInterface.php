@@ -16,7 +16,7 @@ interface TransactionInterface
      * @param string $type
      * @return TransactionInterface
      */
-    public function setType(string $products): TransactionInterface;
+    public function setType(string $type): TransactionInterface;
 
     /**
      * @return string
@@ -27,7 +27,7 @@ interface TransactionInterface
      * @param string $status
      * @return TransactionInterface
      */
-    public function setStatus(string $paymentMethod): TransactionInterface;
+    public function setStatus(string $status): TransactionInterface;
 
     /**
      * @return string

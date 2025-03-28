@@ -69,7 +69,6 @@ class CreatorPluginTest extends TestCase
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($boldCheckoutDataStub, CheckoutData::class);
 
         $result = $magentoQuoteCreator->createQuote($storeManager->getStore()->getId(), $product, $productRequestData);

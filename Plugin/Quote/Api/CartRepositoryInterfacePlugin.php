@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Plugin\Quote\Api;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -74,7 +75,7 @@ class CartRepositoryInterfacePlugin
             return;
         }
 
-        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderInterfaceFactory->create();
 
         $magentoQuoteBoldOrder->setQuoteId($quote->getId());

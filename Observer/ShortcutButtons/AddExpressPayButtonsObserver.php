@@ -14,6 +14,8 @@ use Magento\Catalog\Block\ShortcutButtons;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\View\Element\BlockInterface;
+use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\LayoutInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -86,9 +88,10 @@ class AddExpressPayButtonsObserver implements ObserverInterface
     private function addCatalogProductShortcut(
         LayoutInterface $layout,
         ShortcutButtons $container
-    ) {
+    ): void {
         /** @var ExpressPayViewModel $expressPayViewModel */
         $expressPayViewModel = $this->expressPayViewModelFactory->create();
+        /** @var BlockInterface&Template $shortCut */
         $shortCut = $layout->createBlock(
             ExpressPayShortcutButtonsProduct::class,
             ExpressPayShortcutButtonsProduct::NAME,
@@ -107,8 +110,9 @@ class AddExpressPayButtonsObserver implements ObserverInterface
      * @param LayoutInterface $layout
      * @param ShortcutButtons $container
      */
-    private function addCartShortcut(LayoutInterface $layout, ShortcutButtons $container)
+    private function addCartShortcut(LayoutInterface $layout, ShortcutButtons $container): void
     {
+        /** @var BlockInterface&Template $cartShortcut */
         $cartShortcut = $layout->createBlock(
             ExpressPayShortcutButtonsCart::class,
             ExpressPayShortcutButtonsCart::NAME
@@ -123,10 +127,11 @@ class AddExpressPayButtonsObserver implements ObserverInterface
      * @param ShortcutButtons $container
      * @return void
      */
-    private function addMiniCartShortcut(LayoutInterface $layout, ShortcutButtons $container)
+    private function addMiniCartShortcut(LayoutInterface $layout, ShortcutButtons $container): void
     {
         /** @var ExpressPayViewModel $expressPayViewModel */
         $expressPayViewModel = $this->expressPayViewModelFactory->create();
+        /** @var BlockInterface&Template $miniCartShortcut */
         $miniCartShortcut = $layout->createBlock(
             ExpressPayShortcutButtonsMiniCart::class,
             ExpressPayShortcutButtonsMiniCart::NAME,

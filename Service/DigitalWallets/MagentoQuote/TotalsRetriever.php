@@ -8,6 +8,8 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartTotalRepositoryInterface;
 use Magento\Quote\Api\Data\TotalSegmentExtension;
 use Magento\Quote\Api\Data\TotalSegmentExtensionInterface;
+use Magento\Quote\Api\Data\TotalsExtension;
+use Magento\Quote\Api\Data\TotalsExtensionInterface;
 use Magento\Quote\Api\Data\TotalsInterface;
 use Magento\Quote\Model\Cart\Totals;
 use Magento\Quote\Model\Cart\Totals\Item;
@@ -66,9 +68,11 @@ class TotalsRetriever
         $totals->setTotalSegments($totalSegmentsData);
 
         $totalsArray = $totals->toArray();
+        /** @var TotalsExtensionInterface&TotalsExtension $totalsExtension */
+        $totalsExtension = $totals->getExtensionAttributes();
 
-        if (is_object($totals->getExtensionAttributes())) {
-            $totalsArray['extension_attributes'] = $totals->getExtensionAttributes()->__toArray();
+        if (is_object($totalsExtension)) {
+            $totalsArray['extension_attributes'] = $totalsExtension->__toArray();
         }
 
         return $totalsArray;

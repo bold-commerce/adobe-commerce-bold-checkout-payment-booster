@@ -151,7 +151,7 @@ class GetCartLineItems
     /**
      * Gets the weight of a line item in grams
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return float
      */
     private function getLineItemWeightInGrams(CartItemInterface $item): float

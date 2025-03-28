@@ -8,6 +8,8 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Bold\CheckoutPaymentBooster\Model\Config;
 
+use function is_array;
+
 class FlowService
 {
     private const FLOW_CREATE_URL = 'checkout/shop/{{shopId}}/flows';
@@ -55,7 +57,10 @@ class FlowService
         $result = $this->boldClient->post($websiteId, self::FLOW_CREATE_URL, $body);
 
         if ($result->getErrors()) {
-            if ($result->getErrors()[0]['type'] === self::FLOW_ALREADY_EXISTS_ERROR) {
+            if (
+                is_array($result->getErrors()[0])
+                && $result->getErrors()[0]['type'] === self::FLOW_ALREADY_EXISTS_ERROR
+            ) {
                 $this->config->setBoldBoosterFlowID($websiteId, self::DEFAULT_FLOW_ID);
                 return self::DEFAULT_FLOW_ID;
             }

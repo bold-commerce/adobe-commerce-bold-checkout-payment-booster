@@ -202,6 +202,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         ];
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getConfigWithoutQuote(): array
     {
         $result = $this->getConfig(false);

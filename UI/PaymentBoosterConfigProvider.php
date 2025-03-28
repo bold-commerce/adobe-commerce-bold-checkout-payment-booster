@@ -116,6 +116,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
     /**
      * @inheritdoc
+     * @phpstan-return mixed[]
      */
     public function getConfig(bool $fromQuote = true): array
     {

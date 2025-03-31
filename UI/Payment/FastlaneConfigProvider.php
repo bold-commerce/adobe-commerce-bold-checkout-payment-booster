@@ -53,8 +53,10 @@ class FastlaneConfigProvider implements ConfigProviderInterface
     {
         $quote = $this->checkoutData->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if (!$this->checkoutData->getPublicOrderId()
-            || !$this->config->isFastlaneEnabled($websiteId) || $quote->getCustomer()->getId()) {
+        if (
+            !$this->checkoutData->getPublicOrderId()
+            || !$this->config->isFastlaneEnabled($websiteId) || $quote->getCustomer()->getId()
+        ) {
             return [];
         }
 

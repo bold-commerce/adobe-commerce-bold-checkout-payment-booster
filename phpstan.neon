@@ -9,5 +9,6 @@ parameters:
 		- .
 	excludePaths:
 		- vendor/*/
+		- Test
 	treatPhpDocTypesAsCertain: false
 	reportUnmatchedIgnoredErrors: false

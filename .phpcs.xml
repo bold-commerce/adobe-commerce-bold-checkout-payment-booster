@@ -20,4 +20,7 @@
     <rule ref="Magento2.Legacy.EscapeMethodsOnBlockClass.Found">
         <exclude-pattern>*\.phtml$</exclude-pattern>
     </rule>
+    <rule ref="Generic.Files.LineLength.TooLong">
+        <exclude-pattern>*\.phtml$</exclude-pattern>
+    </rule>
 </ruleset>

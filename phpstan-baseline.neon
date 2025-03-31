@@ -67,17 +67,17 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$handle of function curl_errno expects CurlHandle, resource given\\.$#"
-			count: 1
+			count: 2
 			path: Model/Http/Client/Command/Client/Curl.php
 
 		-
 			message: "#^Parameter \\#1 \\$handle of function curl_error expects CurlHandle, resource given\\.$#"
-			count: 1
+			count: 2
 			path: Model/Http/Client/Command/Client/Curl.php
 
 		-
 			message: "#^Parameter \\#1 \\$handle of function curl_exec expects CurlHandle, resource given\\.$#"
-			count: 1
+			count: 2
 			path: Model/Http/Client/Command/Client/Curl.php
 
 		-

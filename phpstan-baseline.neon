@@ -106,6 +106,11 @@ parameters:
 			path: Model/Payment/Authorize.php
 
 		-
+			message: "#^Method Bold\\\\CheckoutPaymentBooster\\\\Model\\\\Payment\\\\Authorize\\:\\:execute\\(\\) should return array\\{data\\: array\\{transactions\\: array\\<array\\{transaction_id\\: string, tender_details\\: array\\{account\\: string, email\\: string\\}\\}\\>\\}\\} but returns array\\<mixed\\>\\.$#"
+			count: 1
+			path: Model/Payment/Authorize.php
+
+		-
 			message: "#^Return type \\(void\\) of method Bold\\\\CheckoutPaymentBooster\\\\Model\\\\Payment\\\\Gateway\\\\Command\\\\CancelOrder\\:\\:execute\\(\\) should be compatible with return type \\(Magento\\\\Payment\\\\Gateway\\\\Command\\\\ResultInterface\\|null\\) of method Magento\\\\Payment\\\\Gateway\\\\CommandInterface\\:\\:execute\\(\\)$#"
 			count: 1
 			path: Model/Payment/Gateway/Command/CancelOrder.php
@@ -136,6 +141,11 @@ parameters:
 			path: Observer/Checkout/ConfigureShopObserver.php
 
 		-
+		 message: "#^PHPDoc tag @SuppressWarnings has invalid value \\(\\(PHPMD\\.UnusedFormalParameter\\)\\)\\: Unexpected token \\\"\\.UnusedFormalParameter\\)\\\", expected \\'\\)\\' at offset 246 on line 7$#"
+		 count: 1
+		 path: Plugin/Quote/Model/QuoteManagement/DisableBoldAddressValidationPlugin.php
+
+		-
 			message: "#^Parameter \\#1 \\$product of method Magento\\\\Quote\\\\Model\\\\Quote\\:\\:addProduct\\(\\) expects Magento\\\\Catalog\\\\Model\\\\Product, Magento\\\\Catalog\\\\Api\\\\Data\\\\ProductInterface given\\.$#"
 			count: 1
 			path: Service/DigitalWallets/MagentoQuote/Creator.php
@@ -157,6 +167,11 @@ parameters:
 
 		-
 			message: "#^Parameter \\#1 \\$callback of function array_map expects \\(callable\\(Magento\\\\Quote\\\\Api\\\\Data\\\\TotalsItemInterface\\)\\: mixed\\)\\|null, Closure\\(Magento\\\\Quote\\\\Model\\\\Cart\\\\Totals\\\\Item\\)\\: array given\\.$#"
+			count: 1
+			path: Service/DigitalWallets/MagentoQuote/TotalsRetriever.php
+
+		-
+			message: "#^Parameter \\#1 \\$totals of method Magento\\\\Quote\\\\Model\\\\Cart\\\\Totals::setTotalSegments\\(\\) expects array\\<Magento\\\\Quote\\\\Api\\\\Data\\\\TotalSegmentInterface\\>, list\\<array\\> given\\.$#"
 			count: 1
 			path: Service/DigitalWallets/MagentoQuote/TotalsRetriever.php
 
@@ -188,6 +203,11 @@ parameters:
 		-
 			message: "#^Parameter \\#2 \\$callback of function array_filter expects \\(callable\\(Magento\\\\Framework\\\\DataObject\\)\\: bool\\)\\|null, Closure\\(Magento\\\\Quote\\\\Model\\\\Quote\\\\Address\\\\Rate\\)\\: bool given\\.$#"
 			count: 1
+			path: Service/ExpressPay/QuoteConverter.php
+
+		-
+			message: "#^Parameter \\&\\$convertedQuote by-ref type of method Bold\\\\CheckoutPaymentBooster\\\\Service\\\\ExpressPay\\\\QuoteConverter::convertCustomTotals\\(\\) expects array\\<string, array\\<string, array\\<array\\<string, array\\<string, string\\>\\|bool\\|int\\|string\\>\\|string\\>\\>\\>, array\\<string, array\\<string, array\\<array\\<string, mixed\\>\\|string\\>\\>\\> given\\.$#"
+			count: 2
 			path: Service/ExpressPay/QuoteConverter.php
 
 		-

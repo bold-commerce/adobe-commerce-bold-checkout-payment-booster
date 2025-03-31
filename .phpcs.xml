@@ -10,6 +10,7 @@
     <arg value="sp"/>
     <file>.</file>
     <exclude-pattern>*/vendor/*$</exclude-pattern>
+    <exclude-pattern>*/integration-pipeline-test/*$</exclude-pattern>
     <rule ref="PSR12"/>
     <rule ref="Magento2">
         <exclude name="Magento2.Exceptions.DirectThrow"/>

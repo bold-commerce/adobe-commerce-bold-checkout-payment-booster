@@ -17,4 +17,7 @@
         <!-- Suppress warning about PSR-12-style control structures -->
         <exclude name="PSR2.ControlStructures.ControlStructureSpacing.SpacingAfterOpenBrace"/>
     </rule>
+    <rule ref="Magento2.Legacy.EscapeMethodsOnBlockClass.Found">
+        <exclude-pattern>*\.phtml$</exclude-pattern>
+    </rule>
 </ruleset>

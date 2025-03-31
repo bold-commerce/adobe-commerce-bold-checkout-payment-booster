@@ -30,7 +30,7 @@
     "dms/phpunit-arraysubset-asserts": "*",
     "bitexpert/phpstan-magento": "^v0.32 || ^v0.40",
     "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-    "magento/magento-coding-standard": "*",
+    "magento/magento-coding-standard": ">=36",
     "php-parallel-lint/php-parallel-lint": "^1.4",
     "phpstan/extension-installer": "^1.4",
     "phpstan/phpstan": "^1.12 || ^2.1",

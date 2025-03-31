@@ -141,9 +141,9 @@ parameters:
 			path: Observer/Checkout/ConfigureShopObserver.php
 
 		-
-		 message: "#^PHPDoc tag @SuppressWarnings has invalid value \\(\\(PHPMD\\.UnusedFormalParameter\\)\\)\\: Unexpected token \\\"\\.UnusedFormalParameter\\)\\\", expected \\'\\)\\' at offset 246 on line 7$#"
-		 count: 1
-		 path: Plugin/Quote/Model/QuoteManagement/DisableBoldAddressValidationPlugin.php
+			message: "#^PHPDoc tag @SuppressWarnings has invalid value \\(\\(PHPMD\\.UnusedFormalParameter\\)\\)\\: Unexpected token \\\"\\.UnusedFormalParameter\\)\\\", expected \\'\\)\\' at offset 246 on line 7$#"
+			count: 1
+			path: Plugin/Quote/Model/QuoteManagement/DisableBoldAddressValidationPlugin.php
 
 		-
 			message: "#^Parameter \\#1 \\$product of method Magento\\\\Quote\\\\Model\\\\Quote\\:\\:addProduct\\(\\) expects Magento\\\\Catalog\\\\Model\\\\Product, Magento\\\\Catalog\\\\Api\\\\Data\\\\ProductInterface given\\.$#"

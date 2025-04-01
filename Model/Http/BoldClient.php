@@ -186,6 +186,7 @@ class BoldClient implements ClientInterface
         $apiUrl = $this->config->getApiUrl($websiteId);
 
         if (strpos($apiUrl, 'bold.ninja') !== false) {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             $parseApiUrl = parse_url($apiUrl);
             $scheme = $parseApiUrl['scheme'];
             $host = $parseApiUrl['host'];

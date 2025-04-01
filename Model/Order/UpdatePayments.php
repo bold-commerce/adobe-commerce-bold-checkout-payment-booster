@@ -19,9 +19,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
-/**
- * Update payments.
- */
 class UpdatePayments implements UpdatePaymentsInterface
 {
     private const FINANCIAL_STATUS_PAID = 'paid';

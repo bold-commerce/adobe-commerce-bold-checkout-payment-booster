@@ -287,7 +287,9 @@ class QuoteConverter
                         array_sum(
                             array_map(
                                 static function (CartItemInterface $cartItem) use ($taxIncluded) {
-                                    $itemPrice = $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount() : $cartItem->getRowTotal();
+                                    $itemPrice = $taxIncluded
+                                        ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
+                                        : $cartItem->getRowTotal();
                                     $roundedItemPrice = number_format(
                                         $itemPrice / $cartItem->getQty(),
                                         2,

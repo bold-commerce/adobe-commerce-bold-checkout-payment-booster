@@ -37,7 +37,7 @@ class CancelOrder implements CommandInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @throws Exception
      */

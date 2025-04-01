@@ -57,6 +57,7 @@ class HydrateOrderFromQuote
     private $searchCriteriaBuilder;
 
     /**
+     * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter

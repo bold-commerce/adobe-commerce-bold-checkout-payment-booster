@@ -37,7 +37,7 @@ class CapturePayment implements CommandInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @throws Exception
      */

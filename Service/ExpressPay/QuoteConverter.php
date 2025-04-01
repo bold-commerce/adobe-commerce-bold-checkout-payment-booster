@@ -38,7 +38,6 @@ class QuoteConverter
      */
     private $scopeConfig;
 
-
     /**
      * @var Config
      */

@@ -61,12 +61,20 @@ class FlowService
             }
             $message = isset(current($result->getErrors())['message'])
                 ? __(current($result->getErrors())['message'])
-                : __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.');
+                : __(
+                    'Something went wrong while setting up Payment Booster. Please Try Again. If the error persists '
+                    . 'please contact Bold Support.'
+                );
             throw new LocalizedException($message);
         }
         $flowId = $result->getBody()['data']['flows'][0]['flow_id'] ?? null;
         if (!$flowId) {
-            throw new LocalizedException(__('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.'));
+            throw new LocalizedException(
+                __(
+                    'Something went wrong while setting up Payment Booster. Please Try Again. If the error persists '
+                    . 'please contact Bold Support.'
+                )
+            );
         }
         $this->config->setBoldBoosterFlowID($websiteId, $flowId);
         return $flowId;

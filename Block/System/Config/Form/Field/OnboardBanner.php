@@ -9,7 +9,6 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Framework\HTTP\ClientInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use PHPUnit\Util\Exception;
 
 class OnboardBanner extends Field
 {

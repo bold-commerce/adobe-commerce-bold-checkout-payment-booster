@@ -13,8 +13,8 @@ use PHPUnit\Util\Exception;
 
 class OnboardBanner extends Field
 {
-    const ONBOARD_IN_PROGRESS_DATA_PATH = 'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/in_progress';
-    const ONBOARD_COMPLETED_DATA_PATH = 'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/complete';
+    private const ONBOARD_IN_PROGRESS_DATA_PATH = 'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/in_progress';
+    private const ONBOARD_COMPLETED_DATA_PATH = 'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/complete';
 
     /** @var StoreManagerInterface */
     private $storeManager;

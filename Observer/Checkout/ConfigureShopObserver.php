@@ -148,7 +148,10 @@ class ConfigureShopObserver implements ObserverInterface
                 throw $e;
             } catch (Exception $e) {
                 throw new LocalizedException(
-                    __('Something went wrong while setting up Payment Booster. Please Try Again. If the error persists please contact Bold Support.'),
+                    __(
+                        'Something went wrong while setting up Payment Booster. Please Try Again. If the error '
+                        . 'persists please contact Bold Support.'
+                    ),
                     $e
                 );
             }

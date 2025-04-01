@@ -251,7 +251,9 @@ class QuoteConverter
             'order_data' => [
                 'items' => array_map(
                     static function (CartItemInterface $cartItem) use ($currencyCode, $taxIncluded): array {
-                        $itemPrice = $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount() : $cartItem->getRowTotal();
+                        $itemPrice = $taxIncluded
+                            ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
+                            : $cartItem->getRowTotal();
 
                         return [
                             'name' => $cartItem->getName() ?? '',

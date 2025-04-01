@@ -37,7 +37,7 @@ class VoidPayment implements CommandInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @throws Exception
      */

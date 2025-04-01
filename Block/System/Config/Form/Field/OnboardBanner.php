@@ -67,7 +67,9 @@ class OnboardBanner extends Field
     public function getBannerData()
     {
         $websiteId = $this->storeManager->getWebsite()->getId();
-        $bannerDataUrl = $this->isOnboardComplete() ? self::ONBOARD_COMPLETED_DATA_PATH : self::ONBOARD_IN_PROGRESS_DATA_PATH;
+        $bannerDataUrl = $this->isOnboardComplete()
+            ? self::ONBOARD_COMPLETED_DATA_PATH
+            : self::ONBOARD_IN_PROGRESS_DATA_PATH;
 
         $this->client->get($bannerDataUrl);
 

@@ -210,7 +210,12 @@ class QuoteConverter
         if ($shippingAddress->getTelephone()) {
             $convertedQuote['order_data']['shipping_address']['phone_number'] = $shippingAddress->getTelephone();
         }
-        if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod() && $shippingAddress->getShippingMethod() !== '') { // @phpstan-ignore method.notFound
+
+        if (
+            $hasRequiredAddressData
+            && $shippingAddress->hasShippingMethod() // @phpstan-ignore method.notFound
+            && $shippingAddress->getShippingMethod() !== ''
+        ) {
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
                 'label' => $shippingAddress->getShippingDescription() ?? $shippingAddress->getShippingMethod(),

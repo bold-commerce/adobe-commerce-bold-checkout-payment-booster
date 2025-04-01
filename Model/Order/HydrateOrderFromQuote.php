@@ -182,7 +182,7 @@ class HydrateOrderFromQuote
 
         foreach ($taxes as $tax) {
             $taxLines[] = [
-                'name' => strval($tax['id']),
+                'name' => (string)$tax['id'],
                 'value' => $this->convertToCents($tax['base_amount']),
             ];
         }

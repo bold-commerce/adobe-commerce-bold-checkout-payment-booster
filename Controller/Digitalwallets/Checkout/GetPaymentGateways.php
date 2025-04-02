@@ -61,7 +61,6 @@ class GetPaymentGateways implements HttpPostActionInterface, CsrfAwareActionInte
 
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        // @phpstan-ignore-next-line
         return $request->isPost() && $request->isXmlHttpRequest() && $this->formKeyValidator->validate($request);
     }
 }

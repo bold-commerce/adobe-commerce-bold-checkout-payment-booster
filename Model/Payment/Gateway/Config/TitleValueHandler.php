@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config;
@@ -54,6 +55,7 @@ class TitleValueHandler implements ValueHandlerInterface
 
     /**
      * @inheritDoc
+     * @phpstan-param array{payment: PaymentDataObject} $subject
      */
     public function handle(array $subject, $storeId = null)
     {

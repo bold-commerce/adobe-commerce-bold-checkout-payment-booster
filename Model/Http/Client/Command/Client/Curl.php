@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client;
@@ -7,6 +8,8 @@ use Magento\Framework\HTTP\Client\Curl as CurlCore;
 
 /**
  * Bold Checkout Curl client.
+ *
+ * @method void curlOption(int $option, mixed $value)
  */
 class Curl extends CurlCore
 {
@@ -45,6 +48,7 @@ class Curl extends CurlCore
 
     /**
      * @inheritDoc
+     * @phpstan-param string|mixed[] $params
      */
     protected function makeRequest($method, $uri, $params = [])
     {

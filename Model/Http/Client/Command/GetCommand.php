@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
@@ -48,7 +49,7 @@ class GetCommand
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $headers
+     * @param array<string, string> $headers
      * @return ResultInterface
      */
     public function execute(int $websiteId, string $url, array $headers): ResultInterface

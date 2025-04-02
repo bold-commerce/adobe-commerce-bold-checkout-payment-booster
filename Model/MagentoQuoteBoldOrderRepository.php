@@ -13,7 +13,6 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\CouldNotDeleteException;
 use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Model\AbstractModel;
 
 use function __;
 
@@ -38,7 +37,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function get($id): MagentoQuoteBoldOrderInterface
     {
-        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
 
         $this->resourceModel->load($magentoQuoteBoldOrder, $id);
@@ -54,7 +53,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function getByQuoteId($quoteId): MagentoQuoteBoldOrderInterface
     {
-        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
 
         $this->resourceModel->load($magentoQuoteBoldOrder, $quoteId, 'quote_id');
@@ -70,7 +69,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function getByBoldOrderId(string $boldOrderId): MagentoQuoteBoldOrderInterface
     {
-        /** @var MagentoQuoteBoldOrderInterface&AbstractModel $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
 
         $this->resourceModel->load($magentoQuoteBoldOrder, $boldOrderId, 'bold_order_id');
@@ -111,6 +110,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function deleteById($magentoQuoteBoldOrderId): void
     {
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->get($magentoQuoteBoldOrderId);
 
         $this->delete($magentoQuoteBoldOrder);

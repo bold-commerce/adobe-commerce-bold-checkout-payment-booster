@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
@@ -57,15 +58,15 @@ class DeleteCommand
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $headers
-     * @param array $data
+     * @param array<string, string> $headers
+     * @param mixed[] $data
      * @return ResultInterface
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
         $this->logger->logRequest($websiteId, $url, 'DELETE', $data);
         $this->client->setHeaders($headers);
-        $this->client->delete($url, $this->json->serialize($data));
+        $this->client->delete($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->responseFactory->create(
             [

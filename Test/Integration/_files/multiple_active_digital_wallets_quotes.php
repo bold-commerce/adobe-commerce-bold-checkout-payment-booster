@@ -37,7 +37,7 @@ for ($i = 0; $i < 5; $i++) {
         ->setCheckoutMethod('guest')
         ->setData('is_digital_wallets', true)
         ->addProduct($product, 2);
-    $quote->save(); // @phpstan-ignore
+    $quote->save();
 
     $resourceConnection
         ->getConnection()

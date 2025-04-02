@@ -116,7 +116,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
 
         // Reloading the quote again to ensure that we have all available data
         try {
-            $quoteId = (int)$quote->getId(); // @phpstan-ignore-line
+            $quoteId = (int)$quote->getId();
             /** @var CartInterface&Quote $quote */
             $quote = $this->quoteRepository->get($quoteId);
         } catch (NoSuchEntityException $noSuchEntityException) {
@@ -137,10 +137,12 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
 
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        // @phpstan-ignore-next-line
         return !$request->isPost() || !$request->isXmlHttpRequest() || !$this->formKeyValidator->validate($request);
     }
 
+    /**
+     * @param mixed[] $data
+     */
     private function createResult(array $data, int $responseCode): ResultInterface
     {
         /** @var Json $result */
@@ -188,7 +190,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
     private function getQuoteData(CartInterface $quote, ?string $maskedId): array
     {
         /** @var mixed[] $quoteData */
-        $quoteData = $quote->toArray(); // @phpstan-ignore-line
+        $quoteData = $quote->toArray();
         $quoteData['is_virtual'] = $quote->getIsVirtual();
 
         if ($maskedId !== null) {
@@ -196,7 +198,6 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
         }
 
         if ($quote->getExtensionAttributes() !== null) {
-            // @phpstan-ignore-next-line
             $quoteData['extension_attributes'] = $quote->getExtensionAttributes()->__toArray();
         }
 
@@ -209,7 +210,7 @@ class Create implements HttpPostActionInterface, CsrfAwareActionInterface
      */
     private function getQuoteItemData(CartInterface $quote): array
     {
-        $quoteItems = $quote->getAllVisibleItems(); // @phpstan-ignore-line
+        $quoteItems = $quote->getAllVisibleItems();
 
         if (count($quoteItems) === 0) {
             return [];

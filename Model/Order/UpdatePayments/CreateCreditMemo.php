@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Service\CreditmemoService;
 
@@ -48,7 +49,7 @@ class CreateCreditMemo
     /**
      * Create credit memo.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return void
      * @throws LocalizedException
      */

@@ -26,7 +26,7 @@ interface ClientInterface
      *
      * @param int $websiteId
      * @param string $url
-     * @param array|null $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      * @throws \Exception
      */
@@ -37,7 +37,7 @@ interface ClientInterface
      *
      * @param int $websiteId
      * @param string $url
-     * @param array|null $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      * @throws \Exception
      */
@@ -48,7 +48,7 @@ interface ClientInterface
      *
      * @param int $websiteId
      * @param string $url
-     * @param array|null $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      * @throws \Exception
      */
@@ -59,7 +59,7 @@ interface ClientInterface
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $data
+     * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
      * @throws \Exception
      */

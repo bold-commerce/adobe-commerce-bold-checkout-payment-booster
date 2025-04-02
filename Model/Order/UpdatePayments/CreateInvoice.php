@@ -13,7 +13,9 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\TransactionRepositoryInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Psr\Log\LoggerInterface;
@@ -75,7 +77,7 @@ class CreateInvoice
     /**
      * Create order invoice in case payment has been captured on bold checkout.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param PaymentInterface[] $payloadPayments
      * @return void
      * @throws AlreadyExistsException
@@ -90,13 +92,14 @@ class CreateInvoice
         $orderExtensionData->setIsCaptureInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
         try {
+            /** @var PaymentInterface&Payment $payment */
             $payment = $order->getPayment();
             $invoice = $order->prepareInvoice();
             $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
             $invoice->register();
-            $invoice->setEmailSent(true);
+            $invoice->setEmailSent(1);
             $invoice->setTransactionId($payment->getLastTransId());
-            $invoice->getOrder()->setCustomerNoteNotify(true);
+            $invoice->getOrder()->setCustomerNoteNotify(1);
             $invoice->getOrder()->setIsInProcess(true);
             $order->addRelatedObject($invoice);
 
@@ -134,7 +137,7 @@ class CreateInvoice
                 ->setFailSafe(true)
                 ->build(Transaction::TYPE_CAPTURE);
 
-            $capture->setIsClosed(true);
+            $capture->setIsClosed(1);
 
             $this->transactionRepository->save($capture);
         } catch (\Exception $e) {
@@ -142,6 +145,10 @@ class CreateInvoice
         }
     }
 
+    /**
+     * @param OrderInterface&Order $order
+     * @param OrderPaymentInterface&Payment $payment
+     */
     private function updateAuthorization(OrderInterface $order, OrderPaymentInterface $payment): void
     {
         try {
@@ -154,7 +161,7 @@ class CreateInvoice
 
             /** @var Transaction $auth */
             foreach ($transactionList as $auth) {
-                $auth->setIsClosed(true);
+                $auth->setIsClosed(1);
                 $this->transactionRepository->save($auth);
             }
         } catch (\Exception $e) {

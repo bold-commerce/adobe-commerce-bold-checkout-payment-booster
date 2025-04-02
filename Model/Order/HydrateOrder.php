@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
@@ -59,6 +60,8 @@ class HydrateOrder implements HydrateOrderInterface
      */
     public function hydrate(string $shopId, string $publicOrderId, AddressInterface $address): void
     {
+        $quote = null;
+
         try {
             $quote = $this->checkoutSession->getQuote();
             $storeId = $quote->getStoreId();

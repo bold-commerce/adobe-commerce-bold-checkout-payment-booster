@@ -161,7 +161,6 @@ class QuoteConverter
         /** @var Rate[] $shippingRates */
         $shippingRates = array_values(array_filter(
             $shippingAddress->getShippingRatesCollection()->getItems(),
-            // @phpstan-ignore argument.type
             static function (Rate $rate) use (&$usedRateCodes): bool {
                 if ($rate->getErrorMessage() !== null || in_array($rate->getCode(), $usedRateCodes)) {
                     return false;

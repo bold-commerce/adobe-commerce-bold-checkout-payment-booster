@@ -11,6 +11,9 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Bold gateway service.
@@ -61,7 +64,7 @@ class Service
     /**
      * Capture a payment for the full order amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return string
      * @throws Exception
      */
@@ -81,7 +84,7 @@ class Service
     /**
      * Capture a payment by an arbitrary amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param float $amount
      * @return string
      * @throws Exception
@@ -103,7 +106,7 @@ class Service
     /**
      * Cancel order via bold.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param string $operation
      * @return void
      * @throws Exception
@@ -137,7 +140,7 @@ class Service
     /**
      * Refund a payment for the full order amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return string
      * @throws Exception
      */
@@ -157,7 +160,7 @@ class Service
     /**
      * Refund a payment by an arbitrary amount.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param float $amount
      * @return string
      * @throws Exception
@@ -181,7 +184,7 @@ class Service
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $body
+     * @param array{reauth: bool, idempotent_key: string, source: string, amount?: float} $body
      * @return string
      * @throws Exception
      */
@@ -207,7 +210,7 @@ class Service
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $body
+     * @param array{email_notification: bool, reason: string, source: string, amount?: float} $body
      * @return string
      * @throws Exception
      */
@@ -236,13 +239,15 @@ class Service
      */
     private function keepTransactionAdditionalData(OrderInterface $order): void
     {
-        $lastTransaction = $order->getPayment()->getAuthorizationTransaction();
+        /** @var OrderPaymentInterface&Payment $orderPayment */
+        $orderPayment = $order->getPayment();
+        $lastTransaction = $orderPayment->getAuthorizationTransaction();
         if (!$lastTransaction) {
             return;
         }
         $transactionAdditionalInfo = $lastTransaction->getAdditionalInformation() ?: [];
         foreach ($transactionAdditionalInfo as $key => $value) {
-            $order->getPayment()->setTransactionAdditionalInfo($key, $value);
+            $orderPayment->setTransactionAdditionalInfo($key, $value);
         }
     }
 }

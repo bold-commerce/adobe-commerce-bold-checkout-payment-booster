@@ -1,7 +1,8 @@
 define([
     'uiComponent',
     'underscore',
-    'jquery'
+    'jquery',
+    'mage/cookies',
 ], function (
     Component,
     _,

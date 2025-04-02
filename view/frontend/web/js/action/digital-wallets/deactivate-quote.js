@@ -1,7 +1,8 @@
 define(
     [
         'jquery',
-        'mage/url'
+        'mage/url',
+        'mage/cookies',
     ],
     function ($, urlBuilder) {
         'use strict';

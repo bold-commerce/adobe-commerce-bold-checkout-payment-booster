@@ -1,3 +1,5 @@
+includes:
+	- phpstan-baseline.neon
 parameters:
 	level: 7
 	fileExtensions:
@@ -6,6 +8,8 @@ parameters:
 	paths:
 		- .
 	excludePaths:
+		- integration-pipeline-test
 		- vendor/*/
+		- Test
 	treatPhpDocTypesAsCertain: false
 	reportUnmatchedIgnoredErrors: false

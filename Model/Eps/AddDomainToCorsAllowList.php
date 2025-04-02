@@ -31,9 +31,10 @@ class AddDomainToCorsAllowList
      *
      * @param int $websiteId
      * @param string $magentoUrl
+     * @return void
      * @throws \Exception
      */
-    public function addDomain(int $websiteId, string $magentoUrl)
+    public function addDomain(int $websiteId, string $magentoUrl): void
     {
         $domainList = $this->boldClient->get($websiteId, self::CORS_PATH)->getBody();
         $domainList = $domainList['data'] ?? [];

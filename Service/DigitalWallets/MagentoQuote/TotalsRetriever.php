@@ -6,6 +6,12 @@ namespace Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartTotalRepositoryInterface;
+use Magento\Quote\Api\Data\TotalSegmentExtension;
+use Magento\Quote\Api\Data\TotalSegmentExtensionInterface;
+use Magento\Quote\Api\Data\TotalsExtension;
+use Magento\Quote\Api\Data\TotalsExtensionInterface;
+use Magento\Quote\Api\Data\TotalsInterface;
+use Magento\Quote\Model\Cart\Totals;
 use Magento\Quote\Model\Cart\Totals\Item;
 use Magento\Quote\Model\Cart\TotalSegment;
 
@@ -35,6 +41,7 @@ class TotalsRetriever
      */
     public function retrieveTotals($quoteId): array
     {
+        /** @var TotalsInterface&Totals $totals */
         $totals = $this->cartTotalRepository->get((int)$quoteId);
         $items = array_map(
             static function (Item $item): array {
@@ -47,9 +54,11 @@ class TotalsRetriever
         /** @var TotalSegment $totalSegment */
         foreach ($totals->getTotalSegments() as $totalSegment) {
             $totalSegmentArray = $totalSegment->toArray();
+            /** @var TotalSegmentExtensionInterface&TotalSegmentExtension $totalSegmentExtension */
+            $totalSegmentExtension = $totalSegment->getExtensionAttributes();
 
-            if (is_object($totalSegment->getExtensionAttributes())) {
-                $totalSegmentArray['extension_attributes'] = $totalSegment->getExtensionAttributes()->__toArray();
+            if (is_object($totalSegmentExtension)) {
+                $totalSegmentArray['extension_attributes'] = $totalSegmentExtension->__toArray();
             }
 
             $totalSegmentsData[] = $totalSegmentArray;
@@ -59,9 +68,11 @@ class TotalsRetriever
         $totals->setTotalSegments($totalSegmentsData);
 
         $totalsArray = $totals->toArray();
+        /** @var TotalsExtensionInterface&TotalsExtension $totalsExtension */
+        $totalsExtension = $totals->getExtensionAttributes();
 
-        if (is_object($totals->getExtensionAttributes())) {
-            $totalsArray['extension_attributes'] = $totals->getExtensionAttributes()->__toArray();
+        if (is_object($totalsExtension)) {
+            $totalsArray['extension_attributes'] = $totalsExtension->__toArray();
         }
 
         return $totalsArray;

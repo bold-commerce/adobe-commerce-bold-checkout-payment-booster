@@ -8,7 +8,6 @@ use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client\Curl;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger;
-use Bold\CheckoutPaymentBooster\Model\Http\Client\ResultFactory;
 use Magento\Framework\Serialize\Serializer\Json;
 
 /**
@@ -43,7 +42,7 @@ class PatchCommand
      * @param RequestsLogger $logger
      */
     public function __construct(
-        ResultFactory $resultFactory,
+        ResultInterfaceFactory $resultFactory,
         Curl $client,
         Json $json,
         RequestsLogger $logger
@@ -59,15 +58,15 @@ class PatchCommand
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $headers
-     * @param array $data
+     * @param array<string, string> $headers
+     * @param mixed[] $data
      * @return ResultInterface
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
         $this->logger->logRequest($websiteId, $url, 'PATCH', $data);
         $this->client->setHeaders($headers);
-        $this->client->patch($url, $this->json->serialize($data));
+        $this->client->patch($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->resultFactory->create(
             [

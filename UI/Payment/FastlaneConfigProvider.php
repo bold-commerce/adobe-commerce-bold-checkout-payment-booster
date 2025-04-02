@@ -8,6 +8,8 @@ use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Psr\Log\LoggerInterface;
 
 use function __;
@@ -48,9 +50,25 @@ class FastlaneConfigProvider implements ConfigProviderInterface
 
     /**
      * @inheirtDoc
+     * @phpstan-return array{
+     *     bold?: array{
+     *         paymentGatewayId: int,
+     *         fastlane: array{
+     *             payment: array{
+     *                 method: string
+     *             },
+     *             styles: array{
+     *                 privacy: "yes"|"no",
+     *                 input: string[],
+     *                 root: string[]
+     *             }
+     *         }
+     *     }
+     * }
      */
     public function getConfig(): array
     {
+        /** @var CartInterface&Quote $quote */
         $quote = $this->checkoutData->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         if (

@@ -55,6 +55,7 @@ class TitleValueHandler implements ValueHandlerInterface
 
     /**
      * @inheritDoc
+     * @phpstan-param array{payment: PaymentDataObject} $subject
      */
     public function handle(array $subject, $storeId = null)
     {

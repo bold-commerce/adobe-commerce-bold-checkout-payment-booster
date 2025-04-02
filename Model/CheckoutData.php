@@ -141,7 +141,7 @@ class CheckoutData
     /**
      * Get Fastlane styles from checkout session.
      *
-     * @return array
+     * @return array{privacy: "yes"|"no", input: string[], root: string[]}
      */
     public function getFastlaneStyles(): array
     {
@@ -185,7 +185,7 @@ class CheckoutData
     /**
      * Get EPS payment gateways from checkout session.
      *
-     * @return array
+     * @return array{auth_token: string, currency: string, gateway: string, id: int, is_test_mode: bool}[]
      */
     public function getPaymentGateways(): array
     {

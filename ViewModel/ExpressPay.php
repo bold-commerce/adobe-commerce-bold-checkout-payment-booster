@@ -86,7 +86,7 @@ class ExpressPay implements ArgumentInterface
     /**
      * Initialize checkout data and return the config.
      *
-     * @return array
+     * @return mixed[]
      */
     public function getCheckoutConfig(string $pageSource): array
     {

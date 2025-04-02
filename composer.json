@@ -8,6 +8,7 @@
   "version": "2.5.3",
   "require": {
     "php": "^7.2 || ^8.0",
+    "ext-curl": "*",
     "ext-intl": "*",
     "ext-json": "*",
     "ext-pcre": "*",

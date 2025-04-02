@@ -10,10 +10,17 @@
     <arg value="sp"/>
     <file>.</file>
     <exclude-pattern>*/vendor/*$</exclude-pattern>
+    <exclude-pattern>*/integration-pipeline-test/*$</exclude-pattern>
     <rule ref="PSR12"/>
     <rule ref="Magento2">
         <exclude name="Magento2.Exceptions.DirectThrow"/>
         <!-- Suppress warning about PSR-12-style control structures -->
         <exclude name="PSR2.ControlStructures.ControlStructureSpacing.SpacingAfterOpenBrace"/>
+    </rule>
+    <rule ref="Magento2.Legacy.EscapeMethodsOnBlockClass.Found">
+        <exclude-pattern>*\.phtml$</exclude-pattern>
+    </rule>
+    <rule ref="Generic.Files.LineLength.TooLong">
+        <exclude-pattern>*\.phtml$</exclude-pattern>
     </rule>
 </ruleset>

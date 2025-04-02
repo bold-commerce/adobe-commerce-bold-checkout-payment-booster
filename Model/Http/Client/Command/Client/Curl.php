@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command\Client;

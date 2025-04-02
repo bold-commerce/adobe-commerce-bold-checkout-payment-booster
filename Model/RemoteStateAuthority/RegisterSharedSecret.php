@@ -63,7 +63,8 @@ class RegisterSharedSecret
             'shared_secret' => $sharedSecret,
         ];
         $result = $this->boldClient->patch($websiteId, self::REGISTER_URL, $body);
-        if ($result->getErrors()
+        if (
+            $result->getErrors()
             && isset($result->getErrors()[0]['code'])
             && $result->getErrors()[0]['code'] === self::CODE_RSA_NOT_CONFIGURED
         ) {

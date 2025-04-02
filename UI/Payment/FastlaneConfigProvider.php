@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
@@ -70,8 +71,10 @@ class FastlaneConfigProvider implements ConfigProviderInterface
         /** @var CartInterface&Quote $quote */
         $quote = $this->checkoutData->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        if (!$this->checkoutData->getPublicOrderId()
-            || !$this->config->isFastlaneEnabled($websiteId) || $quote->getCustomer()->getId()) {
+        if (
+            !$this->checkoutData->getPublicOrderId()
+            || !$this->config->isFastlaneEnabled($websiteId) || $quote->getCustomer()->getId()
+        ) {
             return [];
         }
 

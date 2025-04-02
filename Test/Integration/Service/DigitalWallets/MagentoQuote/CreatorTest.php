@@ -102,7 +102,6 @@ class CreatorTest extends TestCase
         $productRequestData = [
             'product' => $product->getId(),
             'super_attribute' => [
-                // @phpstan-ignore-next-line
                 $productOption->getAttributeId() => $productOption
                     ->getValues()[0]
                     ->getValueIndex()

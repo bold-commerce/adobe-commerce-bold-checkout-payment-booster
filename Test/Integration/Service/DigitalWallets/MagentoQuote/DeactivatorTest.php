@@ -153,7 +153,6 @@ class DeactivatorTest extends TestCase
         $logger = null;
 
         if ($this->canPerformLoggingAssertions()) {
-            // @phpstan-ignore-next-line
             $logger = new \ColinODell\PsrTestLogger\TestLogger();
             $arguments['logger'] = $logger;
         }
@@ -183,7 +182,6 @@ class DeactivatorTest extends TestCase
         $logger = null;
 
         if ($this->canPerformLoggingAssertions()) {
-            // @phpstan-ignore-next-line
             $logger = new \ColinODell\PsrTestLogger\TestLogger();
             $arguments['logger'] = $logger;
         }
@@ -278,7 +276,6 @@ class DeactivatorTest extends TestCase
             return;
         }
 
-        // @phpstan-ignore-next-line
         self::assertFalse($testLogger->hasErrorRecords());
 
         foreach ($deactivatedQuoteIdsByWebsite as $websiteId => $deactivatedQuoteIds) {
@@ -289,14 +286,12 @@ class DeactivatorTest extends TestCase
                 $websiteId
             );
 
-            // @phpstan-ignore-next-line
             self::assertTrue($testLogger->hasInfo($message));
         }
     }
 
     /**
      * @param \ColinODell\PsrTestLogger\TestLogger|null $testLogger
-     * @param int[][] $deactivatedQuoteIdsByWebsite
      */
     private static function assertUnsuccessfulQuoteDeactivationsWereLogged(
         $testLogger,
@@ -306,12 +301,10 @@ class DeactivatorTest extends TestCase
             return;
         }
 
-        // @phpstan-ignore-next-line
         self::assertFalse($testLogger->hasInfoRecords());
 
         for ($i = 0; $i < 5; $i++) {
             self::assertTrue(
-                // @phpstan-ignore-next-line
                 $testLogger->hasError(
                     [
                         'message' => "Could not deactivate Digital Wallets quote with ID \"$i\".",

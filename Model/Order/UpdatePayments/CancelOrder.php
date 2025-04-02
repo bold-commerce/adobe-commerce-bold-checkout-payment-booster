@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Model\Order;
 
 /**
  * Cancel order service.
@@ -36,7 +37,7 @@ class CancelOrder
     /**
      * Cancel order.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @return void
      */
     public function execute(OrderInterface $order): void

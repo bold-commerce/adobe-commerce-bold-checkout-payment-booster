@@ -112,14 +112,17 @@ class Update implements UpdateInterface
         try {
             $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
         } catch (LocalizedException $localizedException) {
-            $expressPayOrder = [];
+            $expressPayOrder = null;
         }
 
-        $expressPayOrderShipping = $expressPayOrder['shipping_address'] ?? [];
-        $hasShippingData = !empty($expressPayOrderShipping['country']) && !empty($expressPayOrderShipping['city']);
+        if ($expressPayOrder !== null) {
+            $expressPayOrderShipping = $expressPayOrder->getShippingAddress();
+            $hasShippingData = !empty($expressPayOrderShipping->getCountry())
+                && !empty($expressPayOrderShipping->getCity());
 
-        if (!$hasShippingData) {
-            unset($expressPayData['order_data']['shipping_address']);
+            if (!$hasShippingData) {
+                unset($expressPayData['order_data']['shipping_address']);
+            }
         }
 
         try {

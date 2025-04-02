@@ -9,9 +9,6 @@ use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Magento\Framework\Exception\AlreadyExistsException;
 
-/**
- * OrderExtensionData repository.
- */
 class OrderExtensionDataRepository
 {
     /**

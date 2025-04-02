@@ -119,8 +119,11 @@ class CreateInvoice
     /**
      * @param PaymentInterface[] $payloadPayments
      */
-    private function addCaptureToOrder(OrderInterface $order, OrderPaymentInterface $payment, array $payloadPayments): void
-    {
+    private function addCaptureToOrder(
+        OrderInterface $order,
+        OrderPaymentInterface $payment,
+        array $payloadPayments
+    ): void {
         if (count($payloadPayments)) {
             $providerId = $payloadPayments[0]->getTransaction()->getProviderId();
         } else {

@@ -41,7 +41,7 @@ class VoidPayment implements CommandInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @param array{payment: PaymentDataObjectInterface} $commandSubject
      * @throws Exception

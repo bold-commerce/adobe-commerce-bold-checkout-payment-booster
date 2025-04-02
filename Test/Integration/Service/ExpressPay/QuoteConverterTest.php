@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
+use Magento\Framework\Module\Manager as ModuleManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -32,6 +33,9 @@ class QuoteConverterTest extends TestCase
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void
     {
         $objectManager = Bootstrap::getObjectManager();
+        /** @var ModuleManager $moduleManager */
+        $moduleManager = $objectManager->get(ModuleManager::class);
+        $isCustomFeesExtensionInstalled = $moduleManager->isEnabled('JosephLeedy_CustomFees');
         $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
             ->addFilter('reserved_order_id', 'test_order_1')
             ->create();
@@ -92,35 +96,15 @@ class QuoteConverterTest extends TestCase
                         ],
                         'quantity' => 2,
                         'is_shipping_required' => true
-                    ],
-                    [
-                        'name' => 'Test Fee',
-                        'sku' => 'test_fee_0',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '4.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
-                    ],
-                    [
-                        'name' => 'Another Fee',
-                        'sku' => 'test_fee_1',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '1.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
                     ]
                 ],
                 'amount' => [
                     'currency_code' => 'USD',
-                    'value' => '31.50'
+                    'value' => '26.50'
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '25.00'
+                    'value' => '20.00'
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
@@ -132,6 +116,34 @@ class QuoteConverterTest extends TestCase
                 ]
             ]
         ];
+
+        if ($isCustomFeesExtensionInstalled) {
+            $expectedConvertedQuoteData['order_data']['items'] += [
+                1 => [
+                    'name' => 'Test Fee',
+                    'sku' => 'test_fee_0',
+                    'unit_amount' => [
+                        'currency_code' => 'USD',
+                        'value' => '4.00'
+                    ],
+                    'quantity' => 1,
+                    'is_shipping_required' => false
+                ],
+                2 => [
+                    'name' => 'Another Fee',
+                    'sku' => 'test_fee_1',
+                    'unit_amount' => [
+                        'currency_code' => 'USD',
+                        'value' => '1.00'
+                    ],
+                    'quantity' => 1,
+                    'is_shipping_required' => false
+                ]
+            ];
+            $expectedConvertedQuoteData['order_data']['amount']['value'] = '31.50';
+            $expectedConvertedQuoteData['order_data']['item_total']['value'] = '25.00';
+        }
+
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);

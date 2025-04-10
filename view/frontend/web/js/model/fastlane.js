@@ -134,8 +134,11 @@ define([
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
-            await loadScriptAction('bold_ppcp_fastlane_hosted_fields', 'braintree.hostedFields');
-            await loadScriptAction('bold_ppcp_fastlane_client', 'braintree.client');
+            const hostedFields = await loadScriptAction('bold_ppcp_fastlane_hosted_fields', 'braintree.hostedFields');
+            const client = await loadScriptAction('bold_ppcp_fastlane_client', 'braintree.client');
+            if (!window.braintree.version) {
+                window.braintree.version = client.VERSION;
+            }
             let debugMode = '';
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';

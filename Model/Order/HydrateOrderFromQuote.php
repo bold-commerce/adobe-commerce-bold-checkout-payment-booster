@@ -63,6 +63,7 @@ class HydrateOrderFromQuote
     private $searchCriteriaBuilder;
 
     /**
+     * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
@@ -100,7 +101,9 @@ class HydrateOrderFromQuote
         /** @var OrderAddressInterface&Address $billingAddress */
         $billingAddress = $this->quoteToOrderAddressConverter->convert($quote->getBillingAddress());
         /** @var OrderAddressInterface&Address $shippingAddress */
-        $shippingAddress = $quote->getIsVirtual() ? $billingAddress : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
+        $shippingAddress = $quote->getIsVirtual()
+            ? $billingAddress
+            : $this->quoteToOrderAddressConverter->convert($quote->getShippingAddress());
 
         if ($quote->getIsVirtual()) {
             $totals = $quote->getBillingAddress()->getTotals();
@@ -189,7 +192,7 @@ class HydrateOrderFromQuote
 
         foreach ($taxes as $tax) {
             $taxLines[] = [
-                'name' => strval($tax['id']),
+                'name' => (string)$tax['id'],
                 'value' => $this->convertToCents($tax['base_amount']),
             ];
         }

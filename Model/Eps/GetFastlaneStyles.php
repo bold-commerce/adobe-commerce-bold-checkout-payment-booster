@@ -43,6 +43,7 @@ class GetFastlaneStyles
     {
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             $configurationGroupLabel = parse_url($baseUrl)['host'] ?? '';
         }
 

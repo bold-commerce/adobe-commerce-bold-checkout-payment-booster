@@ -108,7 +108,8 @@ class CreateTest extends TestCase
         /** @var Create $createExpressPayOrderService */
         $createExpressPayOrderService = $objectManager->create(Create::class);
 
-        $createExpressPayOrderService->execute(42,
+        $createExpressPayOrderService->execute(
+            42,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '525f40b7-c512-4e5b-aa82-cc7276a48de9',
             'dynamic'

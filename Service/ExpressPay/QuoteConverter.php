@@ -38,7 +38,6 @@ class QuoteConverter
      */
     private $scopeConfig;
 
-
     /**
      * @var Config
      */
@@ -209,7 +208,12 @@ class QuoteConverter
         if ($shippingAddress->getTelephone()) {
             $convertedQuote['order_data']['shipping_address']['phone_number'] = $shippingAddress->getTelephone();
         }
-        if ($hasRequiredAddressData && $shippingAddress->hasShippingMethod() && $shippingAddress->getShippingMethod() !== '') {
+
+        if (
+            $hasRequiredAddressData
+            && $shippingAddress->hasShippingMethod() // @phpstan-ignore method.notFound
+            && $shippingAddress->getShippingMethod() !== ''
+        ) {
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
                 'label' => $shippingAddress->getShippingDescription() ?? $shippingAddress->getShippingMethod(),
@@ -245,7 +249,9 @@ class QuoteConverter
             'order_data' => [
                 'items' => array_map(
                     static function (CartItemInterface $cartItem) use ($currencyCode, $taxIncluded): array {
-                        $itemPrice = $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount() : $cartItem->getRowTotal();
+                        $itemPrice = $taxIncluded
+                            ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
+                            : $cartItem->getRowTotal();
 
                         return [
                             'name' => $cartItem->getName() ?? '',
@@ -279,7 +285,9 @@ class QuoteConverter
                         array_sum(
                             array_map(
                                 static function (CartItemInterface $cartItem) use ($taxIncluded) {
-                                    $itemPrice = $taxIncluded ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount() : $cartItem->getRowTotal();
+                                    $itemPrice = $taxIncluded
+                                        ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
+                                        : $cartItem->getRowTotal();
                                     $roundedItemPrice = number_format(
                                         $itemPrice / $cartItem->getQty(),
                                         2,

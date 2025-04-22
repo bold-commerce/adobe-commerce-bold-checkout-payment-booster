@@ -84,7 +84,9 @@ class Create implements CreateInterface
                 /** @var Quote $quote */
                 $quote = $this->cartRepository->get((int)$quoteId);
             } catch (NoSuchEntityException $noSuchEntityException) {
-                throw new LocalizedException(__('Could not create Express Pay order. Invalid quote ID "%1".', $quoteId));
+                throw new LocalizedException(
+                    __('Could not create Express Pay order. Invalid quote ID "%1".', $quoteId)
+                );
             }
         } else {
             try {

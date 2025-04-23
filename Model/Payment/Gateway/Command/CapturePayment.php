@@ -41,7 +41,7 @@ class CapturePayment implements CommandInterface
     }
 
     /**
-     * {@inheritDoc}
+     * @inheritDoc
      *
      * @param array{payment: PaymentDataObjectInterface, amount: float} $commandSubject
      * @throws Exception

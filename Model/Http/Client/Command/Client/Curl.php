@@ -52,6 +52,7 @@ class Curl extends CurlCore
      */
     protected function makeRequest($method, $uri, $params = [])
     {
+        // phpcs:disable Magento2.Functions.DiscouragedFunction.Discouraged
         $this->_ch = curl_init();
         $this->curlOption(CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS | CURLPROTO_FTP | CURLPROTO_FTPS);
         $this->curlOption(CURLOPT_URL, $uri);
@@ -103,5 +104,6 @@ class Curl extends CurlCore
 
         $this->_responseStatus = $httpCode;
         curl_close($this->_ch);
+        // phpcs:enable Magento2.Functions.DiscouragedFunction.Discouraged
     }
 }

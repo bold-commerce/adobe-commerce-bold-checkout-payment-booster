@@ -28,7 +28,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vendor
-        key: ${{ runner.os }}-php
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
 
     - name: add magento credsentials
       run: composer config --global http-basic.repo.magento.com ${{ secrets.COMPOSER_MAGENTO_USERNAME }} ${{ secrets.COMPOSER_MAGENTO_PASSWORD }}
@@ -49,7 +49,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vendor
-        key: ${{ runner.os }}-php
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
 
     - name: Setup PHP 8.1
       uses: shivammathur/setup-php@v2
@@ -61,7 +61,7 @@ jobs:
 
     - name: Check syntax
       run: vendor/bin/parallel-lint --checkstyle --exclude .git --exclude vendor .  | cs2pr
-    
+
   run-phpcs:
     needs: run-parallel-lint
     runs-on: ubuntu-latest
@@ -75,7 +75,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vendor
-        key: ${{ runner.os }}-php
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
 
     - name: Setup PHP 8.1
       uses: shivammathur/setup-php@v2
@@ -101,7 +101,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vendor
-        key: ${{ runner.os }}-php
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.json') }}
 
     - name: Setup PHP 8.1
       uses: shivammathur/setup-php@v2

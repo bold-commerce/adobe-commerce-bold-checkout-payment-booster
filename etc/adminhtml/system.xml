@@ -100,9 +100,17 @@
                     <comment><![CDATA[Bold static EPS URL. Do not change.]]></comment>
                 </field>
                 <field id="log_enabled" translate="label" type="select" sortOrder="50" showInWebsite="1">
-                    <label>Enable Bold Checkout Requests Log</label>
+                    <label>Enable Bold Checkout Requests Logs</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>
+                    <comment><![CDATA[ Enable Bold Checkout request logs to help with debugging. ]]></comment>
+                </field>
+                <field id="export_button" translate="label" type="text" sortOrder="50" showInWebsite="1">
+                    <label>Export Log</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\ExportLogButton</frontend_model>
+                    <comment><![CDATA[ Export the bold_checkout_payment_booster.log file, located at var/log.]]></comment>
+                    <depends>
+                        <field id="log_enabled">1</field>
+                    </depends>
                 </field>
                 <group id="digital_wallets_quote_cleanup" translate="label" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Digital Wallets Quote Cleanup</label>

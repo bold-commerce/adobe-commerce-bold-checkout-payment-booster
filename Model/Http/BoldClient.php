@@ -107,7 +107,7 @@ class BoldClient implements ClientInterface
      */
     public function post(int $websiteId, string $path, array $data): ResultInterface
     {
-        $path = $this->getUrl($websiteId, $path);
+        //$path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
         return $this->postCommand->execute($websiteId, $path, $headers, $data);
     }

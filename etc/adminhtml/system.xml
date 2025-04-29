@@ -2,6 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="checkout">
+            <group id="bold_checkout_payment_booster_migration" translate="label" sortOrder="-100" showInWebsite="1">
+                <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\MigrationBanner</frontend_model>
+            </group>
             <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="-100" showInWebsite="1">
                 <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\OnboardBanner</frontend_model>
             </group>

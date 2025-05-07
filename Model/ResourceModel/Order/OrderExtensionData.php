@@ -19,8 +19,6 @@ class OrderExtensionData extends AbstractDb
     public const IS_REFUND_IN_PROGRESS = 'is_refund_in_progress';
     public const IS_CANCEL_IN_PROGRESS = 'is_cancel_in_progress';
 
-
-
     /**
      * @inheritDoc
      */

@@ -33,7 +33,17 @@ class Authorize
      *
      * @param string $publicOrderId
      * @param int $websiteId
-     * @return array
+     * @return array{
+     *     data: array{
+     *         transactions: array{
+     *             transaction_id: string,
+     *             tender_details: array{
+     *                 account: string,
+     *                 email: string
+     *             }
+     *         }[]
+     *     }
+     * }
      * @throws LocalizedException
      */
     public function execute(string $publicOrderId, int $websiteId): array

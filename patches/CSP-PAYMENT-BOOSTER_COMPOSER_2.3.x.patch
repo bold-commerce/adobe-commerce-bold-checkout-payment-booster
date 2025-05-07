@@ -1,6 +1,6 @@
-diff --git a/app/code/Bold/CheckoutPaymentBooster/etc/csp_whitelist.xml b/etc/csp_whitelist.xml
---- a/app/code/Bold/CheckoutPaymentBooster/etc/csp_whitelist.xml	(revision f940d81da5d45eb97f6bc377bf81a2e0a9d1ddab)
-+++ b/app/code/Bold/CheckoutPaymentBooster/etc/csp_whitelist.xml	(date 1738941437008)
+diff --git a/vendor/bold-commerce/module-checkout-payment-booster/etc/csp_whitelist.xml b/vendor/bold-commerce/module-checkout-payment-booster/etc/csp_whitelist.xml
+--- a/vendor/bold-commerce/module-checkout-payment-booster/etc/csp_whitelist.xml	(revision f940d81da5d45eb97f6bc377bf81a2e0a9d1ddab)
++++ b/vendor/bold-commerce/module-checkout-payment-booster/etc/csp_whitelist.xml	(date 1738941437008)
 @@ -34,7 +34,8 @@
                  <value id="bold_local" type="host">*.bold.ninja</value>
                  <value id="bold_applepay_script" type="host">*.cdn-apple.com</value>

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Http\Client\Command;
@@ -35,7 +36,7 @@ class PostCommand
     private $json;
 
     /**
-     * @param ResultInterfaceFactory $resultFactory
+     * @param ResultInterfaceFactory $responseFactory
      * @param ClientInterface $client
      * @param Json $json
      * @param RequestsLogger $logger
@@ -57,15 +58,15 @@ class PostCommand
      *
      * @param int $websiteId
      * @param string $url
-     * @param array $headers
-     * @param array $data
+     * @param array<string, string> $headers
+     * @param mixed[] $data
      * @return ResultInterface
      */
     public function execute(int $websiteId, string $url, array $headers, array $data): ResultInterface
     {
         $this->logger->logRequest($websiteId, $url, 'POST', $data);
         $this->client->setHeaders($headers);
-        $this->client->post($url, $this->json->serialize($data));
+        $this->client->post($url, (string)$this->json->serialize($data));
         $this->logger->logResponse($websiteId, $this->client);
         return $this->responseFactory->create(
             [

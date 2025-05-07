@@ -35,9 +35,11 @@ define([
 
     const AGREEMENT_VALIDITY_DURATION = 5 * 60 * 1000;
     const AGREEMENT_DATE_KEY = 'checkoutAcceptedAgreementDate';
+    const PAYMENT_FAILED_MESSAGE = 'Payment failed. Please try again or select a different payment method';
 
     const validateAgreements = () => {
-        if (!window.location.href.includes("#payment")) {
+        if ((!window.location.href.includes("#payment")) &&
+            (!window.location.href.includes("#shipping"))) {
             return true;
         }
         if (!additionalValidators.validate()) {
@@ -102,7 +104,8 @@ define([
         initialize: function () {
             this._super(); //call Magento_Checkout/js/view/payment/default::initialize()
             this.isVisible.subscribe((isVisible) => {
-                if (isVisible) {
+                if (isVisible && typeof window.boldSpiRendered === 'undefined') {
+                    window.boldSpiRendered = true;
                     this.subscribeToSpiEvents();
                     this.initPaymentForm();
                     this.removeFullScreenLoaderOnError();
@@ -177,7 +180,8 @@ define([
                 this.isVisible(false);
             }
 
-            if (window?.boldPaymentsInstance?.state?.paypal?.ppcpCredentials?.credentials?.standard_payments) {
+            const isPlaceOrderButtonNotVisible = paymentsInstance.paymentGateways?.every((paymentGateway) => paymentGateway.gateway_services.credit_card_form === false);
+            if (isPlaceOrderButtonNotVisible) {
                 this.isPlaceOrderButtonVisible(false);
             }
         },
@@ -240,6 +244,8 @@ define([
         tokenize: function () {
             const iframeWindow = document.getElementById('spi_frame_SPI')?.contentWindow;
             if (!iframeWindow) {
+                fullscreenLoader.stopLoader();
+                messageList.addErrorMessage({message: $t(PAYMENT_FAILED_MESSAGE)});
                 return;
             }
             const billingAddress = quote.billingAddress();
@@ -307,16 +313,15 @@ define([
                         }
                         if (paymentId === undefined && data.payload?.success === false) {
                             // Error message for empty or invalid CC details, temporary fix until CHK-7079 is resolved
-                            messageList.addErrorMessage({message: $t('Payment failed. Please try again or select a different payment method in the "Pay With" section.')});
+                            messageList.addErrorMessage({message: $t(PAYMENT_FAILED_MESSAGE)});
+                            fullscreenLoader.stopLoader();
                         }
+                        break;
                     case 'EVENT_SPI_TOKENIZE_FAILED':
                         this.paymentId(null);
-                        console.log('Failed to tokenize');
-                        fullscreenLoader.stopLoader();
                         this.isSpiLoading(false);
-                        break;
-                    case 'EVENT_SPI_PAYMENT_ORDER_SCA':
                         fullscreenLoader.stopLoader();
+                        console.log('Failed to tokenize');
                         break;
                     case 'EVENT_SPI_ENABLE_FULLSCREEN':
                         fullscreenLoader.stopLoader();

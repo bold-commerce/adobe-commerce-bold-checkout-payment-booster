@@ -5,21 +5,44 @@
   "license": [
     "MIT"
   ],
-  "version": "2.4.2",
+  "version": "2.5.6",
   "require": {
+    "php": "^7.2 || ^8.0",
+    "ext-curl": "*",
+    "ext-intl": "*",
+    "ext-json": "*",
+    "ext-pcre": "*",
+    "psr/log": "^1.0 || ^2.0 || ^3.0",
     "magento/framework": ">=102.0.1 <103.0.8",
+    "magento/module-backend": ">=101.0.1 <102.0.8",
+    "magento/module-catalog": ">=103.0.1 <104.0.8",
     "magento/module-checkout": ">=100.3.1 <100.4.8",
+    "magento/module-checkout-agreements": ">=100.3.1 <100.4.8",
+    "magento/module-config":">=101.1.1 <101.2.8",
+    "magento/module-cron":">=100.3.1 <100.4.8",
     "magento/module-customer": ">=102.0.1 <103.0.8",
-    "magento/module-page-cache": ">=100.3.1 <100.4.8",
+    "magento/module-directory": ">=100.3.1 <100.4.8",
     "magento/module-payment": ">=100.3.1 <100.4.8",
     "magento/module-quote": ">=101.1.1 <101.2.8",
+    "magento/module-sales": ">=102.0.1 <103.0.8",
     "magento/module-store": ">=101.0.1 <101.1.8"
   },
   "require-dev": {
-    "dms/phpunit-arraysubset-asserts": "*"
+    "dms/phpunit-arraysubset-asserts": "*",
+    "bitexpert/phpstan-magento": "^v0.32",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+    "magento/magento-coding-standard": ">=36",
+    "php-parallel-lint/php-parallel-lint": "^1.4",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan": "^1.12",
+    "phpunit/phpunit": "^9.6",
+    "squizlabs/php_codesniffer": "^3.10"
   },
   "replace": {
     "bold-commerce/module-checkout":"*"
+  },
+  "suggest": {
+    "colinodell/psr-testlogger": "For asserting that messages are logged correctly during testing"
   },
   "autoload": {
     "files": [
@@ -28,5 +51,18 @@
     "psr-4": {
       "Bold\\CheckoutPaymentBooster\\": ""
     }
-  }
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "magento/composer-dependency-version-audit-plugin": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://repo.magento.com/"
+    }
+  ]
 }

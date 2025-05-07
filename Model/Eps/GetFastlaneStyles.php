@@ -37,12 +37,13 @@ class GetFastlaneStyles
      *
      * @param int $websiteId
      * @param string $baseUrl
-     * @return array
+     * @return array{privacy: "yes"|"no", input: string[], root: string[]}
      */
     public function getStyles(int $websiteId, string $baseUrl): array
     {
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             $configurationGroupLabel = parse_url($baseUrl)['host'] ?? '';
         }
 

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
     <route url="/V1/express_pay/order/create" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface" method="execute"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
     <route url="/V1/express_pay/order/mine/create" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface" method="execute"/>
         <resources>
             <resource ref="self"/>
         </resources>
@@ -16,13 +16,13 @@
         </data>
     </route>
     <route url="/V1/express_pay/order/update" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\UpdateInterface" method="execute"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
     <route url="/V1/express_pay/order/mine/update" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\UpdateInterface" method="execute"/>
         <resources>
             <resource ref="self"/>
         </resources>
@@ -31,30 +31,15 @@
         </data>
     </route>
     <route url="/V1/express_pay/order/get" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface" method="execute"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
     <route url="/V1/express_pay/order/mine/get" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get" method="execute"/>
+        <service class="Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface" method="execute"/>
         <resources>
             <resource ref="self"/>
-        </resources>
-        <data>
-            <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>
-        </data>
-    </route>
-    <route url="/V1/express_pay/callback/on_approve" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Callback\OnApprove" method="execute" />
-        <resources>
-            <resource ref="anonymous" />
-        </resources>
-    </route>
-    <route url="/V1/express_pay/callback/mine/on_approve" method="POST">
-        <service class="Bold\CheckoutPaymentBooster\Service\ExpressPay\Callback\OnApprove" method="execute" />
-        <resources>
-            <resource ref="self" />
         </resources>
         <data>
             <parameter name="quoteMaskId" force="true">%quote_mask_id%</parameter>

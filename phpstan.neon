@@ -1,0 +1,15 @@
+includes:
+	- phpstan-baseline.neon
+parameters:
+	level: 7
+	fileExtensions:
+		- php
+		- phtml
+	paths:
+		- .
+	excludePaths:
+		- integration-pipeline-test
+		- vendor/*/
+		- Test
+	treatPhpDocTypesAsCertain: false
+	reportUnmatchedIgnoredErrors: false

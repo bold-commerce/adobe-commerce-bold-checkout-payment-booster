@@ -37,7 +37,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function get($id): MagentoQuoteBoldOrderInterface
     {
-        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
 
         $this->resourceModel->load($magentoQuoteBoldOrder, $id);
@@ -53,7 +53,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function getByQuoteId($quoteId): MagentoQuoteBoldOrderInterface
     {
-        /** @var MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder */
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
 
         $this->resourceModel->load($magentoQuoteBoldOrder, $quoteId, 'quote_id');
@@ -61,6 +61,22 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
         if ($magentoQuoteBoldOrder->getId() === null) {
             throw new NoSuchEntityException(
                 __('Magento Quote to Bold Order link with quote identifier "%1" does not exist.', $quoteId)
+            );
+        }
+
+        return $magentoQuoteBoldOrder;
+    }
+
+    public function getByBoldOrderId(string $boldOrderId): MagentoQuoteBoldOrderInterface
+    {
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
+        $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
+
+        $this->resourceModel->load($magentoQuoteBoldOrder, $boldOrderId, 'bold_order_id');
+
+        if ($magentoQuoteBoldOrder->getId() === null) {
+            throw new NoSuchEntityException(
+                __('Magento Quote to Bold Order link with Bold order identifier "%1" does not exist.', $boldOrderId)
             );
         }
 
@@ -94,6 +110,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
     public function deleteById($magentoQuoteBoldOrderId): void
     {
+        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
         $magentoQuoteBoldOrder = $this->get($magentoQuoteBoldOrderId);
 
         $this->delete($magentoQuoteBoldOrder);

@@ -63,7 +63,7 @@ define([
             try {
                 if (!this.gatewayData) {
                     boldPaymentsInstance.state = {options: {fastlane: this.isAvailable()}};
-                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.gatewayId] || null;
+                    this.gatewayData = (await boldPaymentsInstance.getFastlaneClientInit())[window.checkoutConfig.bold.paymentGatewayId] || null;
                 }
                 if (!this.gatewayData) {
                     window.boldFastlaneInstanceCreateInProgress = false;
@@ -134,8 +134,11 @@ define([
          * @return {Promise<void>}
          */
         buildPPCPFastlaneInstance: async function (gatewayData) {
-            await loadScriptAction('bold_ppcp_fastlane_hosted_fields', 'braintree.hostedFields');
-            await loadScriptAction('bold_ppcp_fastlane_client', 'braintree.client');
+            const hostedFields = await loadScriptAction('bold_ppcp_fastlane_hosted_fields', 'braintree.hostedFields');
+            const client = await loadScriptAction('bold_ppcp_fastlane_client', 'braintree.client');
+            if (!window.braintree.version) {
+                window.braintree.version = client.VERSION;
+            }
             let debugMode = '';
             if (gatewayData.is_test_mode) {
                 debugMode = '&debug=true';

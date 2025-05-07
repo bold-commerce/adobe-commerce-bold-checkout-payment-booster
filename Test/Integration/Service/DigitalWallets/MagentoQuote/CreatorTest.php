@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpLanguageLevelInspection */
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\DigitalWallets\MagentoQuote;
@@ -57,18 +55,29 @@ class CreatorTest extends TestCase
         $magentoQuoteCreator = $objectManager->create(Creator::class);
 
         foreach ($product->getOptions() ?? [] as $productOption) {
-            $productOptions[$productOption->getOptionId()] = match ($productOption->getType()) {
-                'field' => 'test',
-                'date_time' => [
-                    'day' => $dateTime->format('d'),
-                    'month' => $dateTime->format('m'),
-                    'year' => $dateTime->format('Y'),
-                    'hour' => $dateTime->format('H'),
-                    'minute' => $dateTime->format('i'),
-                ],
-                'drop_down', 'radio' => array_rand($productOption->getValues() ?? []),
-                default => throw new Exception('Unsupported product option type "' . $productOption->getType() . '"')
-            };
+            switch ($productOption->getType()) {
+                case 'field':
+                    $productOptions[$productOption->getOptionId()] = 'test';
+
+                    break;
+                case 'date_time':
+                    $productOptions[$productOption->getOptionId()] = [
+                        'day' => $dateTime->format('d'),
+                        'month' => $dateTime->format('m'),
+                        'year' => $dateTime->format('Y'),
+                        'hour' => $dateTime->format('H'),
+                        'minute' => $dateTime->format('i'),
+                    ];
+
+                    break;
+                case 'drop_down':
+                case 'radio':
+                    $productOptions[$productOption->getOptionId()] = array_rand($productOption->getValues() ?? []);
+
+                    break;
+                default:
+                    throw new Exception('Unsupported product option type "' . $productOption->getType() . '"');
+            }
         }
 
         $productRequestData['options'] = $productOptions;
@@ -102,7 +111,6 @@ class CreatorTest extends TestCase
         $productRequestData = [
             'product' => $product->getId(),
             'super_attribute' => [
-                // @phpstan-ignore-next-line
                 $productOption->getAttributeId() => $productOption
                     ->getValues()[0]
                     ->getValueIndex()

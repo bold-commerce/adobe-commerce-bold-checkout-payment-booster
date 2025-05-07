@@ -9,6 +9,7 @@ use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
 use Exception;
 use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 
 /**
  * Init Bold order from quote.
@@ -58,8 +59,33 @@ class InitOrderFromQuote
     /**
      * Initialize order from quote.
      *
-     * @param CartInterface $quote
-     * @return array
+     * @param CartInterface&Quote $quote
+     * @return array{
+     *     data: array{
+     *         flow_settings: array{
+     *             eps_auth_token: string,
+     *             eps_gateway_id: string,
+     *             eps_gateway_type: string,
+     *             flow_id: string,
+     *             flow_type: string,
+     *             is_test_mode: bool,
+     *             fastlane_styles: array{
+     *                 privacy: "yes"|"no",
+     *                 input: string[],
+     *                 root: string[]
+     *             }
+     *         },
+     *         jwt_token: string,
+     *         payment_gateways: array{
+     *             auth_token: string,
+     *             currency: string,
+     *             gateway: string,
+     *             id: int,
+     *             is_test_mode: bool
+     *         }[],
+     *         public_order_id: string
+     *     }
+     * }
      * @throws Exception
      */
     public function init(CartInterface $quote): array

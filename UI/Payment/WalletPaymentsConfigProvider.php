@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\UI\Payment;
@@ -13,6 +14,7 @@ class WalletPaymentsConfigProvider implements ConfigProviderInterface
 {
     /**
      * @inheirtDoc
+     * @phpstan-return array{bold: array{walletPayments: array{payment: array{method: string}}}}
      */
     public function getConfig(): array
     {

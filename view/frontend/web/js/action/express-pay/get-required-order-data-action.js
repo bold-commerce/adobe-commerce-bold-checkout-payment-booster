@@ -62,6 +62,34 @@ define(
             ];
         }
 
+        function getProductTotalsData() {
+            const productTotal = getProductItemData().pop()?.amount ?? 0;
+
+            return {
+                order_total: productTotal,
+                order_balance: productTotal,
+                shipping_total: 0,
+                discounts_total: 0,
+                fees_total: 0,
+                taxes_total: 0,
+            }
+
+        }
+
+        function getQuoteTotalsData() {
+            const totals = quote.getTotals();
+            const order_balance = parseFloat(totals()['grand_total'] || 0) * 100;
+
+            return {
+                order_total: parseFloat(totals()['grand_total'] || 0) * 100,
+                order_balance,
+                shipping_total: parseFloat(totals()['shipping_amount'] || 0) * 100,
+                discounts_total: parseFloat(totals()['discount_amount'] || 0) * 100,
+                fees_total: parseFloat(totals()['fee_amount'] || 0) * 100,
+                taxes_total: parseFloat(totals()['tax_amount'] || 0) * 100,
+            };
+        }
+
         /**
          * Get required order data for express pay.
          *
@@ -85,19 +113,20 @@ define(
                         break;
                     case 'items':
                         let quoteItems = quote.getItems() ?? [];
+                        let requiredQuoteItems;
 
                         if ($('body').hasClass('catalog-product-view') && quoteItems.length === 0) {
-                            quoteItems = getProductItemData();
+                            requiredQuoteItems = getProductItemData();
                         }
 
                         if (quoteItems.length > 0) {
-                            quoteItems = quote.getItems().map(item => ({
+                            requiredQuoteItems = quoteItems.map(item => ({
                                 amount: parseInt(parseFloat(item.base_price) * 100),
                                 label: item.name
                             }));
                         }
 
-                        payload[requirement] = quoteItems;
+                        payload[requirement] = requiredQuoteItems;
 
                         break;
                     case 'billing_address':
@@ -118,19 +147,13 @@ define(
                         }));
                         break;
                     case 'totals':
-                        const totals = quote.getTotals();
-                        const order_balance = window.checkoutConfig.bold.isTaxIncludedInPrices ?
-                            parseFloat(totals()['grand_total'] + totals()['tax_amount'] || 0) * 100 :
-                            parseFloat(totals()['grand_total'] || 0) * 100;
+                        // if on product page and active quote is not bold quote
+                        if ($('body').hasClass('catalog-product-view') && !window.checkoutConfig.quoteData?.extension_attributes?.bold_order_id) {
+                            payload[requirement] = getProductTotalsData();
+                        } else {
+                            payload[requirement] = getQuoteTotalsData();
+                        }
 
-                        payload[requirement] = {
-                            order_total: parseFloat(totals()['grand_total'] || 0) * 100,
-                            order_balance,
-                            shipping_total: parseFloat(totals()['shipping_amount'] || 0) * 100,
-                            discounts_total: parseFloat(totals()['discount_amount'] || 0) * 100,
-                            fees_total: parseFloat(totals()['fee_amount'] || 0) * 100,
-                            taxes_total: parseFloat(totals()['tax_amount'] || 0) * 100,
-                        };
                         break;
                 }
             }

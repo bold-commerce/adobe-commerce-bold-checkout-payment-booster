@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
@@ -23,16 +24,13 @@ use function is_array;
 use function is_numeric;
 use function strlen;
 
-/**
- * @api
- */
-class Create
+class Create implements CreateInterface
 {
     /**
      * @var MaskedQuoteIdToQuoteIdInterface
      */
     private $maskedQuoteIdToQuoteId;
-    
+
     /**
      * @var CartRepositoryInterface
      */
@@ -67,15 +65,7 @@ class Create
         $this->checkoutSession = $checkoutSession;
     }
 
-    /**
-     * @param string|int $quoteMaskId
-     * @param string $gatewayId
-     * @param string $shippingStrategy
-     * @return array
-     * @phpstan-return array{order_id: string}
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function execute($quoteMaskId, $gatewayId, $shippingStrategy): array
+    public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -94,7 +84,9 @@ class Create
                 /** @var Quote $quote */
                 $quote = $this->cartRepository->get((int)$quoteId);
             } catch (NoSuchEntityException $noSuchEntityException) {
-                throw new LocalizedException(__('Could not create Express Pay order. Invalid quote ID "%1".', $quoteId));
+                throw new LocalizedException(
+                    __('Could not create Express Pay order. Invalid quote ID "%1".', $quoteId)
+                );
             }
         } else {
             try {
@@ -118,6 +110,7 @@ class Create
 
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
         $expressPayData['shipping_strategy'] = $shippingStrategy;
+        $expressPayData['public_order_id'] = $publicOrderId;
 
         try {
             $result = $this->httpClient->post($websiteId, $uri, $expressPayData);

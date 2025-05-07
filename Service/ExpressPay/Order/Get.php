@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\Order\AddressInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\GetInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
@@ -18,10 +19,7 @@ use function array_key_exists;
 use function implode;
 use function is_array;
 
-/**
- * @api
- */
-class Get
+class Get implements GetInterface
 {
     /**
      * @var StoreManagerInterface
@@ -52,12 +50,6 @@ class Get
         $this->addressFactory = $addressFactory;
     }
 
-    /**
-     * @param string $orderId
-     * @param string $gatewayId
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
     public function execute($orderId, $gatewayId): OrderInterface
     {
         $websiteId = (int)$this->storeManager->getStore()->getWebsiteId();

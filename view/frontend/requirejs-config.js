@@ -7,6 +7,15 @@ let config = {
             'Magento_Checkout/js/model/step-navigator': {
                 'Bold_CheckoutPaymentBooster/js/model/step-navigator-mixin': true
             },
+            'Magento_Checkout/js/model/customer-email-validator': {
+                'Bold_CheckoutPaymentBooster/js/model/customer-email-validator-mixin': true
+            },
+            'Magento_Checkout/js/view/payment/default': {
+                'Bold_CheckoutPaymentBooster/js/mixin/payment-default-mixin': true
+            },
+            'Magento_CheckoutAgreements/js/model/agreements-assigner': {
+                'Bold_CheckoutPaymentBooster/js/model/agreements-assigner-mixin': true
+            }
         },
     },
     paths: {
@@ -16,12 +25,12 @@ let config = {
         bold_braintree_paypal_checkout: 'https://js.braintreegateway.com/web/3.106.0/js/paypal-checkout.min',
         bold_google_pay: 'https://pay.google.com/gp/p/js/pay',
         bold_apple_pay: 'https://js.braintreegateway.com/web/3.106.0/js/apple-pay.min',
-        bold_braintree_fastlane_client: 'https://js.braintreegateway.com/web/3.107.1/js/client.min',
-        bold_braintree_fastlane: 'https://js.braintreegateway.com/web/3.107.1/js/fastlane',
-        bold_braintree_fastlane_data_collector: 'https://js.braintreegateway.com/web/3.107.1/js/data-collector.min',
-        bold_braintree_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.107.1/js/hosted-fields.min',
-        bold_ppcp_fastlane_client: 'https://js.braintreegateway.com/web/3.107.1/js/client.min',
-        bold_ppcp_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.107.1/js/hosted-fields.min',
+        bold_braintree_fastlane_client: 'https://js.braintreegateway.com/web/3.116.2/js/client.min',
+        bold_braintree_fastlane: 'https://js.braintreegateway.com/web/3.116.2/js/fastlane',
+        bold_braintree_fastlane_data_collector: 'https://js.braintreegateway.com/web/3.116.2/js/data-collector.min',
+        bold_braintree_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.116.2/js/hosted-fields.min',
+        bold_ppcp_fastlane_client: 'https://js.braintreegateway.com/web/3.116.2/js/client.min',
+        bold_ppcp_fastlane_hosted_fields: 'https://js.braintreegateway.com/web/3.116.2/js/hosted-fields.min',
         'fastlane/axo': 'https://www.paypalobjects.com/connect-boba/axo',
         'fastlane/axo.min': 'https://www.paypalobjects.com/connect-boba/axo.min'
     },

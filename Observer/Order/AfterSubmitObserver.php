@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
@@ -84,15 +85,24 @@ class AfterSubmitObserver implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        $publicOrderId = $this->checkoutData->getPublicOrderId();
+
+        if ($publicOrderId !== null) {
+            $this->checkoutData->resetCheckoutData();
+        }
+
         $order = $observer->getEvent()->getOrder();
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
-            $this->checkoutData->resetCheckoutData();
             return;
         }
         $orderId = (int)$order->getEntityId();
         $orderExtensionData = $this->orderExtensionDataFactory->create();
         $orderExtensionData->setOrderId($orderId);
-        $orderExtensionData->setPublicId($this->checkoutData->getPublicOrderId());
+
+        if ($publicOrderId !== null) {
+            $orderExtensionData->setPublicId($publicOrderId);
+        }
+
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);
         } catch (Exception $e) {
@@ -100,6 +110,5 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
         $this->setCompleteState->execute($order);
-        $this->checkoutData->resetCheckoutData();
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
@@ -140,7 +141,7 @@ class CheckoutData
     /**
      * Get Fastlane styles from checkout session.
      *
-     * @return array
+     * @return array{privacy: "yes"|"no", input: string[], root: string[]}
      */
     public function getFastlaneStyles(): array
     {
@@ -171,13 +172,24 @@ class CheckoutData
     }
 
     /**
-     * Get EPS gateway ID from checkout session.
+     * Get Payment Gateway ID from the flow in the checkout session.
      *
      * @return int|null
      */
-    public function getEpsGatewayId(): ?int
+    public function getPaymentGatewayId(): ?int
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
         return $checkoutData['data']['flow_settings']['eps_gateway_id'] ?? null;
+    }
+
+    /**
+     * Get EPS payment gateways from checkout session.
+     *
+     * @return array{auth_token: string, currency: string, gateway: string, id: int, is_test_mode: bool}[]
+     */
+    public function getPaymentGateways(): array
+    {
+        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        return $checkoutData['data']['payment_gateways'] ?? [];
     }
 }

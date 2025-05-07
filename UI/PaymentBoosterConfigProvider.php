@@ -163,7 +163,6 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             'bold' => [
                 'epsAuthToken' => $epsAuthToken,
                 'configurationGroupLabel' => $configurationGroupLabel,
-                'epsUrl' => $this->config->getEpsUrl($websiteId),
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'gatewayId' => $epsGatewayId,
                 'jwtToken' => $jwtToken,

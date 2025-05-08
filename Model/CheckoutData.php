@@ -193,6 +193,11 @@ class CheckoutData
         return $checkoutData['data']['payment_gateways'] ?? [];
     }
 
+    /**
+     * Get Checkout should_vault setting (indicating whether vaulting is enabled for the shop) from checkout session.
+     *
+     * @return bool
+     */
     public function getShouldVault(): bool
     {
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();

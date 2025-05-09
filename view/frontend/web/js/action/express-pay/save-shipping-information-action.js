@@ -25,7 +25,6 @@ define(
          */
         return async function (saveBillingAddress = false) {
             let promise = $.Deferred();
-
             let payload;
             payload = {
                 addressInformation: {
@@ -36,6 +35,10 @@ define(
             };
             if (saveBillingAddress) {
                 payload.addressInformation.billing_address = quote.billingAddress();
+            }
+            //set country code if virtual quote
+            if (quote.isVirtual() && !quote.shippingAddress().countryId) {
+                payload.addressInformation.shipping_address.countryId = payload.addressInformation.billing_address.countryId
             }
             payloadExtender(payload);
             storage.post(

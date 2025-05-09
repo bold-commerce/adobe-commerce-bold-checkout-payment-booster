@@ -11,6 +11,7 @@ use Magento\Framework\View\Element\Template;
 $expressPayViewModel = $block->getData('express_pay_view_model');
 $isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
 $customerData = $expressPayViewModel->getCustomerData();
+$isVirtualQuote = $expressPayViewModel->isVirtualQuote();
 ?>
 <div id="express-pay-container-minicart" data-testid="express-pay-container-minicart">
     <div id="express-pay-buttons-minicart"></div>
@@ -32,7 +33,10 @@ $customerData = $expressPayViewModel->getCustomerData();
         window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
     }
 </script>
-
+<div id="express-pay-buttons-mini-cart"
+     data-container-id="express-pay-buttons-mini-cart"
+     data-page-source="mini-cart"
+     data-is-virtual="<?= (int) $isVirtualQuote ?>"></div>
 <script type="text/x-magento-init">
     {
         "#express-pay-container-minicart": {

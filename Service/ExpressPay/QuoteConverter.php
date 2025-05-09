@@ -12,6 +12,7 @@ use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Tax\Helper\Data as TaxHelper;
 
 use function array_filter;
 use function array_map;
@@ -39,6 +40,11 @@ class QuoteConverter
     private $scopeConfig;
 
     /**
+     * @var TaxHelper
+     */
+    private $taxHelper;
+
+    /**
      * @var Config
      */
     private $config;
@@ -48,10 +54,21 @@ class QuoteConverter
      */
     private $areTotalsCollected = false;
 
-    public function __construct(ScopeConfigInterface $scopeConfig, Config $config)
-    {
+    /**
+     * Constructor
+     *
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Config $config
+     * @param TaxHelper $taxHelper
+     */
+    public function __construct(
+        ScopeConfigInterface $scopeConfig,
+        Config $config,
+        TaxHelper $taxHelper
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->config = $config;
+        $this->taxHelper = $taxHelper;
     }
 
     /**
@@ -136,6 +153,8 @@ class QuoteConverter
     public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
     {
         $shippingAddress = $quote->getShippingAddress();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $isTaxIncludedInShipping = $this->config->isTaxIncludedInShipping($websiteId);
 
         if ($quote->getIsVirtual() || $shippingAddress->getId() === null) {
             return [];
@@ -175,16 +194,26 @@ class QuoteConverter
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {
             $convertedQuote['order_data']['shipping_options'] = array_map(
-                static function (Rate $rate) use ($currencyCode, $shippingAddress): array {
-                    $price = ($rate->getCode() === $shippingAddress->getShippingMethod())
-                        ? $shippingAddress->getShippingAmount() : $rate->getPrice();
+                function (Rate $rate) use ($currencyCode, $shippingAddress, $isTaxIncludedInShipping, $quote): array {
+                    $ratePrice = $rate->getPrice();
+
+                    $shippingPrice = $isTaxIncludedInShipping
+                        ? $ratePrice
+                        : $this->taxHelper->getShippingPrice(
+                            $ratePrice,
+                            true,
+                            $shippingAddress,
+                            null,
+                            $quote->getStore()
+                        );
+
                     return [
                         'id' => $rate->getCode(),
                         'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
                         'type' => 'SHIPPING',
                         'amount' => [
-                            'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$price, 2, '.', ''),
+                            'currency_code' => $currencyCode,
+                            'value' => number_format((float)$shippingPrice, 2, '.', ''),
                         ],
                     ];
                 },
@@ -214,13 +243,16 @@ class QuoteConverter
             && $shippingAddress->hasShippingMethod() // @phpstan-ignore method.notFound
             && $shippingAddress->getShippingMethod() !== ''
         ) {
+            $shippingPrice = !$isTaxIncludedInShipping ? $shippingAddress->getShippingInclTax() :
+                $shippingAddress->getShippingAmount();
+
             $convertedQuote['order_data']['selected_shipping_option'] = [
                 'id' => $shippingAddress->getShippingMethod(),
                 'label' => $shippingAddress->getShippingDescription() ?? $shippingAddress->getShippingMethod(),
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2, '.', ''),
+                    'value' => number_format((float)$shippingPrice, 2, '.', ''),
                 ],
             ];
         }
@@ -368,8 +400,11 @@ class QuoteConverter
                 ''
             );
         } else {
+            //Removing shipping tax since now is added to shipping rate
+            $tax = $quote->getShippingAddress()->getTaxAmount() - $quote->getShippingAddress()->getShippingTaxAmount();
+
             $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
+                (float)($tax ?? 0.00),
                 2,
                 '.',
                 ''

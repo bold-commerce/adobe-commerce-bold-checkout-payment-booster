@@ -257,7 +257,7 @@ define([
                 customer: {
                     first_name: billingAddress.firstname,
                     last_name: billingAddress.lastname,
-                    email: email,
+                    email_address: email,
                 },
                 billing_address: {
                     first_name: billingAddress.firstname,
@@ -324,10 +324,10 @@ define([
                         console.log('Failed to tokenize');
                         break;
                     case 'EVENT_SPI_ENABLE_FULLSCREEN':
-                        fullscreenLoader.startLoader();
+                        fullscreenLoader.stopLoader();
                         break;
                     case 'EVENT_SPI_DISABLE_FULLSCREEN':
-                        fullscreenLoader.stopLoader();
+                        fullscreenLoader.startLoader();
                         break;
                 }
             });

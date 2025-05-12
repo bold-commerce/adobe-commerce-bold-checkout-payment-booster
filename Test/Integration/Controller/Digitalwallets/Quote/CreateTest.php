@@ -82,13 +82,9 @@ class CreateTest extends AbstractController
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($productRepositoryStub, ProductRepository::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($quoteRepositoryStub, QuoteRepository::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($magentoQuoteCreatorStub, MagentoQuoteCreator::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($totalsRetrieverStub, TotalsRetriever::class);
 
         $request
@@ -187,9 +183,7 @@ class CreateTest extends AbstractController
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($productRepositoryStub, ProductRepository::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($magentoQuoteCreatorStub, MagentoQuoteCreator::class);
 
         $request
@@ -274,11 +268,8 @@ class CreateTest extends AbstractController
                 ],
             ]
         );
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($productRepositoryStub, ProductRepository::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($quoteRepositoryStub, QuoteRepository::class);
-        // @phpstan-ignore-next-line
         $objectManager->addSharedInstance($magentoQuoteCreatorStub, MagentoQuoteCreator::class);
 
         $request
@@ -303,7 +294,7 @@ class CreateTest extends AbstractController
     }
 
     /**
-     * @return array{string, array{string, string|int|null}}
+     * @return array<string, array<string, string|int|null>>
      */
     public function incorrectProductParameterDataProvider(): array
     {

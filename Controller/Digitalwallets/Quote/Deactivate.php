@@ -97,10 +97,12 @@ class Deactivate implements HttpPostActionInterface, CsrfAwareActionInterface
 
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        // @phpstan-ignore-next-line
         return !$request->isPost() || !$request->isXmlHttpRequest() || !$this->formKeyValidator->validate($request);
     }
 
+    /**
+     * @param mixed[] $data
+     */
     private function createResult(array $data, int $responseCode): ResultInterface
     {
         /** @var Json $result */

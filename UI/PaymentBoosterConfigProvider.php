@@ -15,7 +15,11 @@ use Magento\Directory\Model\ResourceModel\Country\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Escaper;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -56,7 +60,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $logger;
 
     /**
-     * @var array
+     * @var array<array{
+     *     value: string,
+     *     label: string,
+     *     is_region_required?: bool,
+     *     is_region_visible?: bool,
+     *     is_zipcode_optional?: bool
+     * }>
      */
     private $countries = [];
 
@@ -110,6 +120,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
     /**
      * @inheritdoc
+     * @phpstan-return mixed[]
      */
     public function getConfig(bool $fromQuote = true): array
     {
@@ -119,10 +130,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
             return [];
         }
 
+        /** @var StoreInterface&Store $store */
         $store = $this->storeManager->getStore();
 
         if ($fromQuote) {
+            /** @var CartInterface&Quote $quote */
             $quote = $this->checkoutData->getQuote();
+            /** @var StoreInterface&Store $store */
             $store = $quote->getStore();
         }
 
@@ -154,6 +168,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
         if (empty($configurationGroupLabel)) {
+            // phpcs:ignore Magento2.Functions.DiscouragedFunction.Discouraged
             $configurationGroupLabel = parse_url($shopUrl)['host'] ?? '';
         }
 
@@ -188,6 +203,9 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         ];
     }
 
+    /**
+     * @return mixed[]
+     */
     public function getConfigWithoutQuote(): array
     {
         $result = $this->getConfig(false);
@@ -216,7 +234,13 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     /**
      * Get allowed countries for Billing address mapping.
      *
-     * @return Country[]
+     * @return array<array{
+     *     value: string,
+     *     label: string,
+     *     is_region_required?: bool,
+     *     is_region_visible?: bool,
+     *     is_zipcode_optional?: bool
+     * }>
      */
     private function getAllowedCountries(): array
     {
@@ -233,18 +257,21 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         return $this->countries;
     }
 
-    private function getDefaultSuccessPageUrl()
+    private function getDefaultSuccessPageUrl(): string
     {
         return $this->urlBuilder->getUrl('checkout/onepage/success/');
     }
 
-    private function getShippingPolicy()
+    /**
+     * @return array{isEnabled: bool, shippingPolicyContent: string}
+     */
+    private function getShippingPolicy(): array
     {
-        $policyContent = $this->scopeConfig->getValue(
+        $policyContent = (string)$this->scopeConfig->getValue(
             'shipping/shipping_policy/shipping_policy_content',
             ScopeInterface::SCOPE_STORE
         );
-        $policyContent = $this->escaper->escapeHtml($policyContent);
+        $policyContent = (string)$this->escaper->escapeHtml($policyContent);
         $result = [
             'isEnabled' => $this->scopeConfig->isSetFlag(
                 'shipping/shipping_policy/enable_shipping_policy',

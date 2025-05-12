@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Quote;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Image\UrlBuilder;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -12,6 +14,8 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -61,14 +65,25 @@ class GetCartLineItems
     /**
      * Extract line items data.
      *
-     * @param CartInterface $quote
-     * @return array
+     * @param CartInterface&Quote $quote
+     * @return array<array{
+     *     id: int,
+     *     quantity: int,
+     *     title: string,
+     *     product_title: string,
+     *     weight: float,
+     *     taxable: bool,
+     *     image: string,
+     *     requires_shipping: bool,
+     *     line_item_key: string,
+     *     price: int
+     * }>
      * @throws LocalizedException
      */
     public function getItems(CartInterface $quote): array
     {
         $lineItems = [];
-        /** @var CartItemInterface $cartItem */
+        /** @var CartItemInterface&Item $cartItem */
         foreach ($quote->getAllVisibleItems() as $cartItem) {
             $lineItems[] = $this->getLineItem($cartItem);
         }
@@ -81,8 +96,19 @@ class GetCartLineItems
     /**
      * Extract quote item entity data into array.
      *
-     * @param CartItemInterface $item
-     * @return array
+     * @param CartItemInterface&Item $item
+     * @return array{
+     *     id: int,
+     *     quantity: int,
+     *     title: string,
+     *     product_title: string,
+     *     weight: float,
+     *     taxable: bool,
+     *     image: string,
+     *     requires_shipping: bool,
+     *     line_item_key: string,
+     *     price: int
+     * }
      */
     private function getLineItem(CartItemInterface $item): array
     {
@@ -103,7 +129,7 @@ class GetCartLineItems
     /**
      * Gets the product's name from the line item
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return string
      */
     private function getLineItemName(CartItemInterface $item): string
@@ -115,7 +141,7 @@ class GetCartLineItems
     /**
      * Gets the price of a line item
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return int
      */
     private function getLineItemPrice(CartItemInterface $item): int
@@ -127,7 +153,7 @@ class GetCartLineItems
     /**
      * Gets the weight of a line item in grams
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return float
      */
     private function getLineItemWeightInGrams(CartItemInterface $item): float
@@ -149,18 +175,20 @@ class GetCartLineItems
      * Gets the line item's image. Falls back to the parent item (If available) if the direct
      * item does not have an image
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return string
      */
     private function getLineItemImage(CartItemInterface $item): string
     {
         $baseUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
+        /** @var ProductInterface&Product $product */
         $product = $this->productRepository->getById($item->getProductId());
         if ($product->getImage() && $product->getImage() !== 'no_selection') {
             return $baseUrl . 'catalog/product' . $product->getImage();
         }
         // Attempting to get the parent product if there is one
         if ($item->getParentItem()) {
+            /** @var ProductInterface&Product $parentProduct */
             $parentProduct = $this->productRepository->getById($item->getParentItem()->getProductId());
             return $baseUrl . 'catalog/product' . $parentProduct->getImage();
         }
@@ -170,7 +198,7 @@ class GetCartLineItems
     /**
      * Get quote item quantity considering product type.
      *
-     * @param CartItemInterface $item
+     * @param CartItemInterface&Item $item
      * @return int
      */
     private function extractLineItemQuantity(CartItemInterface $item): int

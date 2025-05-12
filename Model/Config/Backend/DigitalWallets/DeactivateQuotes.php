@@ -88,7 +88,6 @@ class DeactivateQuotes extends Value
         }
 
         try {
-            // @phpstan-ignore-next-line
             $this->valueFactory->create()
                 ->load(self::CRON_EXPRESSION_PATH, 'path')
                 ->setValue($cronExpression)
@@ -107,7 +106,6 @@ class DeactivateQuotes extends Value
             return (int)$this->getFieldsetDataValue('occurrence');
         }
 
-        // @phpstan-ignore-next-line
         return (int)(
             $this ->_config->getValue(
                 'checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_occurrence'
@@ -121,7 +119,6 @@ class DeactivateQuotes extends Value
             return $this->getFieldsetDataValue('sequence');
         }
 
-        // @phpstan-ignore-next-line
         return (string)(
             $this ->_config->getValue(
                 'checkout/bold_checkout_payment_booster_advanced/digital_wallets_quote_cleanup_sequence'

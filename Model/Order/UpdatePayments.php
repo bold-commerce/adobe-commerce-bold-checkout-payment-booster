@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface;
@@ -18,10 +19,8 @@ use Magento\Framework\Exception\AuthorizationException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Model\Order;
 
-/**
- * Update payments.
- */
 class UpdatePayments implements UpdatePaymentsInterface
 {
     private const FINANCIAL_STATUS_PAID = 'paid';
@@ -118,6 +117,7 @@ class UpdatePayments implements UpdatePaymentsInterface
         if (!$orderExtensionData->getPublicId()) {
             throw new LocalizedException(__('Public Order ID does not match.'));
         }
+        /** @var OrderInterface&Order $order */
         $order = $this->orderRepository->get($platformOrderId);
         $this->processUpdate($order, $orderExtensionData, $financialStatus, $payments);
 
@@ -133,9 +133,10 @@ class UpdatePayments implements UpdatePaymentsInterface
     /**
      * Process update based on financial status.
      *
-     * @param OrderInterface $order
+     * @param OrderInterface&Order $order
      * @param OrderExtensionData $orderExtensionData
      * @param string $financialStatus
+     * @param PaymentInterface[] $payments
      * @return void
      * @throws LocalizedException
      * @throws AlreadyExistsException

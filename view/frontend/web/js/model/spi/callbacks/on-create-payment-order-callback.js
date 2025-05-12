@@ -28,7 +28,7 @@ define(
             const addressProvided = Boolean(paymentData['shipping_address'] || paymentData['billing_address']);
             const isSpiContainer = paymentPayload.containerId === 'SPI';
 
-            if (paymentType !== 'ppcp') {
+            if (paymentType !== 'ppcp' && paymentType !== 'nuvei') {
                 return;
             }
 

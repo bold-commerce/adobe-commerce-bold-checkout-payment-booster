@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
@@ -13,8 +14,12 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Order\Payment;
 
 /**
  * Authorize Bold payments before placing order.
@@ -89,6 +94,7 @@ class BeforePlaceObserver implements ObserverInterface
             return;
         }
         $quoteId = $order->getQuoteId();
+        /** @var CartInterface&Quote $quote */
         $quote = $this->cartRepository->get($quoteId);
         $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
@@ -101,7 +107,17 @@ class BeforePlaceObserver implements ObserverInterface
      * Add Bold transaction data to order payment.
      *
      * @param OrderInterface $order
-     * @param array $transactionData
+     * @param array{
+     *     data: array{
+     *         transactions: array<array{
+     *             transaction_id: string,
+     *             tender_details: array{
+     *                 account: string,
+     *                 email: string
+     *             }
+     *         }>
+     *     }
+     * } $transactionData
      * @return void
      */
     private function saveTransactionData(OrderInterface $order, array $transactionData)
@@ -110,12 +126,16 @@ class BeforePlaceObserver implements ObserverInterface
         if (!$transactionId) {
             return;
         }
-        $order->getPayment()->setTransactionId($transactionId);
-        $order->getPayment()->setIsTransactionClosed(0);
-        $order->getPayment()->addTransaction(TransactionInterface::TYPE_AUTH);
+
+        /** @var OrderPaymentInterface&Payment $orderPayment */
+        $orderPayment = $order->getPayment();
+
+        $orderPayment->setTransactionId($transactionId);
+        $orderPayment->setIsTransactionClosed(false);
+        $orderPayment->addTransaction(TransactionInterface::TYPE_AUTH);
         $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;
         if ($cardDetails) {
-            $order->getPayment()->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
+            $orderPayment->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
         }
     }
 }

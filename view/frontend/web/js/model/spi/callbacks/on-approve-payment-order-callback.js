@@ -8,6 +8,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-wallet-pay-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-stripe-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
         'Magento_Ui/js/model/messageList'
     ],
@@ -20,6 +21,7 @@ define(
         updateQuoteWalletPayAction,
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
+        updateQuoteStripeAction,
         saveShippingInformationAction,
         messageList
     ) {
@@ -58,6 +60,8 @@ define(
                 await updateQuoteWalletPayAction(paymentApprovalData, isSpiContainer);
             } else if (paymentType === 'ppcp') {
                 await updateQuotePPCPAction(paymentApprovalData, isSpiContainer);
+            } else if (paymentType === 'stripe') {
+                await updateQuoteStripeAction(paymentInformation, paymentApprovalData, isSpiContainer);
             } else {
                 await updateQuoteBraintreeAction(paymentInformation, paymentApprovalData, isSpiContainer);
             }

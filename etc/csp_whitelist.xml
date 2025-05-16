@@ -19,6 +19,8 @@
                 <value id="bold_static_eps_staging" type="host">static-eps.secure.staging.boldcommerce.com</value>
                 <value id="bold_local" type="host">*.bold.ninja</value>
                 <value id="bold_applepay" type="host">*.cdn-apple.com</value>
+                <value id="bold_nuvei_staging" type="host">ppp-test.safecharge.com</value>
+                <value id="bold_nuvei" type="host">secure.safecharge.com</value>
             </values>
         </policy>
         <policy id="script-src">
@@ -35,6 +37,7 @@
                 <value id="bold_applepay_script" type="host">*.cdn-apple.com</value>
                 <value id="bold_stripe" type="host">*.stripe.com</value>
                 <value id="bold_inline_script_hash" type="hash" algorithm="sha256">7nnKyr+RUZ9a44Hg3lYwjgkUx5VyFQwv2ZUhVw6N7J4=</value>
+                <value id="bold_nuvei" type="host">cdn.safecharge.com</value>
             </values>
         </policy>
         <policy id="frame-src">

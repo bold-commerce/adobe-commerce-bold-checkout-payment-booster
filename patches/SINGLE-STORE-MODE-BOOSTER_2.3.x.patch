@@ -1,0 +1,128 @@
+Index: etc/adminhtml/system.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/etc/adminhtml/system.xml b/etc/adminhtml/system.xml
+--- a/etc/adminhtml/system.xml	
++++ b/etc/adminhtml/system.xml	(date 1746490206260)
+@@ -2,12 +2,12 @@
+ <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+     <system>
+         <section id="checkout">
+-            <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="-100" showInWebsite="1">
++            <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="-100" showInDefault="1" showInWebsite="1" showInStore="1">
+                 <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\OnboardBanner</frontend_model>
+             </group>
+-            <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1" showInWebsite="1">
++            <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1"  showInWebsite="1" showInStore="1">
+                 <label>Bold Checkout Payment Booster Extension</label>
+-                <field id="api_token" translate="label" type="obscure" sortOrder="10" showInWebsite="1">
++                <field id="api_token" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>API Token</label>
+                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                     <validate>required-entry</validate>
+@@ -16,26 +16,26 @@
+                         ]]>
+                     </comment>
+                 </field>
+-                <field id="configuration_group_label" translate="label" type="text" sortOrder="15" showInWebsite="1">
++                <field id="configuration_group_label" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Configuration Group Label</label>
+                     <comment><![CDATA[
+                             Configuration group label used to communicate with the Bold Checkout EPS. If left empty, this will default to the store domain.
+                         ]]>
+                     </comment>
+                 </field>
+-                <field id="is_payment_booster_enabled" translate="label" type="select" sortOrder="20" showInWebsite="1">
++                <field id="is_payment_booster_enabled" translate="label" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Is Payment Booster Enabled</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[Use the native checkout with Bold Checkout's payment options.]]></comment>
+                 </field>
+-                <field id="payment_title" translate="label" type="text" sortOrder="40" showInWebsite="1">
++                <field id="payment_title" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Payment Title</label>
+                     <comment><![CDATA[Payment title that will be displayed on the checkout page.]]></comment>
+                     <depends>
+                         <field id="is_payment_booster_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="is_fastlane_enabled" translate="label" type="select" sortOrder="30" showInWebsite="1">
++                <field id="is_fastlane_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Is Fastlane Enabled</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[Use PayPal Fastlane Checkout.]]></comment>
+@@ -43,21 +43,21 @@
+                         <field id="is_payment_booster_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="fastlane_payment_title" translate="label" type="text" sortOrder="40" showInWebsite="1">
++                <field id="fastlane_payment_title" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Fastlane Payment Title</label>
+                     <comment><![CDATA[Payment title that will be displayed on the checkout page.]]></comment>
+                     <depends>
+                         <field id="is_fastlane_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="wallet_payment_title" translate="label" type="text" sortOrder="40" showInWebsite="1">
++                <field id="wallet_payment_title" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Digital Wallets Title</label>
+                     <comment><![CDATA[Title for the Digital Wallets category to display on the checkout page.]]></comment>
+                     <depends>
+                         <field id="is_payment_booster_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="is_express_pay_enabled" translate="label" type="select" sortOrder="50" showInWebsite="1">
++                <field id="is_express_pay_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Enable Digital Wallets in Express Checkout</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[Display Digital Wallets above the shipping step.]]></comment>
+@@ -65,7 +65,7 @@
+                         <field id="is_payment_booster_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="is_cart_wallet_pay_enabled" translate="label" type="select" sortOrder="60" showInWebsite="1">
++                <field id="is_cart_wallet_pay_enabled" translate="label" type="select" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Enable Digital Wallets on Cart Page</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[Display Digital Wallets on your cart page.]]></comment>
+@@ -73,7 +73,7 @@
+                         <field id="is_payment_booster_enabled">1</field>
+                     </depends>
+                 </field>
+-                <field id="is_product_wallet_pay_enabled" translate="label" type="select" sortOrder="70" showInWebsite="1">
++                <field id="is_product_wallet_pay_enabled" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Enable Digital Wallets on Product Pages</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[Display Digital Wallets on your product pages.]]></comment>
+@@ -82,24 +82,24 @@
+                     </depends>
+                 </field>
+             </group>
+-            <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
++            <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1"  showInWebsite="1" showInStore="1">
+                 <label>Bold Checkout Payment Booster Advanced Settings</label>
+-                <field id="api_url" translate="label" type="text" sortOrder="20" showInWebsite="1">
++                <field id="api_url" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>API URL</label>
+                     <validate>required-url</validate>
+                     <comment><![CDATA[Bold API URL. Do not change.]]></comment>
+                 </field>
+-                <field id="eps_url" translate="label" type="text" sortOrder="30" showInWebsite="1">
++                <field id="eps_url" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>EPS URL</label>
+                     <validate>required-url</validate>
+                     <comment><![CDATA[Bold EPS URL. Do not change.]]></comment>
+                 </field>
+-                <field id="static_eps_url" translate="label" type="text" sortOrder="40" showInWebsite="1">
++                <field id="static_eps_url" translate="label" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Static EPS URL</label>
+                     <validate>required-url</validate>
+                     <comment><![CDATA[Bold static EPS URL. Do not change.]]></comment>
+                 </field>
+-                <field id="log_enabled" translate="label" type="select" sortOrder="50" showInWebsite="1">
++                <field id="log_enabled" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                     <label>Enable Bold Checkout Requests Log</label>
+                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                     <comment><![CDATA[ Log Bold Checkout requests in var/log/bold_checkout_payment_booster.log for debugging purposes. ]]></comment>

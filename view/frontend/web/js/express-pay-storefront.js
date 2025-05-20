@@ -18,6 +18,33 @@ define([
 
         initialize: async function () {
             this._super();
+
+            if (this.pageSource === 'product-details') {
+                const container = document.querySelector('#express-pay-buttons-product-page-details');
+                if (container) {
+                    const isVirtualAttr = container.getAttribute('data-is-virtual');
+                    if (isVirtualAttr !== null) {
+                        window.checkoutConfig = window.checkoutConfig || {};
+                        window.checkoutConfig.product = {
+                            is_virtual: parseInt(isVirtualAttr)
+                        };
+                    }
+                }
+            }
+
+            if (this.pageSource === 'mini-cart') {
+                const container = document.querySelector('#express-pay-buttons-mini-cart');
+                if (container) {
+                    const isVirtualAttr = container.getAttribute('data-is-virtual');
+                    if (isVirtualAttr !== null) {
+                        window.checkoutConfig = window.checkoutConfig || {};
+                        window.checkoutConfig.quote = {
+                            is_virtual: parseInt(isVirtualAttr)
+                        };
+                    }
+                }
+            }
+
             console.log('Bold Express Payments initialized for ' + this.pageSource);
             await this._getCheckoutConfig();
             require(['Bold_CheckoutPaymentBooster/js/model/spi'], (spi) => {
@@ -80,6 +107,13 @@ define([
 
         _renderExpressPayments: async function (spi) {
             try {
+                let isVirtual = false;
+                if (this.pageSource === 'product-details') {
+                    isVirtual = window.checkoutConfig?.product?.is_virtual === 1;
+                } else {
+                    isVirtual = window.checkoutConfig?.quote?.is_virtual === 1;
+                }
+                const updateShipping = !isVirtual;
                 const boldPaymentsInstance = await spi.getPaymentsClient();
                 const allowedCountries = this._getAllowedCountryCodes();
                 const walletOptions = {
@@ -87,7 +121,8 @@ define([
                     isPhoneRequired: window.checkoutConfig.bold?.isPhoneRequired ?? true,
                     fastlane: window.checkoutConfig.bold?.fastlane,
                     allowedCountryCodes: allowedCountries,
-                    pageSource: this.pageSource
+                    pageSource: this.pageSource,
+                    updateShipping: updateShipping
                 };
 
                 boldPaymentsInstance.renderWalletPayments(this.containerId, walletOptions);

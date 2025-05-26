@@ -19,9 +19,10 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Registry;
-use Magento\Framework\App\RequestInterface;
+use Magento\Framework\App\Request\Http as RequestHttp;
 use Magento\Checkout\Model\Session;
 USE Magento\Catalog\Model\Product\Type;
+
 class ExpressPay implements ArgumentInterface
 {
     private const CATALOG_PRODUCT_VIEW = 'catalog_product_view';
@@ -63,9 +64,9 @@ class ExpressPay implements ArgumentInterface
     private $customerAddressDataProvider;
 
     /**
-     * @var RequestInterface
+     * @var RequestHttp
      */
-    private $requestInterface;
+    private $request;
 
     /** @var Registry */
     private $registry;
@@ -81,8 +82,9 @@ class ExpressPay implements ArgumentInterface
      * @param HttpContext $httpContext
      * @param CustomerRepositoryInterface $customerRepository
      * @param CustomerAddressDataProvider $customerAddressDataProvider
-     * @param RequestInterface $requestInterface
+     * @param RequestHttp $request
      * @param Registry $registry
+     * @param Session $checkoutSession
      */
     public function __construct(
         CompositeConfigProvider $configProvider,
@@ -92,7 +94,7 @@ class ExpressPay implements ArgumentInterface
         HttpContext $httpContext,
         CustomerRepositoryInterface $customerRepository,
         CustomerAddressDataProvider $customerAddressDataProvider,
-        RequestInterface $requestInterface,
+        RequestHttp $request,
         Registry $registry,
         Session $checkoutSession
     ) {
@@ -103,7 +105,7 @@ class ExpressPay implements ArgumentInterface
         $this->httpContext = $httpContext;
         $this->customerRepository = $customerRepository;
         $this->customerAddressDataProvider = $customerAddressDataProvider;
-        $this->requestInterface = $requestInterface;
+        $this->request = $request;
         $this->registry = $registry;
         $this->checkoutSession = $checkoutSession;
     }
@@ -184,9 +186,10 @@ class ExpressPay implements ArgumentInterface
     {
         try {
             $product = $this->registry->registry(self::CURRENT_PRODUCT_REGISTRY_NAME);
-            $currentPage = $this->requestInterface->getFullActionName();
+            /* @phpstan-ignore method.undefined */
+            $currentPage = $this->request->getFullActionName();
             return (($currentPage === self::CATALOG_PRODUCT_VIEW) &&
-                ($product->getTypeId()===Type::TYPE_VIRTUAL));
+                ($product->getTypeId() === Type::TYPE_VIRTUAL || $product->getTypeId() === 'downloadable'));
         } catch (LocalizedException $localizedException) {
             $this->logger->error('ExpressPay: ' . $localizedException->getMessage());
             return false;
@@ -198,7 +201,7 @@ class ExpressPay implements ArgumentInterface
      *
      * @return bool
      */
-    public function isVirtualQuote() : bool
+    public function isVirtualQuote(): bool
     {
         try {
             return $this->checkoutSession->getQuote()->isVirtual();

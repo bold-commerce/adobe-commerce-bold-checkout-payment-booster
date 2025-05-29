@@ -146,6 +146,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $paymentGateways = $this->checkoutData->getPaymentGateways();
+        $vaultingEnabled = $this->checkoutData->getVaultSetting();
         $currency = $store->getCurrentCurrency()->getCode();
         $shopUrl = $store->getBaseUrl();
         if ($jwtToken === null || $epsAuthToken === null || $paymentGateways === []) {
@@ -164,6 +165,10 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
 
             $this->logger->critical('Error in PaymentBoosterConfigProvider->getConfig(): ' . implode(', ', $errorMsgs));
             return [];
+        }
+
+        if ($vaultingEnabled == null) {
+            $vaultingEnabled = false;
         }
 
         $configurationGroupLabel = $this->config->getConfigurationGroupLabel($websiteId);
@@ -199,6 +204,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                     ],
                 ],
                 'currency' => $currency,
+                'vaultingEnabled' => $vaultingEnabled,
             ],
         ];
     }

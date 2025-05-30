@@ -132,7 +132,12 @@ class QuoteConverterTest extends TestCase
                 ]
             ]
         ];
+
+        var_dump($expectedConvertedQuoteData);
+
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
+
+        var_dump($actualConvertedQuoteData);
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }

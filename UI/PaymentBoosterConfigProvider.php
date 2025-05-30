@@ -146,6 +146,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $jwtToken = $this->checkoutData->getJwtToken();
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $paymentGateways = $this->checkoutData->getPaymentGateways();
+        $shouldVault = $this->checkoutData->getShouldVault();
         $currency = $store->getCurrentCurrency()->getCode();
         $shopUrl = $store->getBaseUrl();
         if ($jwtToken === null || $epsAuthToken === null || $paymentGateways === []) {
@@ -178,6 +179,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'configurationGroupLabel' => $configurationGroupLabel,
                 'epsStaticUrl' => $this->config->getStaticEpsUrl($websiteId),
                 'payment_gateways' => $paymentGateways,
+                'vaulting_enabled' => $shouldVault,
                 'jwtToken' => $jwtToken,
                 'url' => $this->getBoldStorefrontUrl($websiteId, $publicOrderId),
                 'shopId' => $shopId,

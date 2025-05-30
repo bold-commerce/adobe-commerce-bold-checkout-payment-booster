@@ -115,6 +115,7 @@ define([
                 'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
                 'group_label': window.checkoutConfig.bold.configurationGroupLabel,
                 'trace_id': window.checkoutConfig.bold.publicOrderId,
+                'vaulting_enabled': window.checkoutConfig.bold.vaulting_enabled,
                 'payment_gateways': window.checkoutConfig.bold.payment_gateways.map(paymentGateway => ({
                     gateway_id: paymentGateway.id,
                     auth_token: paymentGateway.auth_token,

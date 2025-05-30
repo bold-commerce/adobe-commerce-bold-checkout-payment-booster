@@ -83,7 +83,8 @@ class InitOrderFromQuote
      *             id: int,
      *             is_test_mode: bool
      *         }[],
-     *         public_order_id: string
+     *         public_order_id: string,
+     *         should_vault: bool,
      *     }
      * }
      * @throws Exception

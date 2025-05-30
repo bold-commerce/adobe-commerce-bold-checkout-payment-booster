@@ -119,6 +119,7 @@ class QuoteConverter
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
                     'last_name' => $billingAddress->getLastname() ?? '',
+                    'platform_id' => $quote->getCustomer()->getId() ? (string)$quote->getCustomerId() : null,
                 ],
             ],
         ];

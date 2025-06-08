@@ -49,7 +49,7 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
@@ -60,7 +60,7 @@ class QuoteConverterTest extends TestCase
                     'country_code' => 'US',
                     'postal_code' => '75477',
                     'state' => 'Alabama',
-                    'phone_number' => '3468676'
+                    'phone_number' => '3468676',
                 ],
                 'selected_shipping_option' => [
                     'id' => 'flatrate_flatrate',
@@ -68,8 +68,8 @@ class QuoteConverterTest extends TestCase
                     'type' => 'SHIPPING',
                     'amount' => [
                         'currency_code' => 'USD',
-                        'value' => '10.00'
-                    ]
+                        'value' => '10.00',
+                    ],
                 ],
                 'shipping_options' => [
                     [
@@ -78,9 +78,9 @@ class QuoteConverterTest extends TestCase
                         'type' => 'SHIPPING',
                         'amount' => [
                             'currency_code' => 'USD',
-                            'value' => '10.00'
-                        ]
-                    ]
+                            'value' => '10.00',
+                        ],
+                    ],
                 ],
                 'items' => [
                     [
@@ -88,49 +88,49 @@ class QuoteConverterTest extends TestCase
                         'sku' => 'simple',
                         'unit_amount' => [
                             'currency_code' => 'USD',
-                            'value' => '10.00'
+                            'value' => '10.00',
                         ],
                         'quantity' => 2,
-                        'is_shipping_required' => true
+                        'is_shipping_required' => true,
                     ],
                     [
                         'name' => 'Test Fee',
                         'sku' => 'test_fee_0',
                         'unit_amount' => [
                             'currency_code' => 'USD',
-                            'value' => '4.00'
+                            'value' => '4.00',
                         ],
                         'quantity' => 1,
-                        'is_shipping_required' => false
+                        'is_shipping_required' => false,
                     ],
                     [
                         'name' => 'Another Fee',
                         'sku' => 'test_fee_1',
                         'unit_amount' => [
                             'currency_code' => 'USD',
-                            'value' => '1.00'
+                            'value' => '1.00',
                         ],
                         'quantity' => 1,
-                        'is_shipping_required' => false
-                    ]
-                ],
-                'amount' => [
-                    'currency_code' => 'USD',
-                    'value' => '31.50'
+                        'is_shipping_required' => false,
+                    ],
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '25.00'
+                    'value' => '25.00',
+                ],
+                'amount' => [
+                    'currency_code' => 'USD',
+                    'value' => '31.50',
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
-                    'value' => '1.50'
+                    'value' => '1.50',
                 ],
                 'discount' => [
                     'currency_code' => 'USD',
-                    'value' => '5.00'
-                ]
-            ]
+                    'value' => '5.00',
+                ],
+            ],
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 

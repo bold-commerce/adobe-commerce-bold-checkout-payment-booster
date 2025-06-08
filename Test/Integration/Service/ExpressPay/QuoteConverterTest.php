@@ -341,7 +341,7 @@ class QuoteConverterTest extends TestCase
         echo PHP_EOL."ACTUAL".PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
-        self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+        self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
 
     public function testDoesNotConvertShippingInformationIfAddressIsNotSet(): void

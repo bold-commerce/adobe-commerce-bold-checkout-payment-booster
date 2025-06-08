@@ -238,7 +238,7 @@ class QuoteConverterTest extends TestCase
 
 
 
-        self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+        self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
 
     /**

@@ -25,27 +25,6 @@ use function reset;
 
 class QuoteConverterTest extends TestCase
 {
-    /** @var QuoteConverter|mixed  */
-    protected $quoteConverter;
-
-    /** @var CartRepositoryInterface|mixed  */
-    protected $quoteRepository;
-
-    /** @var ObjectManagerInterface  */
-    protected $objectManager;
-
-    /**
-     * Setup
-     * @return void
-     */
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
-        $this->quoteRepository = $this->objectManager->get(\Magento\Quote\Api\CartRepositoryInterface::class);
-        $this->quoteConverter = $this->objectManager->get(\Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter::class);
-    }
-
     /**
      * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php

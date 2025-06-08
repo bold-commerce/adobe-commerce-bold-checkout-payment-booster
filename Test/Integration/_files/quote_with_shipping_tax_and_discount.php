@@ -11,6 +11,7 @@ use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\Workaround\Override\Fixture\Resolver;
 
+Resolver::getInstance()->requireDataFixture('Magento_InventoryApi::Test/Integration/_files/source_item.php');
 Resolver::getInstance()->requireDataFixture('Magento/ConfigurableProduct/_files/tax_rule.php');
 Resolver::getInstance()->requireDataFixture('Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php');
 Resolver::getInstance()->requireDataFixture('Magento/Checkout/_files/quote_with_address_saved.php');

@@ -14,7 +14,9 @@
     'db-name' => 'magento_integration_tests',
     'db-prefix' => '',
     'backend-frontname' => 'backend',
-    'search-engine' => 'elasticsearch7',
+    'search-engine' => 'opensearch',
+    'opensearch-host' => '127.0.0.1',
+    'opensearch-port' => 9200,
     'admin-user' => Bootstrap::ADMIN_NAME,
     'admin-password' => Bootstrap::ADMIN_PASSWORD,
     'admin-email' => Bootstrap::ADMIN_EMAIL,
@@ -28,5 +30,5 @@
     'session-save-redis-host' => '127.0.0.1',
     'session-save-redis-port' => 6379,
     'session-save-redis-db' => 2,
-    'session-save-redis-max-concurrency' => 20
+    'session-save-redis-max-concurrency' => 20,
 ];

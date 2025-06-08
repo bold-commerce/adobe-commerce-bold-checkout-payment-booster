@@ -23,16 +23,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # - php-version : "7.2"
-          #   magento-version: "2.3.5-p2"
-          #   composer-version: "v1"
-          #   maria-db-version: "10.4"
-          - php-version: "7.4"
-            magento-version: "2.4.3-p3"
+          - php-version: "8.1"
+            magento-version: "2.4.4-p13"
             composer-version: "v2"
-            maria-db-version: "10.4"
+            maria-db-version: "10.6"
+          - php-version: "8.1"
+            magento-version: "2.4.5-p12"
+            composer-version: "v2"
+            maria-db-version: "10.6"
           - php-version: "8.2"
-            magento-version: "2.4.7-p4"
+            magento-version: "2.4.6-p10"
+            composer-version: "v2"
+            maria-db-version: "10.6"
+          - php-version: "8.2"
+            magento-version: "2.4.7-p5"
+            composer-version: "v2"
+            maria-db-version: "10.6"
+          - php-version: "8.2"
+            magento-version: "2.4.8"
             composer-version: "v2"
             maria-db-version: "10.6"
           - php-version: "8.4"
@@ -83,12 +91,17 @@ jobs:
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      - name: Cache Composer packages
-        id: composer-cache
-        uses: actions/cache@v4
-        with:
-          path: integration-pipeline-test/vendor
-          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+#      - name: Cache Composer packages
+#        id: composer-cache
+#        uses: actions/cache@v4
+#        with:
+#          path: integration-pipeline-test/vendor
+#          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+
+#      - name: clear composer cache prevent deps issue
+#        working-directory: integration-pipeline-test
+#        run: |
+#          rm -rf ~/.composer
 
       - name: add-credentials
         working-directory: integration-pipeline-test
@@ -120,7 +133,7 @@ jobs:
         working-directory: integration-pipeline-test
         run: |
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref }} --no-scripts
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.event.pull_request.head.ref }} --no-scripts
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 
@@ -145,4 +158,4 @@ jobs:
       - name: run the test
         working-directory: integration-pipeline-test
         run: |
-          vendor/bin/phpunit -vvv -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

@@ -26,7 +26,6 @@ use function reset;
 class QuoteConverterTest extends TestCase
 {
     /**
-     * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void

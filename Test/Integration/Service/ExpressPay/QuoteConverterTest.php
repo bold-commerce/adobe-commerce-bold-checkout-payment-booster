@@ -25,10 +25,23 @@ use function reset;
 
 class QuoteConverterTest extends TestCase
 {
+
+    protected $quoteConverter;
+    protected $quoteRepository;
+    protected $objectManager;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
+        $this->quoteRepository = $this->objectManager->get(\Magento\Quote\Api\CartRepositoryInterface::class);
+        $this->quoteConverter = $this->objectManager->get(\Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter::class);
+    }
+
     /**
      * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
-     */
+     * @magentoDataFixture ../../_files/quote_with_shipping_tax_and_discount.php
+     **/
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void
     {
         $objectManager = Bootstrap::getObjectManager();
@@ -49,7 +62,8 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
+                    'platform_id' => '1'
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
@@ -133,11 +147,11 @@ class QuoteConverterTest extends TestCase
             ]
         ];
 
-        var_dump($expectedConvertedQuoteData);
+        echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT); // Use debug_backtrace() to avoid flooding
 
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
-        var_dump($actualConvertedQuoteData);
+        echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT); // Use debug_backtrace() to avoid flooding
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
@@ -373,5 +387,22 @@ class QuoteConverterTest extends TestCase
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
         self::assertEmpty($quoteConverter->convertCustomer($quote));
+    }
+
+
+    /**
+     * @return void
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @magentoDataFixture ../../_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testQuoteIsConvertedCorrectlyWithShippingTaxAndDiscount(): void
+    {
+        $searchCriteria = $this->objectManager
+            ->create(\Magento\Framework\Api\SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+
+        $quotes = $this->quoteRepository->getList($searchCriteria)->getItems();
+        $this->assertNotEmpty($quotes, 'Expected fixture quote with reserved_order_id "test_order_1" to exist.');
     }
 }

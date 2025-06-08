@@ -25,11 +25,19 @@ use function reset;
 
 class QuoteConverterTest extends TestCase
 {
-
+    /** @var QuoteConverter|mixed  */
     protected $quoteConverter;
+
+    /** @var CartRepositoryInterface|mixed  */
     protected $quoteRepository;
+
+    /** @var ObjectManagerInterface  */
     protected $objectManager;
 
+    /**
+     * Setup
+     * @return void
+     */
     protected function setUp(): void
     {
         parent::setUp();

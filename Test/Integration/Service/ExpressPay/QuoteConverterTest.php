@@ -140,7 +140,7 @@ class QuoteConverterTest extends TestCase
         echo PHP_EOL."ACTUAL".PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
-        self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+        self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
 
     /**
@@ -229,14 +229,6 @@ class QuoteConverterTest extends TestCase
                 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7'
             )
         );
-
-        echo "testConvertFullQuoteConvertsVirtualQuote".PHP_EOL;
-        echo PHP_EOL."EXPECTED".PHP_EOL;
-        echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo PHP_EOL."ACTUAL".PHP_EOL;
-        echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
-
-
 
         self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
@@ -334,12 +326,6 @@ class QuoteConverterTest extends TestCase
             ],
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'test-gateway-id');
-
-        echo "testConvertFullQuoteConvertsNonBaseCurrencyQuote".PHP_EOL;
-        echo PHP_EOL."EXPECTED".PHP_EOL;
-        echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo PHP_EOL."ACTUAL".PHP_EOL;
-        echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
         self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }

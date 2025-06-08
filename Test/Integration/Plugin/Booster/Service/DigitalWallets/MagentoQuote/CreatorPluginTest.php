@@ -38,6 +38,8 @@ class CreatorPluginTest extends TestCase
      */
     public function testReinitializesBoldOrderDataSuccessfully(): void
     {
+        $this->disableMsiIfMagentoVersionIsLessThan244();
+
         $boldCheckoutDataStub = $this->createStub(CheckoutData::class);
         $objectManager = Bootstrap::getObjectManager();
         /** @var StoreManagerInterface $storeManager */
@@ -88,6 +90,7 @@ class CreatorPluginTest extends TestCase
      */
     public function testDoesNotReinitializeBoldOrderDataSuccessfully(?string $boldOrderId): void
     {
+        $this->disableMsiIfMagentoVersionIsLessThan244();
         $objectManager = Bootstrap::getObjectManager();
         /** @var StoreManagerInterface $storeManager */
         $storeManager = $objectManager->get(StoreManagerInterface::class);
@@ -124,5 +127,20 @@ class CreatorPluginTest extends TestCase
                 'boldOrderId' => '7d154b3a9c7e41c0978749c9599221b99f4eeb4d6cf040a4a17e99285f6fe6f5'
             ],
         ];
+    }
+
+    public function disableMsiIfMagentoVersionIsLessThan244(): void
+    {
+        $objectManager = \Magento\TestFramework\Helper\Bootstrap::getObjectManager();
+        $metadata = $objectManager->get(\Magento\Framework\App\ProductMetadataInterface::class);
+        if (version_compare($metadata->getVersion(), '2.4.4', '<')) {
+            $configWriter = $objectManager->get(\Magento\Framework\App\Config\Storage\WriterInterface::class);
+            $configWriter->save('msi/general/enabled', 0);
+            $cacheManager = $objectManager->get(\Magento\Framework\App\Cache\Manager::class);
+            $cacheManager->clean(['config']);
+        }
+        $config = $objectManager->get(\Magento\Framework\App\Config\ScopeConfigInterface::class);
+        $isMsiEnabled = $config->isSetFlag('msi/general/enabled', \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        $this->assertFalse($isMsiEnabled);
     }
 }

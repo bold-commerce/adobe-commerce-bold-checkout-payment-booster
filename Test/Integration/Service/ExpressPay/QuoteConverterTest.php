@@ -93,44 +93,24 @@ class QuoteConverterTest extends TestCase
                         'quantity' => 2,
                         'is_shipping_required' => true
                     ],
-                    [
-                        'name' => 'Test Fee',
-                        'sku' => 'test_fee_0',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '4.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
-                    ],
-                    [
-                        'name' => 'Another Fee',
-                        'sku' => 'test_fee_1',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '1.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
-                    ]
-                ],
-                'amount' => [
-                    'currency_code' => 'USD',
-                    'value' => '31.50'
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '25.00'
+                    'value' => '20.00',
+                ],
+                'amount' => [
+                    'currency_code' => 'USD',
+                    'value' => '26.50',
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
-                    'value' => '1.50'
+                    'value' => '1.50',
                 ],
                 'discount' => [
                     'currency_code' => 'USD',
-                    'value' => '5.00'
-                ]
-            ]
+                    'value' => '5.00',
+                ],
+            ],
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 

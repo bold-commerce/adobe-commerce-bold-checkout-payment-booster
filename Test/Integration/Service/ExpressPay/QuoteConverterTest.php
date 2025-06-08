@@ -42,7 +42,7 @@ class QuoteConverterTest extends TestCase
         $quote = reset($quotes) ?: $objectManager->create(Quote::class);
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
-        $expectedConvertedQuoteData = [
+        $expectedConvertedQuoteData = $expected = [
             'gateway_id' => 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7',
             'order_data' => [
                 'locale' => 'en-US',
@@ -134,10 +134,10 @@ class QuoteConverterTest extends TestCase
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
-        echo "testConvertFullQuoteConvertsNonVirtualQuote".PHP_EOL;
-        echo PHP_EOL."EXPECTED".PHP_EOL;
+        echo "testConvertFullQuoteConvertsNonVirtualQuote" . PHP_EOL;
+        echo PHP_EOL . "EXPECTED" . PHP_EOL;
         echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo PHP_EOL."ACTUAL".PHP_EOL;
+        echo PHP_EOL . "ACTUAL" . PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
         self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);

@@ -77,8 +77,12 @@ class QuoteConverterTest extends TestCase
                         'label' => 'Flat Rate - Fixed',
                         'type' => 'SHIPPING',
                         'amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '10.00',
+                            'unit_amount' => [
+                                'currency_code' => 'USD',
+                                'value' => '10.00',
+                            ],
+                            'quantity' => 2,
+                            'is_shipping_required'=> true
                         ],
                     ],
                 ],

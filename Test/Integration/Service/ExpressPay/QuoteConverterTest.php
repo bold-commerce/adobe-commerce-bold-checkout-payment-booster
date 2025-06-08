@@ -40,8 +40,8 @@ class QuoteConverterTest extends TestCase
 
     /**
      * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
-     * @magentoDataFixture ../../_files/quote_with_shipping_tax_and_discount.php
-     **/
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void
     {
         $objectManager = Bootstrap::getObjectManager();
@@ -146,12 +146,7 @@ class QuoteConverterTest extends TestCase
                 ]
             ]
         ];
-
-        echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT); // Use debug_backtrace() to avoid flooding
-
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
-
-        echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT); // Use debug_backtrace() to avoid flooding
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
@@ -388,22 +383,5 @@ class QuoteConverterTest extends TestCase
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
         self::assertEmpty($quoteConverter->convertCustomer($quote));
-    }
-
-
-    /**
-     * @return void
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @magentoDataFixture ../../_files/quote_with_shipping_tax_and_discount.php
-     */
-    public function testQuoteIsConvertedCorrectlyWithShippingTaxAndDiscount(): void
-    {
-        $searchCriteria = $this->objectManager
-            ->create(\Magento\Framework\Api\SearchCriteriaBuilder::class)
-            ->addFilter('reserved_order_id', 'test_order_1')
-            ->create();
-
-        $quotes = $this->quoteRepository->getList($searchCriteria)->getItems();
-        $this->assertNotEmpty($quotes, 'Expected fixture quote with reserved_order_id "test_order_1" to exist.');
     }
 }

@@ -134,9 +134,10 @@ class QuoteConverterTest extends TestCase
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
-        echo "EXPECTED".PHP_EOL;
+        echo "testConvertFullQuoteConvertsNonVirtualQuote".PHP_EOL;
+        echo PHP_EOL."EXPECTED".PHP_EOL;
         echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo "ACTUAL".PHP_EOL;
+        echo PHP_EOL."ACTUAL".PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
@@ -229,10 +230,12 @@ class QuoteConverterTest extends TestCase
             )
         );
 
-        echo "EXPECTED".PHP_EOL;
+        echo "testConvertFullQuoteConvertsVirtualQuote".PHP_EOL;
+        echo PHP_EOL."EXPECTED".PHP_EOL;
         echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo "ACTUAL".PHP_EOL;
+        echo PHP_EOL."ACTUAL".PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
+
 
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
@@ -259,8 +262,6 @@ class QuoteConverterTest extends TestCase
         $quote = reset($searchResult);
         /** @var QuoteConverter $quoteConverter */
         $quoteConverter = $objectManager->create(QuoteConverter::class);
-
-        echo json_encode($quote, JSON_PRETTY_PRINT); // Use debug_backtrace() to avoid flooding
 
         $expectedConvertedQuoteData = [
             'gateway_id' => 'test-gateway-id',
@@ -334,9 +335,10 @@ class QuoteConverterTest extends TestCase
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'test-gateway-id');
 
-        echo "EXPECTED".PHP_EOL;
+        echo "testConvertFullQuoteConvertsNonBaseCurrencyQuote".PHP_EOL;
+        echo PHP_EOL."EXPECTED".PHP_EOL;
         echo json_encode($expectedConvertedQuoteData, JSON_PRETTY_PRINT);
-        echo "ACTUAL".PHP_EOL;
+        echo PHP_EOL."ACTUAL".PHP_EOL;
         echo json_encode($actualConvertedQuoteData, JSON_PRETTY_PRINT);
 
         self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);

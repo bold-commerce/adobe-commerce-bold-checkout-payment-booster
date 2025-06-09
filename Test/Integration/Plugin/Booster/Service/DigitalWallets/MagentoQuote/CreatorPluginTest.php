@@ -88,7 +88,6 @@ class CreatorPluginTest extends TestCase
      */
     public function testDoesNotReinitializeBoldOrderDataSuccessfully(?string $boldOrderId): void
     {
-        $this->disableMsiIfMagentoVersionIsLessThan244();
         $objectManager = Bootstrap::getObjectManager();
         /** @var StoreManagerInterface $storeManager */
         $storeManager = $objectManager->get(StoreManagerInterface::class);

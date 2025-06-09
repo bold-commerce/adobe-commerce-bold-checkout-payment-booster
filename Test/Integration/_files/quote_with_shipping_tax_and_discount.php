@@ -58,3 +58,16 @@ array_walk(
 
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 $quote->save();
+
+$product = $quote->getItems()[0]->getProduct();
+
+$sourceItemFactory = $objectManager->get(\Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory::class);
+$sourceItemsSave = $objectManager->get(\Magento\InventoryApi\Api\SourceItemsSaveInterface::class);
+
+$sourceItem = $sourceItemFactory->create();
+$sourceItem->setSourceCode('default') // use 'default' unless you've customized sources
+->setSku($product->getSku())
+    ->setQuantity(10)
+    ->setStatus(1); // 1 = In Stock
+
+$sourceItemsSave->execute([$sourceItem]);

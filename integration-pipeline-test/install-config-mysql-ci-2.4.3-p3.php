@@ -28,5 +28,15 @@
     'session-save-redis-host' => '127.0.0.1',
     'session-save-redis-port' => 6379,
     'session-save-redis-db' => 2,
-    'session-save-redis-max-concurrency' => 20
+    'session-save-redis-max-concurrency' => 20,
+     'disable-modules' => join(',', [
+         'Magento_Inventory',
+         'Magento_InventoryApi',
+         'Magento_InventoryCatalogApi',
+         'Magento_InventorySales',
+         'Magento_InventoryIndexer',
+         'Magento_InventorySalesApi',
+         'Magento_InventorySourceDeductionApi',
+         'Magento_InventorySourceSelectionApi',
+     ])
 ];

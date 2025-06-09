@@ -61,13 +61,15 @@ $quote->save();
 
 $product = $quote->getItems()[0]->getProduct();
 
-$sourceItemFactory = $objectManager->get(\Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory::class);
-$sourceItemsSave = $objectManager->get(\Magento\InventoryApi\Api\SourceItemsSaveInterface::class);
+if (interface_exists(\Magento\InventoryIndexer\Model\StockIndexTableNameResolverInterface::class)) {
+    $sourceItemFactory = $objectManager->get(\Magento\InventoryApi\Api\Data\SourceItemInterfaceFactory::class);
+    $sourceItemsSave = $objectManager->get(\Magento\InventoryApi\Api\SourceItemsSaveInterface::class);
 
-$sourceItem = $sourceItemFactory->create();
-$sourceItem->setSourceCode('default') // use 'default' unless you've customized sources
-->setSku($product->getSku())
-    ->setQuantity(10)
-    ->setStatus(1); // 1 = In Stock
+    $sourceItem = $sourceItemFactory->create();
+    $sourceItem->setSourceCode('default') // use 'default' unless you've customized sources
+    ->setSku($product->getSku())
+        ->setQuantity(10)
+        ->setStatus(1); // 1 = In Stock
 
-$sourceItemsSave->execute([$sourceItem]);
+    $sourceItemsSave->execute([$sourceItem]);
+}

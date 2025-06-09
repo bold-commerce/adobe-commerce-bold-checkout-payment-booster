@@ -13,9 +13,9 @@ use Magento\Store\Model\StoreManagerInterface;
 class OnboardBanner extends Field
 {
     private const ONBOARD_IN_PROGRESS_DATA_PATH =
-        'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/in_progress';
+        'https://apps.staging.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/in_progress';
     private const ONBOARD_COMPLETED_DATA_PATH =
-        'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/complete';
+        'https://apps.staging.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/complete';
 
     /** @var StoreManagerInterface */
     private $storeManager;

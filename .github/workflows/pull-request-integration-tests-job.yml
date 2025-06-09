@@ -84,7 +84,77 @@ jobs:
         options: --health-cmd="rabbitmq-diagnostics -q ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-    - name: run the test
-      working-directory: integration-pipeline-test
-      run: |
-        vendor/bin/phpunit -vvv -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+      - uses: actions/checkout@v4
+
+      - name: Setup ${{ matrix.php-version}}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version}}
+          tools: composer:${{ matrix.composer-version }}
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: integration-pipeline-test/vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+
+      - name: add-credentials
+        working-directory: integration-pipeline-test
+        run: |
+          composer config --global http-basic.repo.magento.com ${{ secrets.COMPOSER_MAGENTO_USERNAME }} ${{ secrets.COMPOSER_MAGENTO_PASSWORD }}
+          composer config --global github-oauth.github.com ${{ secrets.GITHUB_TOKEN }}
+
+      - name: get-magento
+        working-directory: integration-pipeline-test
+        run: |
+          META_PACKAGE=magento/project-community-edition META_VERSION=${{ matrix.magento-version }}
+
+          composer create-project ${{ matrix.composer-version == 'v2' && '--no-install' || null}} --repository-url=https://repo.magento.com/ \
+              "${META_PACKAGE}" /tmp/exampleproject "${META_VERSION}"
+
+          rsync -a /tmp/exampleproject/ ./
+          rm -rf /tmp/exampleproject/
+
+      - name: allow-plugins
+        if: matrix.composer-version != 'v1'
+        working-directory: integration-pipeline-test
+        run: |
+          composer config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer config --no-plugins allow-plugins.laminas/laminas-dependency-plugin true
+          composer config --no-plugins allow-plugins.magento/* true
+          composer config --no-plugins allow-plugins.php-http/discovery true
+
+      - name: install-deps
+        working-directory: integration-pipeline-test
+        run: |
+          composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref }} --no-scripts
+          composer install --prefer-dist --no-progress --no-suggest
+          composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
+
+      - name: install-php8-deps
+        if: matrix.php-version >= '8'
+        working-directory: integration-pipeline-test
+        run: |
+          composer require --dev colinodell/psr-testlogger --no-scripts
+
+      - name: copy needed configs
+        working-directory: integration-pipeline-test
+        run: |
+          cp install-config-mysql-ci-${{ matrix.magento-version }}.php dev/tests/integration/etc/install-config-mysql.php
+          cp dev/tests/integration/etc/config-global.php.dist dev/tests/integration/etc/config-global.php
+          cp dev/tests/integration/phpunit.xml.dist dev/tests/integration/phpunit.xml
+
+      - name: add-DB
+        working-directory: integration-pipeline-test
+        run: |
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
+
+      - name: run the test
+        working-directory: integration-pipeline-test
+        run: |
+          vendor/bin/phpunit -vvv -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

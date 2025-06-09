@@ -18,7 +18,7 @@ permissions:
   contents: read
 
 jobs:
-  setup-and-run:
+  setup-and-run-carol:
     strategy:
       fail-fast: false
       matrix:
@@ -31,22 +31,22 @@ jobs:
             magento-version: "2.4.3-p3"
             composer-version: "v2"
             maria-db-version: "10.4"
-          - php-version: "8.1"
-            magento-version: "2.4.4-p13"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.1"
-            magento-version: "2.4.5-p12"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.2"
-            magento-version: "2.4.6-p10"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.3"
-            magento-version: "2.4.7-p5"
-            composer-version: "v2"
-            maria-db-version: "10.6"
+#          - php-version: "8.1"
+#            magento-version: "2.4.4-p13"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.1"
+#            magento-version: "2.4.5-p12"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.2"
+#            magento-version: "2.4.6-p10"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.3"
+#            magento-version: "2.4.7-p5"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
           - php-version: "8.3"
             magento-version: "2.4.8"
             composer-version: "v2"

@@ -43,7 +43,7 @@ jobs:
 #            magento-version: "2.4.6-p10"
 #            composer-version: "v2"
 #            maria-db-version: "10.6"
-          - php-version: "8.3"
+          - php-version: "8.2"
             magento-version: "2.4.7-p5"
             composer-version: "v2"
             maria-db-version: "10.6"

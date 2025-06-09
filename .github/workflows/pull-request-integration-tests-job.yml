@@ -182,9 +182,16 @@ jobs:
             Magento_InventorySalesApi \
             Magento_InventorySourceSelection \
             Magento_InventorySourceSelectionApi
-      - name: setup:upgrade
+
+      - name: upgrade
         working-directory: integration-pipeline-test
-        run: php bin/magento setup:upgrade
+        run: |
+          php bin/magento setup:upgrade
+
+      - name: reindex
+        working-directory: integration-pipeline-test
+        run: |
+          php bin/magento indexer:reindex
 
       - name: run the test
         working-directory: integration-pipeline-test

@@ -139,6 +139,7 @@ jobs:
           composer require bold-commerce/module-checkout-payment-booster:dev-test-integration --no-scripts
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
+
       - name: install-php8-deps
         if: matrix.php-version >= '8'
         working-directory: integration-pipeline-test
@@ -156,33 +157,7 @@ jobs:
         working-directory: integration-pipeline-test
         run: |
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
-
-      - name: Disable MSI modules for Magento < 2.4.4
-        working-directory: integration-pipeline-test
-        if: ${{ matrix.magento-version == '2.4.3-p3' }}
-        run: |
-          php bin/magento module:disable \
-            Magento_Inventory \
-            Magento_InventoryAdminUi \
-            Magento_InventoryApi \
-            Magento_InventoryBundleProduct \
-            Magento_InventoryBundleProductAdminUi \
-            Magento_InventoryCatalog \
-            Magento_InventorySales \
-            Magento_InventorySalesAdminUi \
-            Magento_InventoryCatalogAdminUi \
-            Magento_InventoryConfigurableProduct \
-            Magento_InventoryConfigurableProductAdminUi \
-            Magento_InventoryShipping \
-            Magento_InventorySourceDeductionApi \
-            Magento_InventoryLowQuantityNotification \
-            Magento_InventoryReservations \
-            Magento_InventoryReservationCli \
-            Magento_InventoryIndexer \
-            Magento_InventorySalesApi \
-            Magento_InventorySourceSelection \
-            Magento_InventorySourceSelectionApi
-
+          
       - name: run the test
         working-directory: integration-pipeline-test
         run: |

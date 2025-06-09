@@ -139,9 +139,6 @@ jobs:
           composer require bold-commerce/module-checkout-payment-booster:dev-test-integration --no-scripts
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
-      - name: reindex
-        run: |
-          bin/magento indexer:reindex
       - name: install-php8-deps
         if: matrix.php-version >= '8'
         working-directory: integration-pipeline-test
@@ -159,6 +156,10 @@ jobs:
         working-directory: integration-pipeline-test
         run: |
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
+
+      - name: reindex
+        run: |
+          php bin/magento indexer:reindex
 
       - name: run the test
         working-directory: integration-pipeline-test

@@ -158,6 +158,7 @@ jobs:
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
 
       - name: Disable MSI modules for Magento < 2.4.4
+        working-directory: integration-pipeline-test
         if: ${{ matrix.magento-version == '2.4.3-p3' }}
         run: |
           php bin/magento module:disable \
@@ -182,6 +183,7 @@ jobs:
             Magento_InventorySourceSelection \
             Magento_InventorySourceSelectionApi
       - name: setup:upgrade
+        working-directory: integration-pipeline-test
         run: php bin/magento setup:upgrade
 
       - name: run the test

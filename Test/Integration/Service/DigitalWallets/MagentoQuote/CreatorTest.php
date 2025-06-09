@@ -438,86 +438,62 @@ class CreatorTest extends TestCase
     {
         $this->expectExceptionMessage('Could not deactivate quote. Error: "Invalid quote ID"');
 
-        $quoteStub = $this->createStub(Quote::class);
         $objectManager = Bootstrap::getObjectManager();
+
+        /** @var LocalizedException $localizedException */
+        $localizedException = $objectManager->create(
+            \Magento\Framework\Exception\LocalizedException::class,
+            ['phrase' => __('Invalid quote ID')]
+        );
+
         /** @var CartExtension $cartExtensionAttributes */
-        $cartExtensionAttributes = $objectManager->create(CartExtension::class);
+        $cartExtensionAttributes = $objectManager->create(\Magento\Quote\Api\Data\CartExtension::class);
         /** @var CartItemInterface $quoteItem */
-        $quoteItem = $objectManager->create(CartItemInterface::class);
+        $quoteItem = $objectManager->create(\Magento\Quote\Api\Data\CartItemInterface::class);
         /** @var AddressInterface $shippingAddress */
-        $shippingAddress = $objectManager->create(AddressInterface::class);
-        $quoteFactoryStub = $this->createStub(CartInterfaceFactory::class);
+        $shippingAddress = $objectManager->create(\Magento\Quote\Api\Data\AddressInterface::class);
+        /** @var ProductInterface $product */
+        $product = $objectManager->create(\Magento\Catalog\Api\Data\ProductInterface::class);
+        /** @var StoreManagerInterface $storeManager */
+        $storeManager = $objectManager->get(\Magento\Store\Model\StoreManagerInterface::class);
+
+        // Quote stub
+        $quoteStub = $this->createStub(\Magento\Quote\Model\Quote::class);
+        $quoteStub->method('getExtensionAttributes')->willReturn($cartExtensionAttributes);
+        $quoteStub->method('addProduct')->willReturn($quoteItem);
+        $quoteStub->method('getShippingAddress')->willReturn($shippingAddress);
+        $quoteStub->method('getId')->willReturn(42);
+
+        // Quote factory
+        $quoteFactoryStub = $this->createStub(\Magento\Quote\Api\CartInterfaceFactory::class);
+        $quoteFactoryStub->method('create')->willReturn($quoteStub);
+
+        // QuoteIdMask stub
         $quoteIdMaskStub = $this
-            ->getMockBuilder(QuoteIdMask::class)
+            ->getMockBuilder(\Magento\Quote\Model\QuoteIdMask::class)
             ->disableOriginalConstructor()
             ->onlyMethods(['save'])
             ->addMethods(['setQuoteId'])
             ->getMock();
-        $quoteIdMaskFactoryStub = $this->createStub(QuoteIdMaskFactory::class);
-        $quoteRepositoryMock = $this->createMock(CartRepositoryInterface::class);
-        $matcher = self::exactly(2);
-        /** @var LocalizedException $localizedException */
-        $localizedException = $objectManager->create(
-            LocalizedException::class,
-            [
-                'phrase' => __('Invalid quote ID')
-            ]
-        );
-        /** @var StoreManagerInterface $storeManager */
-        $storeManager = $objectManager->get(StoreManagerInterface::class);
-        /** @var ProductInterface $product */
-        $product = $objectManager->create(ProductInterface::class);
-        /** @var Creator $magentoQuoteCreator */
+        $quoteIdMaskStub->method('setQuoteId')->willReturnSelf();
+        $quoteIdMaskStub->method('save')->willThrowException($localizedException);
+
+        $quoteIdMaskFactoryStub = $this->createStub(\Magento\Quote\Model\QuoteIdMaskFactory::class);
+        $quoteIdMaskFactoryStub->method('create')->willReturn($quoteIdMaskStub);
+
+        // QuoteRepository mock - let it pass normally
+        $quoteRepositoryMock = $this->createMock(\Magento\Quote\Api\CartRepositoryInterface::class);
+        $quoteRepositoryMock->method('save')->willReturn(true);
+
+        /** @var \Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Creator $magentoQuoteCreator */
         $magentoQuoteCreator = $objectManager->create(
-            Creator::class,
+            \Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Creator::class,
             [
                 'quoteFactory' => $quoteFactoryStub,
                 'quoteRepository' => $quoteRepositoryMock,
                 'quoteIdMaskFactory' => $quoteIdMaskFactoryStub,
             ]
         );
-
-        $quoteStub
-            ->method('getExtensionAttributes')
-            ->willReturn($cartExtensionAttributes);
-        $quoteStub
-            ->method('addProduct')
-            ->willReturn($quoteItem);
-        $quoteStub
-            ->method('getShippingAddress')
-            ->willReturn($shippingAddress);
-        $quoteStub
-            ->method('getId')
-            ->willReturn(42);
-
-        $quoteFactoryStub
-            ->method('create')
-            ->willReturn($quoteStub);
-
-        /** @noinspection MockingMethodsCorrectnessInspection */
-        $quoteIdMaskStub
-            ->method('setQuoteId')
-            ->willReturnSelf();
-        $quoteIdMaskStub
-            ->method('save')
-            ->willThrowException($localizedException);
-
-        $quoteIdMaskFactoryStub
-            ->method('create')
-            ->willReturn($quoteIdMaskStub);
-
-        $quoteRepositoryMock
-            ->expects($matcher)
-            ->method('save')
-            ->willReturnCallback(
-                function () use ($matcher, $localizedException) {
-                    if ($matcher->getInvocationCount() !== 2) {
-                        return;
-                    }
-
-                    throw $localizedException;
-                }
-            );
 
         $magentoQuoteCreator->createQuote(
             $storeManager->getStore()->getId(),

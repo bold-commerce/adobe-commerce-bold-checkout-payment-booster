@@ -183,11 +183,6 @@ jobs:
             Magento_InventorySourceSelection \
             Magento_InventorySourceSelectionApi
 
-      - name: reindex
-        working-directory: integration-pipeline-test
-        run: |
-          php bin/magento indexer:reindex
-
       - name: run the test
         working-directory: integration-pipeline-test
         run: |

@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\ProductMetadata;
 use Magento\Framework\Registry;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Item;
@@ -22,10 +21,6 @@ $quoteFactory = $objectManager->get(QuoteFactory::class);
 /** @var QuoteResource $quoteResource */
 $quoteResource = $objectManager->get(QuoteResource::class);
 $quote = $quoteFactory->create();
-
-/** @var  $productRepository */
-$productRepository = $objectManager->get(\Magento\Catalog\Api\ProductRepositoryInterface::class);
-
 
 $quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
 
@@ -63,20 +58,3 @@ array_walk(
 
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 $quote->save();
-
-$product = $quote->getItems()[0]->getProduct();
-
-$productMetadata = $objectManager->create(ProductMetadata::class);
-$magentoVersion =  $this->_productMetadata->getVersion();
-echo $magentoVersion;
-if ($magentoVersion == "2.4.3-p3" ) {
-    $product->setExtensionAttributes(
-        $objectManager->create(\Magento\Catalog\Api\Data\ProductExtension::class)
-            ->setStockItem(
-                $objectManager->create(\Magento\CatalogInventory\Api\Data\StockItemInterface::class)
-                    ->setIsInStock(true)
-                    ->setQty(100)
-            )
-    );
-    $productRepository->save($product);
-}

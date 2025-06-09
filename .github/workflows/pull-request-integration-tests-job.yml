@@ -47,7 +47,7 @@ jobs:
 #            magento-version: "2.4.7-p5"
 #            composer-version: "v2"
 #            maria-db-version: "10.6"
-          - php-version: "8.3"
+          - php-version: "8.4"
             magento-version: "2.4.8"
             composer-version: "v2"
             maria-db-version: "10.6"
@@ -154,7 +154,14 @@ jobs:
         run: |
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
 
+      - name: run the test 2.4.8
+        if: matrix.magento-version > '2.4.7'
+        working-directory: integration-pipeline-test
+        run: |
+          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+
       - name: run the test
+        if: matrix.magento-version <= '2.4.7'
         working-directory: integration-pipeline-test
         run: |
           vendor/bin/phpunit -vvv -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

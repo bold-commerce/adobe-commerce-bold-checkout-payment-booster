@@ -157,9 +157,32 @@ jobs:
         run: |
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
 
-      - name: reindex
+      - name: Disable MSI modules for Magento < 2.4.4
+        if: ${{ matrix.magento-version == '2.4.3-p3' }}
         run: |
-          php bin/magento indexer:reindex
+          php bin/magento module:disable \
+            Magento_Inventory \
+            Magento_InventoryAdminUi \
+            Magento_InventoryApi \
+            Magento_InventoryBundleProduct \
+            Magento_InventoryBundleProductAdminUi \
+            Magento_InventoryCatalog \
+            Magento_InventorySales \
+            Magento_InventorySalesAdminUi \
+            Magento_InventoryCatalogAdminUi \
+            Magento_InventoryConfigurableProduct \
+            Magento_InventoryConfigurableProductAdminUi \
+            Magento_InventoryShipping \
+            Magento_InventorySourceDeductionApi \
+            Magento_InventoryLowQuantityNotification \
+            Magento_InventoryReservations \
+            Magento_InventoryReservationCli \
+            Magento_InventoryIndexer \
+            Magento_InventorySalesApi \
+            Magento_InventorySourceSelection \
+            Magento_InventorySourceSelectionApi
+      - name: setup:upgrade
+        run: php bin/magento setup:upgrade
 
       - name: run the test
         working-directory: integration-pipeline-test

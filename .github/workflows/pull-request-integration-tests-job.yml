@@ -139,11 +139,10 @@ jobs:
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
             - name: install-deps
 
-      - name: install-deps for Magento 2.4* < 2.4.8 (clear composer cache)
+      - name: install-deps for Magento 2.4* < 2.4.8
         if: matrix.magento-version < '2.4.8'
         working-directory: integration-pipeline-test
         run: |
-          rm -rf ~/.composer
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
           composer require bold-commerce/module-checkout-payment-booster:dev-test-integration --no-scripts
           composer install --prefer-dist --no-progress --no-suggest

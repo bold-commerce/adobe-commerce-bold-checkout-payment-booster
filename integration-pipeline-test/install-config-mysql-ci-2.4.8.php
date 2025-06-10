@@ -1,4 +1,4 @@
-install-config-mysql-ci-2.4.7-p5.php<?php
+<?php
 /**
  * Copyright © Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.

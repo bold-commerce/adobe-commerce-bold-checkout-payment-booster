@@ -134,8 +134,7 @@ jobs:
           composer config --no-plugins allow-plugins.magento/* true
           composer config --no-plugins allow-plugins.php-http/discovery true
 
-      - name: install-deps for Magento 2.4* < 2.4.8
-        if: matrix.magento-version < '2.4.8'
+      - name: install-deps
         working-directory: integration-pipeline-test
         run: |
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git

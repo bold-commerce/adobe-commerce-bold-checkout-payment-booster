@@ -15,6 +15,22 @@ Resolver::getInstance()->requireDataFixture('Magento/ConfigurableProduct/_files/
 Resolver::getInstance()->requireDataFixture('Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php');
 Resolver::getInstance()->requireDataFixture('Magento/Checkout/_files/quote_with_address_saved.php');
 
+$resource = Bootstrap::getObjectManager()->get(\Magento\Framework\App\ResourceConnection::class);
+$connection = $resource->getConnection();
+
+$connection->query("
+    INSERT IGNORE INTO inventory_source_item (source_code, sku, quantity, status)
+    SELECT 'default', sku, qty, stock_status
+    FROM cataloginventory_stock_status AS lg
+    JOIN catalog_product_entity AS prd ON lg.product_id = prd.entity_id
+");
+
+$connection->query("
+    INSERT IGNORE INTO inventory_source_stock_link (stock_id, source_code, priority)
+    VALUES (1, 'default', 1)
+");
+
+
 $objectManager = Bootstrap::getObjectManager();
 /** @var QuoteFactory $quoteFactory */
 $quoteFactory = $objectManager->get(QuoteFactory::class);

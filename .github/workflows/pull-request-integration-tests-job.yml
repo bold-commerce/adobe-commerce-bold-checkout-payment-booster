@@ -157,4 +157,4 @@ jobs:
       - name: run the test
         working-directory: integration-pipeline-test
         run: |
-          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

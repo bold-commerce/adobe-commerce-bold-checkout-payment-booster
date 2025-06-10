@@ -120,6 +120,7 @@ define([
                     auth_token: paymentGateway.auth_token,
                     currency: paymentGateway.currency,
                 })),
+                'vaulting_enabled': window.checkoutConfig.bold.vaultingEnabled,
                 'callbacks': {
                     'onClickPaymentOrder': async (paymentType, paymentPayload) => {
                         isProductPageActive = paymentPayload.containerId.includes('product-detail');

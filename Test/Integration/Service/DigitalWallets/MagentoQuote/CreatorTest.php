@@ -511,7 +511,7 @@ class CreatorTest extends TestCase
             ->method('save')
             ->willReturnCallback(
                 function () use ($matcher, $localizedException) {
-                    if ($matcher->numberOfInvocations() !== 2) {
+                    if ($matcher->getInvocationCount() !== 2) {
                         return;
                     }
 

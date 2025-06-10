@@ -128,9 +128,11 @@ jobs:
           composer config --no-plugins allow-plugins.magento/* true
           composer config --no-plugins allow-plugins.php-http/discovery true
 
-      - name: Ensure app/etc directory exists
+      - name: Ensure app/etc and dev/tests/integration/etc directory exists
         working-directory: integration-pipeline-test
-        run: mkdir -p app/etc
+        run: |
+          mkdir -p app/etc
+          mkdir -p dev/tests/integration/etc
 
       - name: install-deps
         working-directory: integration-pipeline-test

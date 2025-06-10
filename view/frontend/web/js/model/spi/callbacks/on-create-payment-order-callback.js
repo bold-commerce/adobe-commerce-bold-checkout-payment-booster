@@ -34,7 +34,7 @@ define(
 
             if (!isSpiContainer && addressProvided) {
                 if (isWalletPayment) {
-                    if (!paymentData['billing_address']['phoneNumber']) {
+                    if (!paymentData['billing_address']['phoneNumber'] && paymentData['shipping_address']?.['phoneNumber']) {
                         paymentData['billing_address']['phoneNumber'] = paymentData['shipping_address']['phoneNumber'];
                     }
                     if (paymentData['shipping_address']) {

@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- AI Chat API Implementation -->
+    <preference for="Bold\CheckoutPaymentBooster\Api\AiChatInterface" 
+                type="Bold\CheckoutPaymentBooster\Model\AiChat" />
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface" 
+                type="Bold\CheckoutPaymentBooster\Model\Data\AiChatResponse" />
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\Order\AddressInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\Order\Address"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\Order"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface" type="Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder"/>

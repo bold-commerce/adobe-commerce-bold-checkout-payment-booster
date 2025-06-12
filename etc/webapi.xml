@@ -84,4 +84,12 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    
+    <!-- AI Chat API Endpoint -->
+    <route url="/V1/bold/ai-chat/message" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\AiChatInterface" method="processMessage"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

@@ -5,6 +5,7 @@ namespace Bold\CheckoutPaymentBooster\ViewModel;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\UrlInterface;
 
 class AiChatViewModel implements ArgumentInterface
 {
@@ -16,12 +17,20 @@ class AiChatViewModel implements ArgumentInterface
     private $scopeConfig;
 
     /**
+     * @var UrlInterface
+     */
+    private $urlBuilder;
+
+    /**
      * @param ScopeConfigInterface $scopeConfig
+     * @param UrlInterface $urlBuilder
      */
     public function __construct(
-        ScopeConfigInterface $scopeConfig
+        ScopeConfigInterface $scopeConfig,
+        UrlInterface $urlBuilder
     ) {
         $this->scopeConfig = $scopeConfig;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -35,5 +44,15 @@ class AiChatViewModel implements ArgumentInterface
             self::AI_CHAT_ENABLED_CONFIG_PATH,
             ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * Get secure AI chat API endpoint URL
+     *
+     * @return string
+     */
+    public function getAiChatApiUrl(): string
+    {
+        return $this->urlBuilder->getUrl('rest/V1/bold/ai-chat/message');
     }
 } 

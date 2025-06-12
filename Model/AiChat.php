@@ -138,8 +138,8 @@ class AiChat implements AiChatInterface
                 ],
                 'conversation' => [],
                 'prompt_config' => [
-                    'role' => 'You are a helpful shopping assistant for an e-commerce store.',
-                    'instructions' => 'Be friendly, helpful, and encouraging. Keep responses concise but informative. Respond in a natural, conversational way like a real person would. When recommending products, mention them naturally in your response.',
+                    'role' => 'You are a helpful shopping AI assistant for an online store.',
+                    'instructions' => 'Be friendly, helpful, and conversational. Respond naturally and pay attention to what the customer just said. When they ask about a specific product, tell them about it and offer to add it to their cart. If they agree (yes, sure, okay, etc.), acknowledge that you\'ll add it to their cart. Avoid repeating the same questions. Do not pretend to be a real human store worker, but be as helpful as possible.',
                     'max_history' => 5
                 ],
                 'cart_id' => null
@@ -182,7 +182,7 @@ class AiChat implements AiChatInterface
         }
 
         $prompt .= "\nCurrent customer message: $message\n";
-        $prompt .= "\nPlease respond as a helpful shopping assistant considering the conversation context:";
+        $prompt .= "\nRespond naturally based on what the customer just said and the conversation so far. If they say 'sure', 'yes', 'okay' or similar agreement words, they're likely agreeing to what you just offered. If they're asking for something specific, focus on that. Don't repeat previous questions unnecessarily:";
 
         return $prompt;
     }

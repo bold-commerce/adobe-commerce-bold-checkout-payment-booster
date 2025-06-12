@@ -45,7 +45,7 @@ define([
                     '</div>',
                     '<div class="chat-messages">',
                         '<div class="chat-message bot-message">',
-                            '<p>' + $t('Hello! I\'m your AI shopping assistant. I can help you find products and add them to your cart. Try asking me about bags, backpacks, totes, or messenger bags!') + '</p>',
+                            '<p>' + $t('Hi there! Welcome to our store! How can I help you today?') + '</p>',
                         '</div>',
                     '</div>',
                     '<div class="chat-input-container">',
@@ -136,7 +136,7 @@ define([
             // Clear chat messages except welcome message
             $('.chat-messages').html([
                 '<div class="chat-message bot-message">',
-                    '<p>' + $t('Hello! I\'m your AI shopping assistant. I can help you find products and add them to your cart. Try asking me about bags, backpacks, totes, or messenger bags!') + '</p>',
+                    '<p>' + $t('Hi there! Welcome to our store! How can I help you today?') + '</p>',
                 '</div>'
             ].join(''));
             
@@ -191,8 +191,8 @@ define([
                     ],
                     conversation: [],
                     prompt_config: {
-                        role: 'You are a helpful shopping assistant for an e-commerce store.',
-                        instructions: 'Be friendly, helpful, and encouraging. Keep responses concise but informative. Respond in a natural, conversational way like a real person would. When recommending products, mention them naturally in your response.',
+                        role: 'You are a helpful shopping AI assistant for an online store.',
+                        instructions: 'Be friendly, helpful, and conversational. Respond naturally and pay attention to what the customer just said. When they ask about a specific product, tell them about it and offer to add it to their cart. If they agree (yes, sure, okay, etc.), acknowledge that you\'ll add it to their cart. Avoid repeating the same questions. Be as helpful as possible.',
                         max_history: 5
                     },
                     cart_id: cartId
@@ -208,29 +208,42 @@ define([
 
         // Process message with AI (Gemini API)
         function processWithAI(userMessage) {
-            // Simple keyword detection for MVP
             var lowerMessage = userMessage.toLowerCase();
+            
+            // Check if customer is agreeing to add something to cart
+            var isAgreement = lowerMessage.match(/^(yes|yeah|sure|ok|okay|yep|add it|sounds good)!?$/);
+            
+            // Check if we just recommended a product in the last conversation
+            var lastBotMessage = $('.chat-message.bot-message').last().text().toLowerCase();
+            var productMentioned = null;
+            
+            // Look for product mentions in the last bot message
+            Object.keys(availableProducts).forEach(function(keyword) {
+                if (lastBotMessage.includes(keyword) || lastBotMessage.includes(availableProducts[keyword].name.toLowerCase())) {
+                    productMentioned = availableProducts[keyword];
+                }
+            });
+            
+            // If customer is agreeing and we just mentioned a product, add it to cart
+            if (isAgreement && productMentioned && lastBotMessage.includes('add') && lastBotMessage.includes('cart')) {
+                addProductToCart(productMentioned);
+                return;
+            }
+            
+            // Check for explicit product + cart requests
             var detectedProduct = null;
-
-            // Check for product mentions
             Object.keys(availableProducts).forEach(function(keyword) {
                 if (lowerMessage.includes(keyword)) {
                     detectedProduct = availableProducts[keyword];
                 }
             });
-
-            // Check for cart/checkout keywords
+            
             var isCartRequest = lowerMessage.includes('cart') || lowerMessage.includes('add') || lowerMessage.includes('buy');
             var isCheckoutRequest = lowerMessage.includes('checkout') || lowerMessage.includes('purchase') || lowerMessage.includes('order');
 
             if (detectedProduct && isCartRequest) {
-                // Add product to cart
                 addProductToCart(detectedProduct);
-            } else if (detectedProduct) {
-                // Show product information
-                showProductInfo(detectedProduct);
             } else if (isCheckoutRequest) {
-                // Initiate checkout
                 initiateCheckout();
             } else {
                 // Call secure AI API for general questions

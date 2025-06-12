@@ -1,0 +1,21 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Bold\CheckoutPaymentBooster\ViewModel\AiChatViewModel $viewModel
+ */
+$viewModel = $block->getViewModel();
+?>
+
+<div id="bold-ai-chat-container" class="bold-ai-chat-container" data-mage-init='{"Bold_CheckoutPaymentBooster/js/ai-chat": {}}'></div>
+
+<script type="text/x-magento-init">
+{
+    "*": {
+        "Bold_CheckoutPaymentBooster/js/ai-chat-config": {
+            "graphqlUrl": "<?= $block->escapeJs($block->getUrl('graphql')) ?>",
+            "createCartMutation": "mutation { createEmptyCart }",
+            "isEnabled": <?= $viewModel->isAiChatEnabled() ? 'true' : 'false' ?>
+        }
+    }
+}
+</script> 

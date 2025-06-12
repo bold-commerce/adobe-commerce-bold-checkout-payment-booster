@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <css src="Bold_CheckoutPaymentBooster::css/ai-chat.css"/>
+    </head>
+    <body>
+        <referenceContainer name="before.body.end">
+            <block class="Magento\Framework\View\Element\Template"
+                   name="bold.ai.chat.bubble"
+                   template="Bold_CheckoutPaymentBooster::ai-chat-bubble.phtml"
+                   ifconfig="checkout/bold_checkout_payment_booster/ai_chat_enabled">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Bold\CheckoutPaymentBooster\ViewModel\AiChatViewModel</argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page> 

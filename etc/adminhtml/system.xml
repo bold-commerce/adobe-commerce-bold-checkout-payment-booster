@@ -81,6 +81,11 @@
                         <field id="is_payment_booster_enabled">1</field>
                     </depends>
                 </field>
+                <field id="ai_chat_enabled" translate="label" type="select" sortOrder="80" showInWebsite="1">
+                    <label>Enable AI Shopping Assistant</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Enable the AI-powered shopping assistant chat bubble on your website. The assistant can help customers find products, add them to cart, and complete checkout.]]></comment>
+                </field>
             </group>
             <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
                 <label>Bold Checkout Payment Booster Advanced Settings</label>

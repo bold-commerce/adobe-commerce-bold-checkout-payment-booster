@@ -8,8 +8,9 @@ This directory contains comprehensive tests for the AI chatbot and rate limiting
 Test/
 ├── Integration/
 │   ├── AI/
-│   │   └── Service/
-│   │       └── GeminiChatServiceTest.php
+│   │   ├── Service/
+│   │   │   └── GeminiChatServiceTest.php
+│   │   └── ChatHappyPathTest.php ⭐ **Sales Demo**
 │   ├── Plugin/
 │   │   └── GraphQl/
 │   │       └── AddToCartPluginTest.php
@@ -82,6 +83,45 @@ Test/
 - Argument preservation
 - Multiple cart item scenarios
 
+### 4. ChatHappyPathTest.php ⭐ **Sales Demo Test**
+**Tests**: Complete AI Agent workflow following CHK-8730 architecture
+
+**Test Cases**:
+- ✅ `testAiAgentHappyPathWorkflow()` - Complete 20-step workflow simulation
+- ✅ `testConversationFlowMatchesArchitecture()` - Intent validation
+- ✅ `testApiEndpointsAvailability()` - API endpoint documentation
+
+**20-Step Workflow Simulation**:
+1. User loads website
+2. Agent conversation starts & loads products
+3. User selects products through chat
+4. Agent prompts for checkout
+5. User confirms checkout
+6. Agent initializes order
+7. Returns order ID and auth token
+8. Agent prompts for wallet payment
+9. User declines wallet payment
+10. Agent prompts for address selection
+11. User selects address
+12. Agent adds address to order
+13. System returns shipping options
+14. Agent presents shipping options
+15. User selects shipping option
+16. Agent sets shipping line on order
+17. Agent confirms totals with user
+18. User confirms final order
+19. Agent prepares for payment (EPS config)
+20. Ready for payment processing
+
+**Key Features Tested**:
+- Complete conversation workflow
+- Product discovery and selection
+- Order/cart management
+- Address and shipping handling
+- Payment preparation (stops before processing)
+- API integration points
+- Sales demonstration readiness
+
 ## Running Tests
 
 ### Prerequisites
@@ -130,6 +170,25 @@ Tests use Magento's integration test framework with:
 - `dev/tests/integration/phpunit.xml.dist`
 - `dev/tests/integration/etc/install-config-mysql.php`
 
+## Sales Demo Test ⭐
+
+The `ChatHappyPathTest.php` is specifically designed for **sales demonstrations** and follows the exact workflow defined in `CHK-8730-agent-arch.md`. 
+
+### Quick Demo Run
+```bash
+cd dev/tests/integration
+php -f ../../../vendor/bin/phpunit -- --configuration phpunit.xml.dist --filter testAiAgentHappyPathWorkflow ../../../app/code/Bold/CheckoutPaymentBooster/Test/Integration/AI/ChatHappyPathTest.php
+```
+
+This test demonstrates:
+- ✅ **Complete customer journey** from product discovery to payment ready
+- ✅ **AI conversation flow** with intent detection
+- ✅ **Order management** with cart, address, and shipping
+- ✅ **Payment preparation** (stops before processing for safety)
+- ✅ **API integration points** for Bold commerce services
+
+Perfect for demonstrating the AI agent capabilities to potential customers!
+
 ## Risk-Based Testing Strategy
 
 These tests focus on **high-risk areas** identified in the AI chatbot architecture:
@@ -173,22 +232,6 @@ Tests use:
 - **Proper cleanup** in tearDown methods
 
 ## Troubleshooting
-
-### Common Issues
-
-1. **Bootstrap class not found**
-   - Ensure running from proper integration test directory
-   - Verify Magento test framework is installed
-
-2. **Database connection errors**
-   - Check integration test database configuration
-   - Ensure test database is created and accessible
-
-3. **Cache conflicts**
-   - Tests include proper cleanup in tearDown methods
-   - Use unique keys for rate limiter tests
-
-4. **Memory issues**
    - Integration tests can be memory intensive
    - Increase PHP memory limit if needed
 

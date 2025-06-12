@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\AI\Api;
+namespace Bold\CheckoutPaymentBooster\Api\AI;
 
-use Bold\CheckoutPaymentBooster\AI\Api\Data\ChatMessageInterface;
+use Bold\CheckoutPaymentBooster\Api\AI\Data\ChatMessageInterface;
 
 /**
  * Chat Interface for AI Agent

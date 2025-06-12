@@ -1,9 +1,9 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\AI\Controller\Chat;
+namespace Bold\CheckoutPaymentBooster\Controller\AI\Chat;
 
-use Bold\CheckoutPaymentBooster\AI\Api\ChatInterface;
+use Bold\CheckoutPaymentBooster\Api\AI\ChatInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\JsonFactory;

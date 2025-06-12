@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\AI\Service;
+namespace Bold\CheckoutPaymentBooster\Service\AI;
 
-use Bold\CheckoutPaymentBooster\AI\Api\ChatInterface;
-use Bold\CheckoutPaymentBooster\AI\Api\Data\ChatMessageInterface;
-use Bold\CheckoutPaymentBooster\AI\Model\ChatMessage;
+use Bold\CheckoutPaymentBooster\Api\AI\ChatInterface;
+use Bold\CheckoutPaymentBooster\Api\AI\Data\ChatMessageInterface;
+use Bold\CheckoutPaymentBooster\Model\ChatMessage;
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Serialize\Serializer\Json;
 use Psr\Log\LoggerInterface;

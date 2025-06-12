@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\AI\Service;
 
-use Bold\CheckoutPaymentBooster\AI\Api\ChatInterface;
-use Bold\CheckoutPaymentBooster\AI\Api\Data\ChatMessageInterface;
-use Bold\CheckoutPaymentBooster\AI\Service\GeminiChatService;
+use Bold\CheckoutPaymentBooster\Api\AI\ChatInterface;
+use Bold\CheckoutPaymentBooster\Api\AI\Data\ChatMessageInterface;
+use Bold\CheckoutPaymentBooster\Service\AI\GeminiChatService;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;

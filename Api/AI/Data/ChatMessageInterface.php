@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\AI\Api\Data;
+namespace Bold\CheckoutPaymentBooster\Api\AI\Data;
 
 /**
  * Chat Message Interface

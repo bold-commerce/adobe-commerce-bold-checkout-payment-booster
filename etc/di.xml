@@ -23,8 +23,8 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
     
     <!-- AI Agent Preferences -->
-    <preference for="Bold\CheckoutPaymentBooster\AI\Api\ChatInterface" type="Bold\CheckoutPaymentBooster\AI\Service\GeminiChatService"/>
-    <preference for="Bold\CheckoutPaymentBooster\AI\Api\Data\ChatMessageInterface" type="Bold\CheckoutPaymentBooster\AI\Model\ChatMessage"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\AI\ChatInterface" type="Bold\CheckoutPaymentBooster\Service\AI\GeminiChatService"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\AI\Data\ChatMessageInterface" type="Bold\CheckoutPaymentBooster\Model\ChatMessage"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

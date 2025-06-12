@@ -7,11 +7,11 @@ use Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface;
 interface AiChatInterface
 {
     /**
-     * Process AI chat message securely
+     * Process AI chat message with context
      *
      * @param string $message
-     * @param string|null $cartId
+     * @param array|null $context
      * @return \Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface
      */
-    public function processMessage(string $message, ?string $cartId = null): AiChatResponseInterface;
+    public function processMessage(string $message, ?array $context = null): AiChatResponseInterface;
 } 

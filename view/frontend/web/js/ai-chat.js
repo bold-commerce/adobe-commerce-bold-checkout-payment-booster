@@ -12,7 +12,7 @@ define([
         var $container = $(element);
         var cartId = null;
         var chatOpen = false;
-        var conversationHistory = [];
+        var conversationContext = null;
 
         // Real products from your Magento system
         var availableProducts = {
@@ -38,7 +38,10 @@ define([
                 '<div class="bold-ai-chat-window" style="display: none;">',
                     '<div class="chat-header">',
                         '<h3>' + $t('AI Shopping Assistant') + '</h3>',
-                        '<button class="chat-close-btn">×</button>',
+                        '<div class="chat-header-buttons">',
+                            '<button class="chat-clear-btn" title="' + $t('Clear conversation') + '">🗑️</button>',
+                            '<button class="chat-close-btn">×</button>',
+                        '</div>',
                     '</div>',
                     '<div class="chat-messages">',
                         '<div class="chat-message bot-message">',
@@ -67,6 +70,11 @@ define([
             // Close chat
             $container.on('click', '.chat-close-btn', function () {
                 closeChat();
+            });
+
+            // Clear conversation
+            $container.on('click', '.chat-clear-btn', function () {
+                clearConversationHistory();
             });
 
             // Send message
@@ -99,6 +107,40 @@ define([
             chatOpen = false;
             $('.bold-ai-chat-window').fadeOut(300);
             $('.bold-ai-chat-bubble').show();
+        }
+
+        // Update local context with new conversation
+        function updateLocalContext(message, response) {
+            if (!conversationContext) return;
+            
+            conversationContext.conversation.push({
+                message: message,
+                response: response,
+                timestamp: Date.now()
+            });
+            
+            // Keep only last N exchanges
+            var maxHistory = conversationContext.prompt_config.max_history || 5;
+            if (conversationContext.conversation.length > maxHistory) {
+                conversationContext.conversation = conversationContext.conversation.slice(-maxHistory);
+            }
+            
+            console.log('📋 Updated local context:', conversationContext);
+        }
+
+        // Clear conversation history
+        function clearConversationHistory() {
+            // Reset context
+            conversationContext = null;
+            
+            // Clear chat messages except welcome message
+            $('.chat-messages').html([
+                '<div class="chat-message bot-message">',
+                    '<p>' + $t('Hello! I\'m your AI shopping assistant. I can help you find products and add them to your cart. Try asking me about bags, backpacks, totes, or messenger bags!') + '</p>',
+                '</div>'
+            ].join(''));
+            
+            console.log('🗑️ Conversation context cleared');
         }
 
         // Create empty cart
@@ -136,11 +178,26 @@ define([
             appendMessage(message, 'user');
             $input.val('');
 
-            // Add to conversation history
-            conversationHistory.push({
-                role: 'user',
-                content: message
-            });
+            // Initialize context if needed
+            if (!conversationContext) {
+                conversationContext = {
+                    products: [
+                        {sku: '24-MB01', name: 'Joust Duffle Bag', price: '$34.00'},
+                        {sku: '24-MB03', name: 'Crown Summit Backpack', price: '$38.00'},
+                        {sku: '24-MB05', name: 'Wayfarer Messenger Bag', price: '$45.00'},
+                        {sku: '24-WB02', name: 'Compete Track Tote', price: '$33.00'},
+                        {sku: '24-MB04', name: 'Strive Shoulder Pack', price: '$32.00'},
+                        {sku: '24-WB01', name: 'Voyage Yoga Bag', price: '$32.00'}
+                    ],
+                    conversation: [],
+                    prompt_config: {
+                        role: 'You are a helpful shopping assistant for an e-commerce store.',
+                        instructions: 'Be friendly, helpful, and encouraging. Keep responses concise but informative. Respond in a natural, conversational way like a real person would. When recommending products, mention them naturally in your response.',
+                        max_history: 5
+                    },
+                    cart_id: cartId
+                };
+            }
 
             // Show typing indicator
             appendMessage($t('AI is thinking...'), 'bot', 'typing-indicator');
@@ -181,32 +238,33 @@ define([
             }
         }
 
-        // Call secure AI API endpoint
+        // Call secure AI API endpoint with context
         function callAiAPI(message) {
             var apiUrl = window.bold_ai_chat_config.aiChatApiUrl;
             
             console.log('🤖 callAiAPI called with message:', message);
             console.log('🔗 API URL:', apiUrl);
-            console.log('🛒 Cart ID:', cartId);
+            console.log('📋 Current context:', conversationContext);
             
             if (!apiUrl) {
                 console.log('❌ No API URL configured, using fallback');
-                // Fallback response when API is not configured
                 setTimeout(function() {
                     removeTypingIndicator();
                     var response = generateFallbackResponse(message);
                     appendMessage(response, 'bot');
-                    conversationHistory.push({
-                        role: 'assistant',
-                        content: response
-                    });
+                    updateLocalContext(message, response);
                 }, 1000);
                 return;
             }
 
+            // Prepare context - set cart_id if available
+            if (conversationContext && cartId) {
+                conversationContext.cart_id = cartId;
+            }
+
             var payload = {
                 message: message,
-                cartId: cartId
+                context: conversationContext
             };
             
             console.log('📤 Sending payload:', payload);
@@ -227,10 +285,14 @@ define([
                     if (response && response.message) {
                         console.log('💬 Using AI response:', response.message);
                         appendMessage(response.message, 'bot');
-                        conversationHistory.push({
-                            role: 'assistant',
-                            content: response.message
-                        });
+                        
+                        // Update context from API response
+                        if (response.context) {
+                            conversationContext = response.context;
+                            console.log('📋 Updated context from API:', conversationContext);
+                        } else {
+                            updateLocalContext(message, response.message);
+                        }
                     } else {
                         console.log('⚠️ Invalid response format, using error message');
                         appendMessage($t('Sorry, I had trouble understanding that. Can you try asking differently?'), 'bot');
@@ -247,10 +309,7 @@ define([
                     var fallbackResponse = generateFallbackResponse(message);
                     console.log('🔄 Using fallback response:', fallbackResponse);
                     appendMessage(fallbackResponse, 'bot');
-                    conversationHistory.push({
-                        role: 'assistant',
-                        content: fallbackResponse
-                    });
+                    updateLocalContext(message, fallbackResponse);
                 }
             });
         }

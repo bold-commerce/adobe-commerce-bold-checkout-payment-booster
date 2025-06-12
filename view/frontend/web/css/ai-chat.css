@@ -67,11 +67,18 @@
     font-weight: 600;
 }
 
+.chat-header-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.chat-clear-btn,
 .chat-close-btn {
     background: none;
     border: none;
     color: white;
-    font-size: 28px;
+    font-size: 20px;
     cursor: pointer;
     padding: 0;
     width: 30px;
@@ -83,6 +90,11 @@
     transition: background 0.3s ease;
 }
 
+.chat-close-btn {
+    font-size: 28px;
+}
+
+.chat-clear-btn:hover,
 .chat-close-btn:hover {
     background: rgba(255, 255, 255, 0.2);
 }

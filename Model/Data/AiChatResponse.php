@@ -10,6 +10,7 @@ class AiChatResponse extends DataObject implements AiChatResponseInterface
     private const SUCCESS = 'success';
     private const MESSAGE = 'message';
     private const SOURCE = 'source';
+    private const CONTEXT = 'context';
 
     /**
      * Get success status
@@ -72,5 +73,26 @@ class AiChatResponse extends DataObject implements AiChatResponseInterface
     public function setSource(string $source): self
     {
         return $this->setData(self::SOURCE, $source);
+    }
+
+    /**
+     * Get context
+     *
+     * @return array|null
+     */
+    public function getContext(): ?array
+    {
+        return $this->getData(self::CONTEXT);
+    }
+
+    /**
+     * Set context
+     *
+     * @param array|null $context
+     * @return $this
+     */
+    public function setContext(?array $context): self
+    {
+        return $this->setData(self::CONTEXT, $context);
     }
 } 

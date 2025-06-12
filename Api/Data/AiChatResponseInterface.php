@@ -48,4 +48,19 @@ interface AiChatResponseInterface
      * @return $this
      */
     public function setSource(string $source): self;
+
+    /**
+     * Get updated context
+     *
+     * @return array|null
+     */
+    public function getContext(): ?array;
+
+    /**
+     * Set updated context
+     *
+     * @param array|null $context
+     * @return $this
+     */
+    public function setContext(?array $context): self;
 } 

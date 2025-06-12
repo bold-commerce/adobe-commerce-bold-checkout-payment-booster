@@ -53,40 +53,44 @@ class AiChat implements AiChatInterface
     }
 
     /**
-     * Process AI chat message securely
+     * Process AI chat message with context
      *
      * @param string $message
-     * @param string|null $cartId
+     * @param array|null $context
      * @return AiChatResponseInterface
      */
-    public function processMessage(string $message, ?string $cartId = null): \Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface
+    public function processMessage(string $message, ?array $context = null): \Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface
     {
+        // Initialize or update context
+        $context = $this->initializeContext($context);
+        
         try {
             $apiKey = $this->getGeminiApiKey();
             
             $this->logger->info('🔑 AI Chat - API Key status: ' . ($apiKey ? 'FOUND (' . strlen($apiKey) . ' chars)' : 'NOT FOUND'));
             
             if (!$apiKey) {
-                // No API key configured - use fallback
                 $this->logger->info('❌ AI Chat - No API key, using fallback');
-                return $this->responseFactory->create()
-                    ->setSuccess(true)
-                    ->setMessage($this->generateFallbackResponse($message))
-                    ->setSource('fallback');
+                return $this->createFallbackResponse($message, $context);
             }
             
             $this->logger->info('🤖 AI Chat - Processing message: ' . substr($message, 0, 50) . '...');
-            $prompt = $this->buildPrompt($message, $cartId);
+            $prompt = $this->buildPromptFromContext($message, $context);
             $this->logger->info('📝 AI Chat - Built prompt, calling Gemini API...');
             
             $response = $this->callGeminiApi($apiKey, $prompt);
             
             if ($response) {
                 $this->logger->info('✅ AI Chat - Gemini API success, response length: ' . strlen($response));
+                
+                // Update context with new conversation
+                $updatedContext = $this->updateContext($context, $message, $response);
+                
                 return $this->responseFactory->create()
                     ->setSuccess(true)
                     ->setMessage($response)
-                    ->setSource('gemini');
+                    ->setSource('gemini')
+                    ->setContext($updatedContext);
             } else {
                 $this->logger->warning('⚠️ AI Chat - Gemini API returned empty response');
             }
@@ -96,10 +100,7 @@ class AiChat implements AiChatInterface
         }
 
         // Fallback response
-        return $this->responseFactory->create()
-            ->setSuccess(true)
-            ->setMessage($this->generateFallbackResponse($message))
-            ->setSource('fallback');
+        return $this->createFallbackResponse($message, $context);
     }
 
     /**
@@ -118,36 +119,117 @@ class AiChat implements AiChatInterface
     }
 
     /**
-     * Build prompt for Gemini API
+     * Initialize context object
+     *
+     * @param array|null $context
+     * @return array
+     */
+    private function initializeContext(?array $context = null): array
+    {
+        if ($context === null) {
+            return [
+                'products' => [
+                    ['sku' => '24-MB01', 'name' => 'Joust Duffle Bag', 'price' => '$34.00'],
+                    ['sku' => '24-MB03', 'name' => 'Crown Summit Backpack', 'price' => '$38.00'],
+                    ['sku' => '24-MB05', 'name' => 'Wayfarer Messenger Bag', 'price' => '$45.00'],
+                    ['sku' => '24-WB02', 'name' => 'Compete Track Tote', 'price' => '$33.00'],
+                    ['sku' => '24-MB04', 'name' => 'Strive Shoulder Pack', 'price' => '$32.00'],
+                    ['sku' => '24-WB01', 'name' => 'Voyage Yoga Bag', 'price' => '$32.00']
+                ],
+                'conversation' => [],
+                'prompt_config' => [
+                    'role' => 'You are a helpful shopping assistant for an e-commerce store.',
+                    'instructions' => 'Be friendly, helpful, and encouraging. Keep responses concise but informative. Respond in a natural, conversational way like a real person would. When recommending products, mention them naturally in your response.',
+                    'max_history' => 5
+                ],
+                'cart_id' => null
+            ];
+        }
+        
+        return $context;
+    }
+
+    /**
+     * Build prompt from context object
      *
      * @param string $message
-     * @param string|null $cartId
+     * @param array $context
      * @return string
      */
-    private function buildPrompt(string $message, ?string $cartId = null): string
+    private function buildPromptFromContext(string $message, array $context): string
     {
-        $availableProducts = [
-            'Joust Duffle Bag (24-MB01) - $34.00',
-            'Crown Summit Backpack (24-MB03) - $38.00', 
-            'Wayfarer Messenger Bag (24-MB05) - $45.00',
-            'Compete Track Tote (24-WB02) - $33.00',
-            'Strive Shoulder Pack (24-MB04) - $32.00',
-            'Voyage Yoga Bag (24-WB01) - $32.00'
-        ];
-
-        $context = "You are a helpful shopping assistant for an e-commerce store. ";
-        $context .= "Available products: " . implode(", ", $availableProducts) . ". ";
-        $context .= "You can help customers find products, get product information, and guide them to add items to cart. ";
-        $context .= "Be friendly, helpful, and encouraging. Keep responses concise but informative. ";
+        $prompt = $context['prompt_config']['role'] . "\n\n";
         
-        if ($cartId) {
-            $context .= "The customer has an active shopping cart. ";
+        // Add available products
+        $prompt .= "Available products:\n";
+        foreach ($context['products'] as $product) {
+            $prompt .= "- {$product['name']} ({$product['sku']}) - {$product['price']}\n";
+        }
+        
+        $prompt .= "\n" . $context['prompt_config']['instructions'] . "\n";
+        
+        if ($context['cart_id']) {
+            $prompt .= "The customer has an active shopping cart. ";
         }
 
-        $context .= "\n\nCustomer message: " . $message;
-        $context .= "\n\nPlease respond as a helpful shopping assistant:";
+        // Add conversation history
+        if (!empty($context['conversation'])) {
+            $prompt .= "\nConversation history:\n";
+            foreach ($context['conversation'] as $entry) {
+                $prompt .= "Customer: {$entry['message']}\n";
+                $prompt .= "Assistant: {$entry['response']}\n";
+            }
+        }
 
+        $prompt .= "\nCurrent customer message: $message\n";
+        $prompt .= "\nPlease respond as a helpful shopping assistant considering the conversation context:";
+
+        return $prompt;
+    }
+
+    /**
+     * Update context with new conversation
+     *
+     * @param array $context
+     * @param string $message
+     * @param string $response
+     * @return array
+     */
+    private function updateContext(array $context, string $message, string $response): array
+    {
+        // Add to conversation history
+        $context['conversation'][] = [
+            'message' => $message,
+            'response' => $response,
+            'timestamp' => time()
+        ];
+        
+        // Keep only last N exchanges
+        $maxHistory = $context['prompt_config']['max_history'] ?? 5;
+        if (count($context['conversation']) > $maxHistory) {
+            $context['conversation'] = array_slice($context['conversation'], -$maxHistory);
+        }
+        
         return $context;
+    }
+
+    /**
+     * Create fallback response with updated context
+     *
+     * @param string $message
+     * @param array $context
+     * @return AiChatResponseInterface
+     */
+    private function createFallbackResponse(string $message, array $context): \Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface
+    {
+        $fallbackMessage = $this->generateFallbackResponse($message);
+        $updatedContext = $this->updateContext($context, $message, $fallbackMessage);
+        
+        return $this->responseFactory->create()
+            ->setSuccess(true)
+            ->setMessage($fallbackMessage)
+            ->setSource('fallback')
+            ->setContext($updatedContext);
     }
 
     /**
@@ -171,9 +253,6 @@ class AiChat implements AiChatInterface
                         ]
                     ]
                 ]
-            ],
-            'generation_config' => [
-                'response_mime_type' => 'application/json'
             ]
         ];
 

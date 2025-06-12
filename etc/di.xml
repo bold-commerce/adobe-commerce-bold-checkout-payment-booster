@@ -220,4 +220,32 @@
             </argument>
         </arguments>
     </type>
+
+    <!-- AI Chat Logger -->
+    <virtualType name="Bold\CheckoutPaymentBooster\Logger\AiChat\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">var/log/bold_ai_chat.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Logger\AiChat" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">ai_chat</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="ai" xsi:type="object">Bold\CheckoutPaymentBooster\Logger\AiChat\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- RateLimiter injection for plugin -->
+    <type name="Bold\CheckoutPaymentBooster\Plugin\GraphQl\AddToCartPlugin">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Logger\AiChat</argument>
+            <argument name="rateLimiter" xsi:type="object">Bold\CheckoutPaymentBooster\Service\RateLimiter</argument>
+        </arguments>
+    </type>
+
+    <!-- Plugin for GraphQL addSimpleProductsToCart resolver -->
+    <type name="Magento\QuoteGraphQl\Model\Resolver\AddSimpleProductsToCart">
+        <plugin name="bold_ai_chat_add_to_cart_logger" type="Bold\CheckoutPaymentBooster\Plugin\GraphQl\AddToCartPlugin" sortOrder="10" />
+    </type>
 </config>

@@ -135,3 +135,18 @@ curl -X POST "http://your-domain.test/rest/V1/bold/ai-chat/message" \
   -H "Content-Type: application/json" \
   -d '{"message":"test","context":null}'
 ```
+
+## Known Limitations & Caveats
+
+- **No True Cart Mutation on Agreement**: The AI can suggest adding products to the cart, but actual cart mutation only happens if the frontend detects agreement and triggers the GraphQL mutation. If the user says "yes" or "sure" in a backend-only test, the cart is not updated.
+- **No Real-Time Inventory Awareness**: The AI only knows about the static list of products provided in the context. It does not check real-time inventory or product availability.
+- **No User Authentication/Personalization**: The assistant does not personalize responses based on user account, order history, or preferences.
+- **Limited Conversation Memory**: Only the last 5 exchanges are kept in the context object to avoid prompt bloat. Longer conversations may lose earlier context.
+- **No Multi-Turn Cart Actions**: The AI cannot handle complex cart actions (e.g., "add two of those" or "remove the last item")—it only supports simple add-to-cart flows.
+- **No Image or Rich Media Support**: All responses are plain text; the AI cannot show product images or rich content.
+- **Frontend/Backend Context Sync**: If the frontend context is lost (e.g., page reload), the conversation history is reset.
+- **Fallback Mode**: If the API key is missing or the Gemini API fails, the assistant uses a simple keyword-based fallback with limited intelligence.
+- **Prompt Injection Risk**: Since user messages are included verbatim in the prompt, there is a theoretical risk of prompt injection (though mitigated by context and instructions).
+- **No Language/Locale Adaptation**: The AI always responds in English and does not adapt to user locale or language.
+- **No Product Search**: The AI cannot search the full Magento catalog; it only knows about the hardcoded product list in the context.
+- **No Session Persistence**: Conversation context is not persisted server-side; it is passed in each API call from the frontend.

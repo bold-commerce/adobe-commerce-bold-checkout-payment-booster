@@ -192,4 +192,10 @@ class CheckoutData
         $checkoutData = $this->checkoutSession->getBoldCheckoutData();
         return $checkoutData['data']['payment_gateways'] ?? [];
     }
+
+    public function getShouldVault(): bool
+    {
+        $checkoutData = $this->checkoutSession->getBoldCheckoutData();
+        return $checkoutData['data']['should_vault'] ?? false;
+    }
 }

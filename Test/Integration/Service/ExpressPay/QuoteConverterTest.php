@@ -49,7 +49,8 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
+                    'platform_id' => '1'
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
@@ -165,7 +166,8 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
+                    'platform_id' => null
                 ],
                 'items' => [
                     [
@@ -237,6 +239,7 @@ class QuoteConverterTest extends TestCase
                     'first_name' => 'John',
                     'last_name' => 'Smith',
                     'email' => 'customer@example.com',
+                    'platform_id' => '1'
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',

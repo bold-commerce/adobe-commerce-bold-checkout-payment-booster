@@ -506,23 +506,52 @@ class CreatorTest extends TestCase
             ->method('create')
             ->willReturn($quoteIdMaskStub);
 
-        $quoteRepositoryMock
-            ->expects($matcher)
-            ->method('save')
-            ->willReturnCallback(
-                function () use ($matcher, $localizedException) {
-                    if ($matcher->getInvocationCount() !== 2) {
-                        return;
-                    }
+        if ($this->getMagentoVersion() != '2.4.8') {
+            $quoteRepositoryMock
+                ->expects($matcher)
+                ->method('save')
+                ->willReturnCallback(
+                    function () use ($matcher, $localizedException) {
+                        if ($matcher->getInvocationCount() !== 2) {
+                            return;
+                        }
 
-                    throw $localizedException;
-                }
-            );
+                        throw $localizedException;
+                    }
+                );
+        } else {
+            //In PHPUnit 10, the getInvocationCount() got renamed to numberOfInvocations().
+            $quoteRepositoryMock
+                ->expects($matcher)
+                ->method('save')
+                ->willReturnCallback(
+                    function () use ($matcher, $localizedException) {
+                        if ($matcher->numberOfInvocations() !== 2) {
+                            return;
+                        }
+
+                        throw $localizedException;
+                    }
+                );
+        }
 
         $magentoQuoteCreator->createQuote(
             $storeManager->getStore()->getId(),
             $product,
             []
         );
+    }
+
+    /**
+     * Get current magento version
+     *
+     * @return string
+     */
+    private function getMagentoVersion(): string
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var ProductRepositoryInterface $productRepository */
+        $productMetaData = $objectManager->create(\Magento\Framework\App\ProductMetadataInterface::class);
+        return $productMetaData->getVersion();
     }
 }

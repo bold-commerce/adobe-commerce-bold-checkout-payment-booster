@@ -1,6 +1,12 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    
+    <!-- AI Chat API Implementation -->
+    <preference for="Bold\CheckoutPaymentBooster\Api\AiChatInterface" 
+                type="Bold\CheckoutPaymentBooster\Model\AiChat" />
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\AiChatResponseInterface" 
+                type="Bold\CheckoutPaymentBooster\Model\Data\AiChatResponse" />
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\Order\AddressInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\Order\Address"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\OrderInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\Order"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface" type="Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder"/>
@@ -15,6 +21,10 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
+    
+    <!-- AI Agent Preferences -->
+    <preference for="Bold\CheckoutPaymentBooster\Api\AI\ChatInterface" type="Bold\CheckoutPaymentBooster\Service\AI\GeminiChatService"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\AI\Data\ChatMessageInterface" type="Bold\CheckoutPaymentBooster\Model\ChatMessage"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>
@@ -209,5 +219,33 @@
                 <item name="crontab/default/jobs/bold_booster_deactivate_digital_wallets_quotes/schedule/cron_expression" xsi:type="string">1</item>
             </argument>
         </arguments>
+    </type>
+
+    <!-- AI Chat Logger -->
+    <virtualType name="Bold\CheckoutPaymentBooster\Logger\AiChat\Handler" type="Magento\Framework\Logger\Handler\Base">
+        <arguments>
+            <argument name="fileName" xsi:type="string">var/log/bold_ai_chat.log</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Logger\AiChat" type="Magento\Framework\Logger\Monolog">
+        <arguments>
+            <argument name="name" xsi:type="string">ai_chat</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="ai" xsi:type="object">Bold\CheckoutPaymentBooster\Logger\AiChat\Handler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+
+    <!-- RateLimiter injection for plugin -->
+    <type name="Bold\CheckoutPaymentBooster\Plugin\GraphQl\AddToCartPlugin">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Logger\AiChat</argument>
+            <argument name="rateLimiter" xsi:type="object">Bold\CheckoutPaymentBooster\Service\RateLimiter</argument>
+        </arguments>
+    </type>
+
+    <!-- Plugin for GraphQL addSimpleProductsToCart resolver -->
+    <type name="Magento\QuoteGraphQl\Model\Resolver\AddSimpleProductsToCart">
+        <plugin name="bold_ai_chat_add_to_cart_logger" type="Bold\CheckoutPaymentBooster\Plugin\GraphQl\AddToCartPlugin" sortOrder="10" />
     </type>
 </config>

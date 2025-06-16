@@ -95,13 +95,16 @@ define(
                 quote.billingAddress(quoteAddress);
             }
 
-            newAddressProcessor.getRates(quote.shippingAddress());
-            shippingService.getShippingRates().subscribe(function (rates) {
-                cartCache.set('rates', rates);
-                let shippingAddress = _.pick(quote.shippingAddress(), cartCache.requiredFields);
+            //calculate only if has shipping address
+            if (quote.shippingAddress()) {
+                newAddressProcessor.getRates(quote.shippingAddress());
+                shippingService.getShippingRates().subscribe(function (rates) {
+                    cartCache.set('rates', rates);
+                    let shippingAddress = _.pick(quote.shippingAddress(), cartCache.requiredFields);
 
-                cartCache.set('shipping-address', shippingAddress);
-            });
+                    cartCache.set('shipping-address', shippingAddress);
+                });
+            }
         }
     }
 );

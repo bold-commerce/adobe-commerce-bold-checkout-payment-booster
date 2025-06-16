@@ -10,6 +10,7 @@ define([
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-require-order-data-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-approve-payment-order-callback',
     'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-sca-payment-order-callback',
+    'Bold_CheckoutPaymentBooster/js/model/spi/callbacks/on-delete-payment-method-callback',
     'Bold_CheckoutPaymentBooster/js/action/digital-wallets/deactivate-quote',
     'Magento_Ui/js/model/messageList',
     'mage/url',
@@ -26,6 +27,7 @@ define([
     onRequireOrderDataCallback,
     onApprovePaymentOrderCallback,
     onScaPaymentOrderCallback,
+    onDeletePaymentOrderCallback,
     deactivateQuote,
     messageList,
     urlBuilder,
@@ -115,10 +117,12 @@ define([
                 'eps_bucket_url': window.checkoutConfig.bold.epsStaticUrl,
                 'group_label': window.checkoutConfig.bold.configurationGroupLabel,
                 'trace_id': window.checkoutConfig.bold.publicOrderId,
+                'vaulting_enabled': window.checkoutConfig.bold.vaulting_enabled,
                 'payment_gateways': window.checkoutConfig.bold.payment_gateways.map(paymentGateway => ({
                     gateway_id: paymentGateway.id,
                     auth_token: paymentGateway.auth_token,
                     currency: paymentGateway.currency,
+                    vaulted_payment_methods: paymentGateway.vaulted_payment_methods,
                 })),
                 'callbacks': {
                     'onClickPaymentOrder': async (paymentType, paymentPayload) => {
@@ -221,9 +225,17 @@ define([
                         console.error('An unexpected PayPal error occurred', errors);
                         messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                     },
-                    onCancelPaymentOrder: async function () {
+                    'onCancelPaymentOrder': async function () {
                         if (isProductPageActive) {
                             deactivateQuote();
+                        }
+                    },
+                    'onDeletePaymentMethod': async function (payload) {
+                        try {
+                            return await onDeletePaymentOrderCallback(payload);
+                        } catch (e) {
+                            console.error('Failed to delete payment method', e);
+                            messageList.addErrorMessage({ message: 'Warning: An unexpected error occurred. Please try again.' });
                         }
                     }
                 }

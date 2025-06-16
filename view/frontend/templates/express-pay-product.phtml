@@ -11,6 +11,7 @@ use Magento\Framework\View\Element\Template;
 $expressPayViewModel = $block->getData('express_pay_view_model');
 $isCustomerLoggedIn = $expressPayViewModel->isCustomerLoggedIn();
 $customerData = $expressPayViewModel->getCustomerData();
+$isDigitalGood = $expressPayViewModel->isDigitalGood();
 ?>
 <div id="express-pay-container-product" data-testid="express-pay-container-product">
     <div id="express-pay-buttons-product-details"></div>
@@ -32,6 +33,10 @@ $customerData = $expressPayViewModel->getCustomerData();
         window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
     }
 </script>
+<div id="express-pay-buttons-product-page-details"
+     data-container-id="express-pay-buttons-product-details"
+     data-page-source="product-details"
+     data-is-virtual="<?= (int) $isDigitalGood ?>"></div>
 
 <script type="text/x-magento-init">
     {

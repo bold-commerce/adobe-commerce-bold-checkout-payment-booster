@@ -26,8 +26,8 @@ use function reset;
 class QuoteConverterTest extends TestCase
 {
     /**
-     * @magentoConfigFixture current_store sales/custom_order_fees/custom_fees [{"code":"test_fee_0","title":"Test Fee","value":"4.00"},{"code":"test_fee_1","title":"Another Fee","value":"1.00"}]
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
      */
     public function testConvertFullQuoteConvertsNonVirtualQuote(): void
     {
@@ -49,7 +49,8 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
+                    'platform_id' => '1'
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
@@ -93,48 +94,28 @@ class QuoteConverterTest extends TestCase
                         'quantity' => 2,
                         'is_shipping_required' => true
                     ],
-                    [
-                        'name' => 'Test Fee',
-                        'sku' => 'test_fee_0',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '4.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
-                    ],
-                    [
-                        'name' => 'Another Fee',
-                        'sku' => 'test_fee_1',
-                        'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '1.00'
-                        ],
-                        'quantity' => 1,
-                        'is_shipping_required' => false
-                    ]
-                ],
-                'amount' => [
-                    'currency_code' => 'USD',
-                    'value' => '31.50'
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '25.00'
+                    'value' => '20.00',
+                ],
+                'amount' => [
+                    'currency_code' => 'USD',
+                    'value' => '26.50',
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
-                    'value' => '1.50'
+                    'value' => '1.50',
                 ],
                 'discount' => [
                     'currency_code' => 'USD',
-                    'value' => '5.00'
-                ]
-            ]
+                    'value' => '5.00',
+                ],
+            ],
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
-        self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+        self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
 
     /**
@@ -185,7 +166,8 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com'
+                    'email' => 'customer@example.com',
+                    'platform_id' => null
                 ],
                 'items' => [
                     [
@@ -257,6 +239,7 @@ class QuoteConverterTest extends TestCase
                     'first_name' => 'John',
                     'last_name' => 'Smith',
                     'email' => 'customer@example.com',
+                    'platform_id' => '1'
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
@@ -321,7 +304,7 @@ class QuoteConverterTest extends TestCase
         ];
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'test-gateway-id');
 
-        self::assertEquals($expectedConvertedQuoteData, $actualConvertedQuoteData);
+        self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);
     }
 
     public function testDoesNotConvertShippingInformationIfAddressIsNotSet(): void

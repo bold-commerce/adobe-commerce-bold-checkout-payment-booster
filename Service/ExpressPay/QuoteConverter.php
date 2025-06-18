@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Rate;
@@ -114,11 +116,15 @@ class QuoteConverter
 
         $email = $billingAddress->getEmail() ?? $shippingAddress->getEmail();
 
+        /** @var \Magento\Customer\Api\Data\CustomerInterface $customer */
+        $customer = $quote->getCustomer(); //
+
         $convertedQuote = [
             'order_data' => [
                 'customer' => [
                     'first_name' => $billingAddress->getFirstname() ?? '',
                     'last_name' => $billingAddress->getLastname() ?? '',
+                    'platform_id' => $customer->getId() ? (string)$quote->getCustomerId() : null,
                 ],
             ],
         ];

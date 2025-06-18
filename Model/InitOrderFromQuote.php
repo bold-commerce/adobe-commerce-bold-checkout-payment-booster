@@ -83,7 +83,8 @@ class InitOrderFromQuote
      *             id: int,
      *             is_test_mode: bool
      *         }[],
-     *         public_order_id: string
+     *         public_order_id: string,
+     *         should_vault: bool,
      *     }
      * }
      * @throws Exception
@@ -95,10 +96,15 @@ class InitOrderFromQuote
         if (!$flowId) {
             $flowId = $this->flowService->createAndSetBoldBoosterFlowID($websiteId);
         }
+        /** @var \Magento\Customer\Api\Data\CustomerInterface $customer */
+        $customer = $quote->getCustomer();
         $body = [
             'flow_id' => $flowId,
             'order_type' => 'simple_order',
             'cart_id' => $quote->getId() ?? '',
+            'customer' => [
+                'platform_id' => $customer->getId() ? (string)$quote->getCustomerId() : null,
+            ],
         ];
         $orderData = $this->client->post(
             (int)$websiteId,

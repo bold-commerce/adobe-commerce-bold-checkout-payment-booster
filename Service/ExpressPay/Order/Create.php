@@ -65,7 +65,7 @@ class Create implements CreateInterface
         $this->checkoutSession = $checkoutSession;
     }
 
-    public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault): array
+    public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -112,6 +112,7 @@ class Create implements CreateInterface
         $expressPayData['shipping_strategy'] = $shippingStrategy;
         $expressPayData['public_order_id'] = $publicOrderId;
         $expressPayData['should_vault'] = $shouldVault;
+        $expressPayData['payment_source'] = $paymentSource;
 
         try {
             $result = $this->httpClient->post($websiteId, $uri, $expressPayData);

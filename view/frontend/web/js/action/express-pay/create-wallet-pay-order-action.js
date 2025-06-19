@@ -21,7 +21,8 @@ define(
                     publicOrderId: window.checkoutConfig.bold.publicOrderId,
                     gatewayId: paymentPayload.gateway_id,
                     shippingStrategy: paymentPayload.shipping_strategy || 'dynamic',
-                    shouldVault: paymentPayload.should_vault  || false
+                    shouldVault: paymentPayload.should_vault || false,
+                    paymentSource: paymentPayload.payment_data?.payment_source || '',
                 }
             );
         };

@@ -20,7 +20,8 @@ define(
                     quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                     publicOrderId: window.checkoutConfig.bold.publicOrderId,
                     gatewayId: paymentPayload.gateway_id,
-                    shippingStrategy: paymentPayload.shipping_strategy || 'dynamic'
+                    shippingStrategy: paymentPayload.shipping_strategy || 'dynamic',
+                    shouldVault: paymentPayload.should_vault  || false
                 }
             );
         };

@@ -73,7 +73,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
             'dynamic',
-            false
+            false,
+            ''
         );
 
         self::assertSame($expectedResultData, $actualResultData);
@@ -96,7 +97,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '525f40b7-c512-4e5b-aa82-cc7276a48de9',
             'dynamic',
-            false
+            false,
+            ''
         );
     }
 
@@ -115,7 +117,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '525f40b7-c512-4e5b-aa82-cc7276a48de9',
             'dynamic',
-            false
+            false,
+            ''
         );
     }
 
@@ -147,7 +150,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'ae066eda-f88a-4c13-938f-e8bd4e496144',
             'dynamic',
-            false
+            false,
+            ''
         );
     }
 
@@ -186,7 +190,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'ae066eda-f88a-4c13-938f-e8bd4e496144',
             'dynamic',
-            false
+            false,
+            ''
         );
     }
 
@@ -224,7 +229,8 @@ class CreateTest extends TestCase
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '182011ba-9d43-47b7-9b74-8c234531ce20',
             'dynamic',
-            false
+            false,
+            ''
         );
     }
 

@@ -35,6 +35,10 @@ jobs:
             magento-version: "2.4.7-p4"
             composer-version: "v2"
             maria-db-version: "10.6"
+          - php-version: "8.4"
+            magento-version: "2.4.8-p1"
+            composer-version: "v2"
+            maria-db-version: "10.6"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:

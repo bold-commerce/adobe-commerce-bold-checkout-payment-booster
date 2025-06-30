@@ -43,8 +43,8 @@ class DeactivateQuotes extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         ValueFactory $valueFactory,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->valueFactory = $valueFactory;

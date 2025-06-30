@@ -72,7 +72,9 @@ class CreateTest extends TestCase
             $quoteMaskId,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
 
         self::assertSame($expectedResultData, $actualResultData);
@@ -94,7 +96,9 @@ class CreateTest extends TestCase
             'bb567af9f9d44983971981a6e8eacfd6',
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '525f40b7-c512-4e5b-aa82-cc7276a48de9',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
     }
 
@@ -112,7 +116,9 @@ class CreateTest extends TestCase
             42,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '525f40b7-c512-4e5b-aa82-cc7276a48de9',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
     }
 
@@ -143,7 +149,9 @@ class CreateTest extends TestCase
             $quoteMaskId,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'ae066eda-f88a-4c13-938f-e8bd4e496144',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
     }
 
@@ -181,7 +189,9 @@ class CreateTest extends TestCase
             $quoteMaskId,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             'ae066eda-f88a-4c13-938f-e8bd4e496144',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
     }
 
@@ -218,7 +228,9 @@ class CreateTest extends TestCase
             $quoteMaskId,
             'ff152513-f548-11ef-b987-3a475e3f6277',
             '182011ba-9d43-47b7-9b74-8c234531ce20',
-            'dynamic'
+            'dynamic',
+            false,
+            ''
         );
     }
 

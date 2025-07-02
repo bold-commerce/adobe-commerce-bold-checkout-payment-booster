@@ -13,11 +13,21 @@ class DeactivateQuotes
      */
     private $quoteDeactivator;
 
+    /**
+     * Constructor
+     *
+     * @param Deactivator $quoteDeactivator
+     */
     public function __construct(Deactivator $quoteDeactivator)
     {
         $this->quoteDeactivator = $quoteDeactivator;
     }
 
+    /**
+     * Execute
+     *
+     * @return void
+     */
     public function execute(): void
     {
         $this->quoteDeactivator->deactivateAllQuotes();

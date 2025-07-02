@@ -4,4 +4,8 @@
     <event name="admin_system_config_changed_section_checkout">
         <observer name="bold_checkout_payment_booster_configure_shop" instance="Bold\CheckoutPaymentBooster\Observer\Checkout\ConfigureShopObserver"/>
     </event>
+    <event name="controller_action_postdispatch_adminhtml_system_config_save">
+        <observer name="bold_checkout_payment_booster_single_store_copy_config"
+                  instance="Bold\CheckoutPaymentBooster\Observer\CopyWebsiteConfigToDefault" />
+    </event>
 </config>

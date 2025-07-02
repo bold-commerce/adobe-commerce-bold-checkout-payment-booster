@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer;
@@ -13,9 +14,12 @@ use Magento\Framework\App\Cache\TypeListInterface as CacheTypeList;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigCollectionFactory;
 use Psr\Log\LoggerInterface;
 
-
+/**
+ * Class responsible for copying website scope values to default scope
+ */
 class CopyWebsiteConfigToDefault implements ObserverInterface
 {
+
     /** @var CacheTypeList */
     private $cacheTypeList;
 
@@ -32,6 +36,8 @@ class CopyWebsiteConfigToDefault implements ObserverInterface
     private $logger;
 
     /**
+     * Constructor
+     *
      * @param CacheTypeList $cacheTypeList
      * @param ConfigCollectionFactory $configCollectionFactory
      * @param WriterInterface $configWriter
@@ -53,14 +59,13 @@ class CopyWebsiteConfigToDefault implements ObserverInterface
     }
 
     /**
-     * @inheritDoc
+     * Execute method
      */
     public function execute(Observer $observer)
     {
         if (!$this->storeManager->isSingleStoreMode()) {
             return;
         }
-
         try {
             $websiteId = $this->storeManager->getDefaultStoreView()->getWebsiteId();
 

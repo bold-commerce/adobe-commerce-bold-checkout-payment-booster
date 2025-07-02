@@ -19,7 +19,6 @@ use Psr\Log\LoggerInterface;
  */
 class CopyWebsiteConfigToDefault implements ObserverInterface
 {
-
     /** @var CacheTypeList */
     private $cacheTypeList;
 

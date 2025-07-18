@@ -64,4 +64,32 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    
+    <!-- AI Agent Endpoints -->
+    <route url="/V1/ai-agent/chat/send" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\AI\ChatInterface" method="sendMessage"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/ai-agent/chat/history/:sessionId" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\AI\ChatInterface" method="getChatHistory"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/ai-agent/chat/start" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\AI\ChatInterface" method="startSession"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    
+    <!-- AI Chat API Endpoint -->
+    <route url="/V1/bold/ai-chat/message" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\AiChatInterface" method="processMessage"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

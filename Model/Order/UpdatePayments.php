@@ -107,6 +107,20 @@ class UpdatePayments implements UpdatePaymentsInterface
         int $platformOrderId,
         array $payments
     ): ResultInterface {
+
+        /** Start - Temporary debug code **/
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/bold_checkout_payment_booster.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        /** End - Temporary debug code **/
+
+        $logger->info("Update Payment: ");
+        $logger->info("Shop Id: " . $shopId);
+        $logger->info("Financial status " . $financialStatus);
+        $logger->info("Platform Order ID: " . $platformOrderId);
+        $logger->info("Payments:" . json_encode($payments));
+
+
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
         // Do not remove this check until resource authorized by ACL.
         if (!$this->sharedSecretAuthorization->isAuthorized($websiteId)) {
@@ -147,21 +161,37 @@ class UpdatePayments implements UpdatePaymentsInterface
         string $financialStatus,
         array $payments
     ): void {
+
+        /** Start - Temporary debug code **/
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/bold_checkout_payment_booster.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        /** End - Temporary debug code **/
+
+        $logger->info("Update Payment: ");
+        $logger->info("Order Id: " . $order->getIncrementId());
+        $logger->info("Financial status " . $financialStatus);
+        $logger->info("Payments:" . json_encode($payments));
+
+
         switch ($financialStatus) {
             case self::FINANCIAL_STATUS_PAID:
                 if (!$orderExtensionData->getIsCaptureInProgress()) {
                     $this->createInvoice->execute($order, $payments);
+                    $logger->info("createInvoice");
                 }
                 break;
             case self::FINANCIAL_STATUS_REFUNDED:
             case self::FINANCIAL_STATUS_PARTIALLY_REFUNDED:
                 if (!$orderExtensionData->getIsRefundInProgress()) {
                     $this->createCreditMemo->execute($order);
+                    $logger->info("createCreditMemo");
                 }
                 break;
             case self::FINANCIAL_STATUS_CANCELLED:
                 if (!$orderExtensionData->getIsCancelInProgress()) {
                     $this->cancelOrder->execute($order);
+                    $logger->info("cancelOrder");
                 }
                 break;
             default:

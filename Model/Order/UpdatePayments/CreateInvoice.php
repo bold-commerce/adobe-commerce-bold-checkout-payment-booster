@@ -85,9 +85,22 @@ class CreateInvoice
      */
     public function execute(OrderInterface $order, array $payloadPayments): void
     {
+        /** Start - Temporary debug code **/
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/bold_checkout_payment_booster.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        /** End - Temporary debug code **/
+
+        $logger->info("========Create Invoice=======");
+        $logger->info("Order Id: " . $order->getIncrementId());
+        $logger->info("Payments:" . json_encode($payloadPayments));
+
+
         if ($order->hasInvoices()) {
+            $logger->info("Order already has invoices");
             return;
         }
+
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
         $orderExtensionData->setIsCaptureInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
@@ -114,6 +127,7 @@ class CreateInvoice
             $this->orderExtensionDataRepository->save($orderExtensionData);
             throw $e;
         }
+        $logger->info("========Create Invoice=======");
     }
 
     /**
@@ -124,11 +138,23 @@ class CreateInvoice
         OrderPaymentInterface $payment,
         array $payloadPayments
     ): void {
+        /** Start - Temporary debug code **/
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/bold_checkout_payment_booster.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        /** End - Temporary debug code **/
+        $logger->info("========Add capture to Order=======");
+        $logger->info("Add capture to Order");
+        $logger->info("Order Id: " . $order->getIncrementId());
+        $logger->info("Payments:" . json_encode($payment));
+
         if (count($payloadPayments)) {
             $providerId = $payloadPayments[0]->getTransaction()->getProviderId();
         } else {
             $providerId = '';
         }
+
+        $logger->info("Provider ID: " . $providerId);
 
         try {
             $capture = $this->transactionBuilder->setPayment($payment)
@@ -143,6 +169,7 @@ class CreateInvoice
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }
+        $logger->info("========Add capture to Order=======");
     }
 
     /**
@@ -151,6 +178,15 @@ class CreateInvoice
      */
     private function updateAuthorization(OrderInterface $order, OrderPaymentInterface $payment): void
     {
+        /** Beging - Temporary debug code **/
+        $writer = new \Zend\Log\Writer\Stream(BP . '/var/log/bold_checkout_payment_booster.log');
+        $logger = new \Zend\Log\Logger();
+        $logger->addWriter($writer);
+        $logger->info("========Update Authorization=======");
+        $logger->info("Order Id: " . $order->getIncrementId());
+        $logger->info("Payments:" . json_encode($payment));
+        /** End - Temporary debug code **/
+
         try {
             $searchCriteria = $this->searchCriteriaBuilder->addFilter('payment_id', $payment->getId())
                 ->addFilter('order_id', $order->getId())
@@ -158,6 +194,8 @@ class CreateInvoice
                 ->create();
 
             $transactionList = $this->transactionRepository->getList($searchCriteria)->getItems();
+
+            $logger->info("Transaction List: " . json_encode($transactionList));
 
             /** @var Transaction $auth */
             foreach ($transactionList as $auth) {
@@ -167,5 +205,6 @@ class CreateInvoice
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }
+        $logger->info("========Update Authorization=======");
     }
 }

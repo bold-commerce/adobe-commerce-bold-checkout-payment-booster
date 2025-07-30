@@ -89,31 +89,47 @@
             <argument name="path" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Config::PATH_WALLET_PAYMENT_TITLE</argument>
         </arguments>
     </virtualType>
+    <!-- Value handler for 'bold' -->
+    <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\Handler\CanUseCheckoutBold" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler">
+        <arguments>
+            <argument name="paymentMethodGroup" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::PAYMENT_METHOD_GROUP_BOLD</argument>
+        </arguments>
+    </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\ValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\ConfigValueHandler</item>
-                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
+                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Gateway\Config\Handler\CanUseCheckoutBold</item>
                 <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\BaseTitleValueHandler</item>
                 <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
             </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\Handler\FastlaneCanUseCheckout" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler">
+        <arguments>
+            <argument name="paymentMethodGroup" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::PAYMENT_METHOD_GROUP_FASTLANE</argument>
         </arguments>
     </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\FastlaneValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneConfigValueHandler</item>
-                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
+                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Gateway\Config\Handler\FastlaneCanUseCheckout</item>
                 <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\FastlaneTitleValueHandler</item>
                 <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
             </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\Handler\WalletCanUseCheckout" type="Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler">
+        <arguments>
+            <argument name="paymentMethodGroup" xsi:type="const">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service::PAYMENT_METHOD_GROUP_WALLET</argument>
         </arguments>
     </virtualType>
     <virtualType name="Bold\CheckoutPaymentBooster\Gateway\Config\WalletPayValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="default" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayConfigValueHandler</item>
-                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\CanUseCheckoutValueHandler</item>
+                <item name="can_use_checkout" xsi:type="string">Bold\CheckoutPaymentBooster\Gateway\Config\Handler\WalletCanUseCheckout</item>
                 <item name="title" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\WalletPayTitleValueHandler</item>
                 <item name="active" xsi:type="string">Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Config\IsActiveValueHandler</item>
             </argument>

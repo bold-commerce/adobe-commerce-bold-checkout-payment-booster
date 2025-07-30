@@ -1,0 +1,34 @@
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+
+    <group id="bold_payments" translate="label" type="text" sortOrder="1000" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label>[Bold] Payments</label>
+        <field id="allowspecific" translate="label" type="allowspecific" sortOrder="50" showInDefault="1"
+               showInWebsite="1" canRestore="1">
+            <label>Payment from Applicable Countries</label>
+            <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+        </field>
+        <field id="specificcountry" translate="label" type="multiselect" sortOrder="51" showInDefault="1"
+               showInWebsite="1">
+            <label>Payment from Specific Countries</label>
+            <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+            <can_be_empty>1</can_be_empty>
+        </field>
+    </group>
+    <group id="bold_payments_wallet" translate="label" type="text" sortOrder="1200" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label>[Bold] Digital Wallets</label>
+        <field id="allowspecific" translate="label" type="allowspecific" sortOrder="50" showInDefault="1"
+               showInWebsite="1" canRestore="1">
+            <label>Payment from Applicable Countries</label>
+            <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+        </field>
+        <field id="specificcountry" translate="label" type="multiselect" sortOrder="51" showInDefault="1"
+               showInWebsite="1">
+            <label>Payment from Specific Countries</label>
+            <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+            <can_be_empty>1</can_be_empty>
+        </field>
+    </group>
+</include>

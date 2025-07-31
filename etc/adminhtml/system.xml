@@ -159,5 +159,8 @@
                 </group>
             </group>
         </section>
+        <section id="payment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+            <include path="Bold_CheckoutPaymentBooster::system/bold_payments.xml"/>
+        </section>
     </system>
 </config>

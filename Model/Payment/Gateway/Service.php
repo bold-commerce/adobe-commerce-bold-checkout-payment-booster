@@ -23,6 +23,9 @@ class Service
     public const CODE = 'bold';
     public const CODE_FASTLANE = 'bold_fastlane';
     public const CODE_WALLET = 'bold_wallet';
+    public const PAYMENT_METHOD_GROUP_BOLD = 'bold_payments';
+    public const PAYMENT_METHOD_GROUP_WALLET = 'bold_payments_wallet';
+    public const PAYMENT_METHOD_GROUP_FASTLANE = 'bold_payments_fastlane';
     public const CANCEL = 'cancel';
     public const VOID = 'void';
     private const CAPTURE_FULL_URL = 'checkout/orders/{{shopId}}/%s/payments/capture/full';

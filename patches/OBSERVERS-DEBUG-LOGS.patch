@@ -1,0 +1,114 @@
+Index: a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php b/Observer/Order/BeforePlaceObserver.php
+--- a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php
++++ b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php	(date 1754410840023)
+@@ -20,6 +20,8 @@
+ use Magento\Sales\Api\Data\OrderPaymentInterface;
+ use Magento\Sales\Api\Data\TransactionInterface;
+ use Magento\Sales\Model\Order\Payment;
++use Monolog\Handler\StreamHandler;
++use Monolog\Logger;
+
+ /**
+  * Authorize Bold payments before placing order.
+@@ -89,17 +91,36 @@
+      */
+     public function execute(Observer $observer): void
+     {
++        $logger = new Logger('custom_debug');
++        $logFile = BP . '/var/log/bold_checkout_payment_booster.log';
++        $logger->pushHandler(new StreamHandler($logFile, Logger::DEBUG));
++        $logger->info('[DEBUG] before place order submit');
++
+         $order = $observer->getEvent()->getOrder();
+         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+             return;
+         }
++
+         $quoteId = $order->getQuoteId();
++
++        $logger->info('[DEBUG] $quoteId:' . $quoteId);
++
+         /** @var CartInterface&Quote $quote */
+         $quote = $this->cartRepository->get($quoteId);
+         $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
++
++        $logger->info('[DEBUG] $publicOrderId:' . $publicOrderId);
++
+         $websiteId = (int)$quote->getStore()->getWebsiteId();
++
++        $logger->info('[DEBUG] Call hydrate - Start');
+         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
++        $logger->info('[DEBUG] Call hydrate - End');
++
+         $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
++
++        $logger->info('[DEBUG] $transactionData:' . json_encode($transactionData));
++
+         $this->saveTransactionData($order, $transactionData);
+     }
+
+diff --git a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php b/Observer/Order/AfterSubmitObserver.php
+--- a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php
++++ b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php	(date 1754410871368)
+@@ -15,6 +15,10 @@
+ use Magento\Framework\Exception\LocalizedException;
+ use Magento\Framework\Exception\NoSuchEntityException;
+ use Psr\Log\LoggerInterface;
++use Magento\Framework\App\ObjectManager;
++use Monolog\Logger;
++use Monolog\Handler\StreamHandler;
++
+
+ /**
+  * Authorize Bold payments before placing order.
+@@ -85,21 +89,36 @@
+      */
+     public function execute(Observer $observer): void
+     {
++        $logger = new Logger('BoldCheckoutPaymentBooster.DEBUG');
++        $logFile = BP . '/var/log/bold_checkout_payment_booster.log';
++        $logger->pushHandler(new StreamHandler($logFile, Logger::DEBUG));
++        $logger->debug('[DEBUG] after submit');
+         $publicOrderId = $this->checkoutData->getPublicOrderId();
+
++        $logger->debug('[DEBUG] $publicOrderId:' . $publicOrderId);
++
+         if ($publicOrderId !== null) {
+             $this->checkoutData->resetCheckoutData();
+         }
+
+         $order = $observer->getEvent()->getOrder();
++
+         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
++            $logger->debug('[DEBUG] $order:' . $order);
++            $logger->debug('[DEBUG] $isBold:' . $this->checkPaymentMethod->isBold($order));
+             return;
+         }
+         $orderId = (int)$order->getEntityId();
++
++        $logger->debug('[DEBUG] $orderId:' . $orderId);
++
+         $orderExtensionData = $this->orderExtensionDataFactory->create();
+         $orderExtensionData->setOrderId($orderId);
+
++        $logger->debug('[DEBUG] $orderId:' . json_encode($orderExtensionData));
++
+         if ($publicOrderId !== null) {
++            $logger->debug('[DEBUG] $publicOrderId:' . json_encode($orderExtensionData));
+             $orderExtensionData->setPublicId($publicOrderId);
+         }
+
+@@ -109,6 +128,8 @@
+             $this->logger->critical($e);
+             return;
+         }
++        $logger->debug('[DEBUG] set complete state start');
+         $this->setCompleteState->execute($order);
++        $logger->debug('[DEBUG] set complete state end');
+     }
+ }

@@ -1,0 +1,135 @@
+diff --git a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php
+--- a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php
++++ b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/BeforePlaceObserver.php	(date 1754521094296)
+@@ -25,6 +25,8 @@
+ use Magento\Sales\Api\Data\TransactionInterface;
+ use Magento\Sales\Model\Order\Payment;
+ use Psr\Log\LoggerInterface;
++use Monolog\Handler\StreamHandler;
++use Monolog\Logger;
+
+ /**
+  * Authorize Bold payments before placing order.
+@@ -113,23 +115,51 @@
+      */
+     public function execute(Observer $observer): void
+     {
++        $logger = new Logger('custom_debug');
++        $logFile = BP . '/var/log/bold_checkout_payment_booster.log';
++        $logger->pushHandler(new StreamHandler($logFile, Logger::DEBUG));
++        $logger->info('[DEBUG] Start - BeforePlaceObserver');
++
+         $order = $observer->getEvent()->getOrder();
+         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
++            $logger->info('[DEBUG] No order or payment not Bold');
+             return;
+         }
++
+         $quoteId = $order->getQuoteId();
++
++        $logger->info('[DEBUG] $quoteId:' . $quoteId);
++
++        $logger->info('[DEBUG] Start - getQuote');
+         /** @var CartInterface&Quote $quote */
+         $quote = $this->cartRepository->get($quoteId);
++        $logger->info('[DEBUG] End - getQuote');
++
+         $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
+
++        $logger->info('[DEBUG] $publicOrderId:' . $publicOrderId);
++
+         if ($publicOrderId && $quoteId) {
++            $logger->info('[DEBUG] Start - saveBoldQuotePublicOrderRelation');
+             $this->saveBoldQuotePublicOrderRelation($publicOrderId, (string) $quoteId);
++            $logger->info('[DEBUG] End - saveBoldQuotePublicOrderRelation');
+         }
+
+         $websiteId = (int)$quote->getStore()->getWebsiteId();
++
++        $logger->info('[DEBUG] Start - Call hydrateorder');
+         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
++        $logger->info('[DEBUG] End - Call hydrateorder');
++
++        $logger->info('[DEBUG] Start - Call Authorize');
+         $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
++        $logger->info('[DEBUG] End - Call Authorize');
++
++        $logger->info('[DEBUG] Start - saveTransactionData');
+         $this->saveTransactionData($order, $transactionData);
++        $logger->info('[DEBUG] End - saveTransactionData');
++
++        $logger->info('[DEBUG] Start - BeforePlaceObserver');
+     }
+
+     /**
+
+diff --git a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php
+--- a/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php
++++ b/vendor/bold-commerce/module-checkout-payment-booster/Observer/Order/AfterSubmitObserver.php	(date 1754521167403)
+@@ -15,6 +15,8 @@
+ use Magento\Framework\Exception\LocalizedException;
+ use Magento\Framework\Exception\NoSuchEntityException;
+ use Psr\Log\LoggerInterface;
++use Monolog\Logger;
++use Monolog\Handler\StreamHandler;
+
+ /**
+  * Authorize Bold payments before placing order.
+@@ -85,30 +87,57 @@
+      */
+     public function execute(Observer $observer): void
+     {
++        $logger = new Logger('custom_debug');
++        $logFile = BP . '/var/log/bold_checkout_payment_booster.log';
++        $logger->pushHandler(new StreamHandler($logFile, Logger::DEBUG));
++        $logger->debug('[DEBUG] Start - debug AfterSubmitObserver');
+         $publicOrderId = $this->checkoutData->getPublicOrderId();
++        $logger->debug('[DEBUG] $publicOrderId:' . $publicOrderId);
+
+         if ($publicOrderId !== null) {
++            $logger->debug('[DEBUG] No public order ID - resetCheckoutData:');
+             $this->checkoutData->resetCheckoutData();
+         }
+
++        $logger->debug('[DEBUG] Start - Get Order from observer');
+         $order = $observer->getEvent()->getOrder();
++        $logger->debug('[DEBUG] End - Get Order from observer');
++
+         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
++            $logger->debug('[DEBUG] No order');
++            $logger->debug('[DEBUG] Not bold payment - payment method:' . $order->getPayment()->getMethod());
+             return;
+         }
++
+         $orderId = (int)$order->getEntityId();
++
++        $logger->debug('[DEBUG] $orderId:' . $orderId);
++
+         $orderExtensionData = $this->orderExtensionDataFactory->create();
+         $orderExtensionData->setOrderId($orderId);
+
++        $logger->debug('[DEBUG] $orderExtensionData:' . json_encode($orderExtensionData));
++
+         if ($publicOrderId !== null) {
++            $logger->debug('[DEBUG] Start - Set publicOrderId:' . $publicOrderId);
+             $orderExtensionData->setPublicId($publicOrderId);
++            $logger->debug('[DEBUG] End - Set publicOrderId');
+         }
+
+         try {
++            $logger->debug('[DEBUG] Start - Saving orderExtensionData');
+             $this->orderExtensionDataResource->save($orderExtensionData);
++            $logger->debug('[DEBUG] End - Saving orderExtensionData');
+         } catch (Exception $e) {
+             $this->logger->critical($e);
+             return;
+         }
++
++        $logger->debug('[DEBUG] Order before set complete state');
++        $logger->debug('[DEBUG] Order:' . json_encode($order));
++        $logger->debug('[DEBUG] Start - Set Complete State');
+         $this->setCompleteState->execute($order);
++        $logger->debug('[DEBUG] End - Set Complete State');
++        $logger->debug('[DEBUG] End - Debug AfterSubmitObserver');
+     }
+ }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
@@ -14,6 +15,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -51,6 +53,9 @@ class AfterSubmitObserver implements ObserverInterface
      */
     private $logger;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterfaceFactory */
+    private $magentoQuoteBoldOrderRepositoryFactory;
+
     /**
      * @param CheckoutData $checkoutData
      * @param SetCompleteState $setCompleteState
@@ -58,6 +63,7 @@ class AfterSubmitObserver implements ObserverInterface
      * @param OrderExtensionDataFactory $orderExtensionDataFactory
      * @param OrderExtensionDataResource $orderExtensionDataResource
      * @param LoggerInterface $logger
+     * @param MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
      */
     public function __construct(
         CheckoutData $checkoutData,
@@ -65,7 +71,8 @@ class AfterSubmitObserver implements ObserverInterface
         CheckPaymentMethod $checkPaymentMethod,
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionDataResource $orderExtensionDataResource,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
     ) {
         $this->checkoutData = $checkoutData;
         $this->orderExtensionDataFactory = $orderExtensionDataFactory;
@@ -73,6 +80,7 @@ class AfterSubmitObserver implements ObserverInterface
         $this->setCompleteState = $setCompleteState;
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->logger = $logger;
+        $this->magentoQuoteBoldOrderRepositoryFactory = $magentoQuoteBoldOrderRepositoryFactory;
     }
 
     /**
@@ -85,19 +93,31 @@ class AfterSubmitObserver implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        $order = $observer->getEvent()->getOrder();
+        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            return;
+        }
+
+        $orderId = $order->getEntityId();
+        // Skip if Magento order does Not have an ID yet
+        // or skip if the Bold Order Quote Relation has already a successful State call timestamp
+        if (!$orderId || $this->isBoldOrderProcessed($order)) {
+            return;
+        }
+
         $publicOrderId = $this->checkoutData->getPublicOrderId();
 
         if ($publicOrderId !== null) {
             $this->checkoutData->resetCheckoutData();
         }
 
-        $order = $observer->getEvent()->getOrder();
-        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
-            return;
+        if (!$publicOrderId) {
+            // If missing Public order id, try to get from the Bold Order Quote relation
+            $publicOrderId = $this->getPublicOrderIdFromQuote($order);
         }
-        $orderId = (int)$order->getEntityId();
+
         $orderExtensionData = $this->orderExtensionDataFactory->create();
-        $orderExtensionData->setOrderId($orderId);
+        $orderExtensionData->setOrderId((int) $orderId);
 
         if ($publicOrderId !== null) {
             $orderExtensionData->setPublicId($publicOrderId);
@@ -110,5 +130,37 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
         $this->setCompleteState->execute($order);
+    }
+
+    /**
+     * Check if the order has successful State call.
+     *
+     * @param OrderInterface $order
+     * @return bool
+     */
+    private function isBoldOrderProcessed(OrderInterface $order): bool
+    {
+        $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
+        $quoteId = $order->getQuoteId();
+        return $repository->isQuoteProcessed((string) $quoteId);
+    }
+
+    /**
+     * Get Bold Public Order Id from Quote.
+     *
+     * @param OrderInterface $order
+     * @return null|string
+     */
+    private function getPublicOrderIdFromQuote(OrderInterface $order): ?string
+    {
+        $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
+        $quoteId = $order->getQuoteId();
+        try {
+            $magentoQuoteBoldOrder = $repository->getByQuoteId((string) $quoteId);
+            return $magentoQuoteBoldOrder->getBoldOrderId();
+        } catch (NoSuchEntityException $e) {
+            return null;
+        }
+
     }
 }

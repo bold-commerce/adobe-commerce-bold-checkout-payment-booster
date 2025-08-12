@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
+use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order\Address;
+use Psr\Log\LoggerInterface;
 
 /**
  * Hydrate Bold order from Magento quote.
@@ -62,6 +69,15 @@ class HydrateOrderFromQuote
      */
     private $searchCriteriaBuilder;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterfaceFactory */
+    private $magentoQuoteBoldOrderRepositoryFactory;
+
+    /** @var LoggerInterface */
+    private $logger;
+
+    /** @var TimezoneInterface */
+    private $timezoneInterface;
+
     /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
@@ -69,6 +85,9 @@ class HydrateOrderFromQuote
      * @param ToOrderAddress $quoteToOrderAddressConverter
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
+     * @param LoggerInterface $logger
+     * @param TimezoneInterface $timezoneInterface
      */
     public function __construct(
         BoldClient $client,
@@ -76,7 +95,10 @@ class HydrateOrderFromQuote
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
         ProductRepositoryInterface $productRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory,
+        LoggerInterface $logger,
+        TimezoneInterface $timezoneInterface
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
@@ -84,6 +106,9 @@ class HydrateOrderFromQuote
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->magentoQuoteBoldOrderRepositoryFactory = $magentoQuoteBoldOrderRepositoryFactory;
+        $this->logger = $logger;
+        $this->timezoneInterface = $timezoneInterface;
     }
 
     /**
@@ -167,6 +192,9 @@ class HydrateOrderFromQuote
         if ($hydrateResponse->getStatus() !== 201) {
             throw new LocalizedException(__('Failed to hydrate order with id="%1"', $publicOrderId));
         }
+
+        $timestamp = $this->timezoneInterface->date()->format('Y-m-d H:i:s');
+        $this->saveHydratedAt($timestamp, (string) $quote->getId());
     }
 
     /**
@@ -265,5 +293,28 @@ class HydrateOrderFromQuote
         }
 
         return $cartItems;
+    }
+
+    /**
+     * Save Successful Hydrated at to Bolt Quote Public Order Relation
+     *
+     * @param string $timestamp
+     * @param string $quoteId
+     * @return void
+     */
+    private function saveHydratedAt(string $timestamp, string $quoteId): void
+    {
+        /** @var MagentoQuoteBoldOrderRepositoryInterface $repository */
+        $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
+        try {
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $relation */
+            $relation = $repository->findOrCreateByQuoteId($quoteId);
+            $relation->setQuoteId($quoteId);
+            $relation->setSuccessfulHydrateAt($timestamp);
+            $repository->save($relation);
+            return;
+        } catch (LocalizedException | Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
     }
 }

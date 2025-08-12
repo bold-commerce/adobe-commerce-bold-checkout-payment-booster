@@ -57,4 +57,20 @@ interface MagentoQuoteBoldOrderRepositoryInterface
      * @throws CouldNotDeleteException
      */
     public function deleteById($magentoQuoteBoldOrderId): void;
+
+    /**
+     * Find Or Create Bold Quote Public Order Relation by Quote ID
+     *
+     * @param string $quoteId
+     * @return MagentoQuoteBoldOrderInterface
+     */
+    public function findOrCreateByQuoteId(string $quoteId): MagentoQuoteBoldOrderInterface;
+
+    /**
+     * Is Quote ID Processed (Has successful State call)
+     *
+     * @param string $quoteId
+     * @return bool
+     */
+    public function isQuoteProcessed(string $quoteId): bool;
 }

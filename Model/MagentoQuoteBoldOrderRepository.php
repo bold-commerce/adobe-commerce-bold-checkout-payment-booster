@@ -115,4 +115,33 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
 
         $this->delete($magentoQuoteBoldOrder);
     }
+
+    /**
+     * Find Or Create Bold Quote Public Order Relation by Quote ID
+     *
+     * @param string $quoteId
+     * @return MagentoQuoteBoldOrderInterface
+     */
+    public function findOrCreateByQuoteId(string $quoteId): MagentoQuoteBoldOrderInterface
+    {
+        try {
+            /** @var MagentoQuoteBoldOrder $relation */
+            $relation = $this->getByQuoteId($quoteId);
+        } catch (NoSuchEntityException $e) {
+            /** @var MagentoQuoteBoldOrder $relation */
+            $relation = $this->magentoQuoteBoldOrderFactory->create();
+        }
+        return $relation;
+    }
+
+    /**
+     * Is Quote ID Processed (Has successful State call)
+     *
+     * @param string $quoteId
+     * @return bool
+     */
+    public function isQuoteProcessed(string $quoteId): bool
+    {
+        return $this->findOrCreateByQuoteId($quoteId)->isProcessed();
+    }
 }

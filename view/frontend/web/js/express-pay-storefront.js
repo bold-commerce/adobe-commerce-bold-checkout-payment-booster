@@ -56,6 +56,7 @@ define([
         _getCheckoutConfig: async function () {
             if (
                 window.hasOwnProperty('checkoutConfig')
+                && window.checkoutConfig.hasOwnProperty('bold')
                 && window.checkoutConfig.hasOwnProperty('quoteData')
                 && window.checkoutConfig.quoteData.hasOwnProperty('entity_id')
                 && window.checkoutConfig.quoteData.entity_id !== ''

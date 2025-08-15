@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
+use Exception;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
@@ -32,19 +38,31 @@ class SetCompleteState
      */
     private $logger;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterfaceFactory */
+    private $magentoQuoteBoldOrderRepositoryFactory;
+
+    /** @var TimezoneInterface */
+    private $timezoneInterface;
+
     /**
      * @param BoldClient $client
      * @param GetOrderPublicIdByOrderId $getOrderPublicId
      * @param LoggerInterface $logger
+     * @param MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
+     * @param TimezoneInterface $timezoneInterface
      */
     public function __construct(
         BoldClient                $client,
         GetOrderPublicIdByOrderId $getOrderPublicId,
-        LoggerInterface           $logger
+        LoggerInterface           $logger,
+        MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory,
+        TimezoneInterface $timezoneInterface
     ) {
         $this->client = $client;
         $this->getOrderPublicId = $getOrderPublicId;
         $this->logger = $logger;
+        $this->magentoQuoteBoldOrderRepositoryFactory = $magentoQuoteBoldOrderRepositoryFactory;
+        $this->timezoneInterface = $timezoneInterface;
     }
 
     /**
@@ -67,6 +85,33 @@ class SetCompleteState
         $response = $this->client->put($websiteId, $url, $params);
         if ($response->getStatus() !== 201) {
             $this->logger->error(__('Failed to set complete state for order with id="%1"', $order->getEntityId()));
+            return;
+        }
+        $quoteId = $order->getQuoteId();
+        $timestamp = $this->timezoneInterface->date()->format('Y-m-d H:i:s');
+        $this->saveStateAt($timestamp, (string) $quoteId);
+    }
+
+    /**
+     * Save Successful State call at to Bolt Quote Public Order Relation
+     *
+     * @param string $timestamp
+     * @param string $quoteId
+     * @return void
+     */
+    private function saveStateAt(string $timestamp, string $quoteId): void
+    {
+        /** @var MagentoQuoteBoldOrderRepositoryInterface $repository */
+        $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
+        try {
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $relation */
+            $relation = $repository->findOrCreateByQuoteId($quoteId);
+            $relation->setQuoteId($quoteId);
+            $relation->setSuccessfulStateAt($timestamp);
+            $repository->save($relation);
+            return;
+        } catch (LocalizedException | Exception $e) {
+            $this->logger->error($e->getMessage());
         }
     }
 }

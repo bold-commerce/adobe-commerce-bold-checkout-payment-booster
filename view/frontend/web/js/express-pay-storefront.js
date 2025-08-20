@@ -57,6 +57,7 @@ define([
             if (
                 window.hasOwnProperty('checkoutConfig')
                 && window.checkoutConfig.hasOwnProperty('bold')
+                && window.checkoutConfig.bold.hasOwnProperty('paymentBooster')
                 && window.checkoutConfig.hasOwnProperty('quoteData')
                 && window.checkoutConfig.quoteData.hasOwnProperty('entity_id')
                 && window.checkoutConfig.quoteData.entity_id !== ''

@@ -15,6 +15,7 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\GetInitialConfigProviderInterface" type="Bold\CheckoutPaymentBooster\Model\Data\ExpressPay\GetInitialConfigProvider"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

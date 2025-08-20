@@ -64,4 +64,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/express_pay/order/initCheckoutData" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\Data\ExpressPay\GetInitialConfigProviderInterface"
+                 method="getInitialConfig"/>
+        <resources>
+            <resource ref="Magento_Customer::manage"/>
+        </resources>
+    </route>
 </routes>

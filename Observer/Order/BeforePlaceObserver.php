@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
-use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
@@ -17,6 +17,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
@@ -64,11 +65,11 @@ class BeforePlaceObserver implements ObserverInterface
     /** @var MagentoQuoteBoldOrderRepositoryInterfaceFactory */
     private $magentoQuoteBoldOrderRepositoryFactory;
 
-    /** @var MagentoQuoteBoldOrderInterfaceFactory */
-    private $magentoQuoteBoldOrderFactory;
-
     /** @var LoggerInterface */
     private $logger;
+
+    /** @var TimezoneInterface */
+    private $timezoneInterface;
 
     /**
      * @param Authorize $authorize
@@ -79,7 +80,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @param SerializerInterface $serializer
      * @param LoggerInterface $logger
      * @param MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
-     * @param MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory
+     * @param TimezoneInterface $timezoneInterface
      */
     public function __construct(
         Authorize $authorize,
@@ -90,7 +91,7 @@ class BeforePlaceObserver implements ObserverInterface
         SerializerInterface $serializer,
         LoggerInterface $logger,
         MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory,
-        MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory
+        TimezoneInterface $timezoneInterface
     ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
@@ -99,8 +100,8 @@ class BeforePlaceObserver implements ObserverInterface
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->serializer = $serializer;
         $this->magentoQuoteBoldOrderRepositoryFactory = $magentoQuoteBoldOrderRepositoryFactory;
-        $this->magentoQuoteBoldOrderFactory = $magentoQuoteBoldOrderFactory;
         $this->logger = $logger;
+        $this->timezoneInterface = $timezoneInterface;
     }
 
     /**
@@ -130,6 +131,8 @@ class BeforePlaceObserver implements ObserverInterface
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
         $this->saveTransactionData($order, $transactionData);
+        $timestamp = $this->timezoneInterface->date()->format('Y-m-d H:i:s');
+        $this->saveAuthorizedAt($timestamp, (string) $quoteId);
     }
 
     /**
@@ -180,10 +183,32 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
         try {
-            /** @var MagentoQuoteBoldOrder $relation */
-            $relation = $this->magentoQuoteBoldOrderFactory->create();
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $relation */
+            $relation = $repository->findOrCreateByQuoteId($quoteId);
             $relation->setQuoteId($quoteId);
             $relation->setBoldOrderId($publicOrderId);
+            $repository->save($relation);
+            return;
+        } catch (LocalizedException | Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
+    }
+
+    /**
+     * Save Successful Authorize Full Amount at to Bold Quote Public Order Relation
+     *
+     * @param string $timestamp
+     * @param string $quoteId
+     * @return void
+     */
+    private function saveAuthorizedAt(string $timestamp, string $quoteId): void
+    {
+        $repository = $this->magentoQuoteBoldOrderRepositoryFactory->create();
+        try {
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $relation */
+            $relation = $repository->findOrCreateByQuoteId($quoteId);
+            $relation->setQuoteId($quoteId);
+            $relation->setSuccessfulAuthFullAt($timestamp);
             $repository->save($relation);
             return;
         } catch (LocalizedException | Exception $e) {

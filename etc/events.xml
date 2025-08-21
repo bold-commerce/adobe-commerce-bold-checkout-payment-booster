@@ -4,6 +4,12 @@
     <event name="sales_order_place_before">
         <observer name="bold_checkout_payment_booster_before_place" instance="Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver"/>
     </event>
+    <event name="sales_order_save_after">
+        <observer name="bold_checkout_payment_booster_sales_order_save_after" instance="Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver"/>
+    </event>
+    <event name="sales_order_save_commit_after">
+        <observer name="bold_checkout_payment_booster_sales_order_save_commit_after" instance="Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver"/>
+    </event>
     <event name="checkout_submit_all_after">
         <observer name="bold_checkout_payment_booster_submit_all_after" instance="Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver"/>
     </event>

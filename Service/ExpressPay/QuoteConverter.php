@@ -5,15 +5,14 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Framework\Event\ManagerInterface;
 
 use function array_filter;
 use function array_map;
@@ -50,18 +49,36 @@ class QuoteConverter
      */
     private $areTotalsCollected = false;
 
-    public function __construct(ScopeConfigInterface $scopeConfig, Config $config)
-    {
+    /** @var ManagerInterface */
+    private $eventManager;
+
+    /**
+     * Constructor
+     *
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Config $config
+     * @param ManagerInterface $eventManager
+     */
+    public function __construct(
+        ScopeConfigInterface $scopeConfig,
+        Config $config,
+        ManagerInterface $eventManager
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->config = $config;
+        $this->eventManager = $eventManager;
     }
 
     /**
+     * Convert full quote
+     *
      * @return array<string, string|array<string, array<string, string|float|array<string, string|float>>>>
      */
     public function convertFullQuote(Quote $quote, string $gatewayId): array
     {
-        return array_merge_recursive(
+        $this->eventManager->dispatch('bold_before_convert_full_quote', ['quote' => $quote]);
+
+        $convertedQuote = array_merge_recursive(
             $this->convertGatewayIdentifier($gatewayId),
             $this->convertLocale($quote),
             $this->convertCustomer($quote),
@@ -71,9 +88,15 @@ class QuoteConverter
             $this->convertTaxes($quote),
             $this->convertDiscount($quote)
         );
+
+        $this->eventManager->dispatch('bold_after_convert_full_quote', ['convertedQuote' => $convertedQuote]);
+
+        return $convertedQuote;
     }
 
     /**
+     * Convert gateway identifier
+     *
      * @return array<string, string>
      */
     public function convertGatewayIdentifier(string $gatewayId): array
@@ -84,6 +107,8 @@ class QuoteConverter
     }
 
     /**
+     * Convert locale
+     *
      * @return array<string, array<string, string>>
      */
     public function convertLocale(Quote $quote): array
@@ -103,6 +128,8 @@ class QuoteConverter
     }
 
     /**
+     * Convert customer
+     *
      * @return array<string, array<string, array<string, string>>>
      */
     public function convertCustomer(Quote $quote): array
@@ -137,6 +164,8 @@ class QuoteConverter
     }
 
     /**
+     * Convert shipping information
+     *
      * @return array<string, array<string, array<array<string, array<string, string>|string>|string>>>
      */
     public function convertShippingInformation(Quote $quote, bool $includeAddress = true): array
@@ -237,10 +266,14 @@ class QuoteConverter
     }
 
     /**
+     * Convert Quote Items
+     *
      * @return array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>>
      */
     public function convertQuoteItems(Quote $quote): array
     {
+        $this->eventManager->dispatch('bold_before_convert_quote_items', ['quote' => $quote]);
+
         $quoteItems = $quote->getItems();
 
         if ($quoteItems === null) {
@@ -315,11 +348,13 @@ class QuoteConverter
         ];
 
         $this->convertCustomTotals($quote, $convertedQuote);
-
+        $this->eventManager->dispatch('bold_after_convert_quote_items', ['quote' => $quote]);
         return $convertedQuote;
     }
 
     /**
+     * Convert Total
+     *
      * @return array<string, array<string, array<string, string>>>
      */
     public function convertTotal(Quote $quote): array
@@ -343,6 +378,8 @@ class QuoteConverter
     }
 
     /**
+     * Convert Taxes
+     *
      * @return array<string, array<string, array<string, string>>>
      */
     public function convertTaxes(Quote $quote): array
@@ -386,6 +423,7 @@ class QuoteConverter
     }
 
     /**
+     * Convert Discount
      * @return array<string, array<string, array<string, string>>>
      */
     public function convertDiscount(Quote $quote): array
@@ -408,6 +446,8 @@ class QuoteConverter
     }
 
     /**
+     * Convert custom totals
+     *
      * @phpcs:disable Generic.Files.LineLength.TooLong
      * @param array<string, array<string, array<array<string, array<string, string>|bool|int|string>|string>>> $convertedQuote
      * @phpcs:enable Generic.Files.LineLength.TooLong

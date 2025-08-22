@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\AddressInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
+use Magento\Framework\Event\ManagerInterface;
 
 /**
  * Hydrate order for the registered customer.
@@ -38,21 +39,29 @@ class HydrateOrder implements HydrateOrderInterface
     private $logger;
 
     /**
+     * @var ManagerInterface
+     */
+    private $eventManager;
+
+    /**
      * @param Session $checkoutSession
      * @param ShopIdValidator $shopIdValidator
      * @param HydrateOrderFromQuote $hydrateOrderFromQuote
      * @param LoggerInterface $logger
+     * @param ManagerInterface $eventManager
      */
     public function __construct(
         Session $checkoutSession,
         ShopIdValidator $shopIdValidator,
         HydrateOrderFromQuote $hydrateOrderFromQuote,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ManagerInterface $eventManager
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->shopIdValidator = $shopIdValidator;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->logger = $logger;
+        $this->eventManager = $eventManager;
     }
 
     /**
@@ -67,7 +76,19 @@ class HydrateOrder implements HydrateOrderInterface
             $storeId = $quote->getStoreId();
             $this->shopIdValidator->validate($shopId, $storeId);
             $quote->getBillingAddress()->addData($address->getData());
+            $this->eventManager->dispatch(
+                'bold_order_hydrate_before',
+                ['quote' => $quote, 'publicOrderId' => $publicOrderId]
+            );
+
             $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
+
+            $this->eventManager->dispatch(
+                'bold_order_hydrate_after',
+                ['quote' => $quote, 'publicOrderId' => $publicOrderId]
+            );
+
+
         } catch (Throwable $e) {
             $quoteId = $quote ? $quote->getId() : 'N/A';
             $this->logger->error(

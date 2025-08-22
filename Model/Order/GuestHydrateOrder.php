@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Order\GuestHydrateOrderInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Request\Validator\ShopIdValidator;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterface;
@@ -47,23 +48,32 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
     private $logger;
 
     /**
+     * @var ManagerInterface
+     */
+    private $eventManager;
+
+    /**
      * @param CartRepositoryInterface $cartRepository
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param HydrateOrderFromQuote $hydrateOrderFromQuote
      * @param ShopIdValidator $shopIdValidator
+     * @param LoggerInterface $logger
+     * @param ManagerInterface $eventManager
      */
     public function __construct(
         CartRepositoryInterface $cartRepository,
         QuoteIdMaskFactory $quoteIdMaskFactory,
         HydrateOrderFromQuote $hydrateOrderFromQuote,
         ShopIdValidator $shopIdValidator,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ManagerInterface $eventManager
     ) {
         $this->cartRepository = $cartRepository;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
         $this->hydrateOrderFromQuote = $hydrateOrderFromQuote;
         $this->shopIdValidator = $shopIdValidator;
         $this->logger = $logger;
+        $this->eventManager = $eventManager;
     }
 
     /**
@@ -82,8 +92,15 @@ class GuestHydrateOrder implements GuestHydrateOrderInterface
             $billingAddress = $quote->getBillingAddress();
 
             $billingAddress->addData($address->getData());
-
+            $this->eventManager->dispatch(
+                'bold_guest_order_hydrate_before',
+                ['quote' => $quote, 'publicOrderId' => $publicOrderId]
+            );
             $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
+            $this->eventManager->dispatch(
+                'bold_guest_order_hydrate_after',
+                ['quote' => $quote, 'publicOrderId' => $publicOrderId]
+            );
         } catch (Throwable $e) {
             $this->logger->error(
                 'Payment Booster: Not able to hydrate order data for quote with masked ID: '

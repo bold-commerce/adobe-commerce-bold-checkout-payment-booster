@@ -7,10 +7,8 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
@@ -53,37 +51,21 @@ class HydrateOrderFromQuote
     private $quoteToOrderAddressConverter;
 
     /**
-     * @var ProductRepositoryInterface
-     */
-    private $productRepository;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
-     * @param ProductRepositoryInterface $productRepository
-     * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
         BoldClient $client,
         GetCartLineItems $getCartLineItems,
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
-        ProductRepositoryInterface $productRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
         $this->addressConverter = $addressConverter;
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
-        $this->productRepository = $productRepository;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -247,19 +229,7 @@ class HydrateOrderFromQuote
      */
     private function formatCartItems(array $cartItems): array
     {
-        $cartItemIds = array_column($cartItems, 'id');
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('entity_id', $cartItemIds, 'in')
-            ->create();
-        $products = $this->productRepository
-            ->getList($searchCriteria)
-            ->getItems();
-
         foreach ($cartItems as &$item) {
-            if (array_key_exists($item['id'], $products)) {
-                $item['sku'] = $products[$item['id']]->getSku();
-            }
-
             $item['vendor'] = '';
             $item['weight'] = (int)ceil($item['weight']);
         }

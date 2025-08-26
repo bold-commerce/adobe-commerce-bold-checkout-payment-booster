@@ -36,7 +36,7 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
      * @param Registry $registry
      * @param MagentoQuoteBoldOrderRepositoryInterface $repository
      * @param Config $config
-     * @param array $data
+     * @param array<string, mixed> $data
      */
     public function __construct(
         Context $context,
@@ -52,25 +52,11 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
     }
 
     /**
-     * Only show for Bold payment methods.
-     */
-    public function isShowInfo(): bool
-    {
-        $order = $this->getOrder();
-        if (!$order || !$order->getPayment()) {
-            return false;
-        }
-
-        $method = (string)$order->getPayment()->getMethod();
-        return in_array($method, ['bold', 'bold_wallet', 'bold_fastlane'], true);
-    }
-
-    /**
      * Get current order from registry (no side effects).
      */
-    public function getOrder(): ?OrderInterface
+    public function getOrder(): ?Order
     {
-        /** @var OrderInterface|null $order */
+        /** @var Order|null $order */
         $order = $this->registry->registry('current_order');
         return $order;
     }
@@ -104,10 +90,10 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
     /**
      * Retrieves updated order information and sets necessary data on the order entity.
      *
-     * @return OrderInterface|null Returns the updated order object with additional data set,
+     * @return Order|null Returns the updated order object with additional data set,
      * or null if the order or order information is not available.
      */
-    public function getInfo()
+    public function getInfo(): ?Order
     {
         $order = $this->getOrder();
         $info  = $this->getOrderInfo();
@@ -117,10 +103,10 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
         }
 
         // Use setData to avoid needing hard setters on the order entity.
-        $order->setData('successful_auth_full_at', $info->getSuccessfulAuthFullAt());
-        $order->setData('successful_hydrate_at', $info->getSuccessfulHydrateAt());
-        $order->setData('successful_state_at', $info->getSuccessfulStateAt());
-        $order->setData('public_order_id', $info->getBoldOrderId());
+        $order->setData('successful_auth_full_at', $info->getSuccessfulAuthFullAt() ?? '');
+        $order->setData('successful_hydrate_at', $info->getSuccessfulHydrateAt() ?? '');
+        $order->setData('successful_state_at', $info->getSuccessfulStateAt() ?? '');
+        $order->setData('public_order_id', $info->getBoldOrderId() ?? '');
 
         return $order ;
     }
@@ -128,21 +114,21 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
     /**
      * Retrieve the label for the tab.
      *
-     * @return Phrase The label for the tab.
+     * @return string The label for the tab.
      */
-    public function getTabLabel()
+    public function getTabLabel(): string
     {
-        return __('Bold Order Information');
+        return (string) __('Bold Order Information');
     }
 
     /**
      * Retrieves the title for the tab.
      *
-     * @return Phrase The localized title for the tab.
+     * @return string The localized title for the tab.
      */
-    public function getTabTitle()
+    public function getTabTitle(): string
     {
-        return __('Bold Order Information');
+        return (string) __('Bold Order Information');
     }
 
     /**
@@ -155,14 +141,8 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
         $order = $this->getOrder();
         $method = $order->getPayment()->getMethod();
 
-        $boldMethods = [
-            'bold',
-            'bold_wallet',
-            'bold_fastlane'
-        ];
-
         return $this->config->isShowSalesOrderViewTab((int) $order->getStore()->getWebsiteId())
-            && in_array($method, $boldMethods, true);
+            && in_array($method, Config::BOLD_PAYMENT_METHODS_CODE, true);
     }
 
     /**

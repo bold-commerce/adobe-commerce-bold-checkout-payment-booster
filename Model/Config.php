@@ -37,7 +37,9 @@ class Config
         'checkout/bold_checkout_payment_booster/is_product_wallet_pay_enabled';
     private const PATH_IS_TAX_INCLUDED_IN_PRICES = 'tax/calculation/price_includes_tax';
     private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
-    private const PATH_IS_SHOW_BOLD_INFO_TAB = 'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
+    private const PATH_IS_SHOW_BOLD_INFO_TAB =
+        'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
+    public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config

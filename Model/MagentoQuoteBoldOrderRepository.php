@@ -141,6 +141,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
     public function save(MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder): void
     {
         try {
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
             $this->resourceModel->save($magentoQuoteBoldOrder);
         } catch (AlreadyExistsException $alreadyExistsException) {
             throw new AlreadyExistsException(
@@ -164,6 +165,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
     public function delete(MagentoQuoteBoldOrderInterface $magentoQuoteBoldOrder): void
     {
         try {
+            /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
             $this->resourceModel->delete($magentoQuoteBoldOrder);
         } catch (Exception $exception) {
             throw new CouldNotDeleteException(__('Magento Quote to Bold Order link could not be deleted.'), $exception);
@@ -249,7 +251,7 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
     }
 
     /**
-     * Save Successful Authorize Full Amount at to Bold Quote Public Order Relation
+     * Save Field Timestamp to Bold Quote Public Order Relation
      *
      * @param string $field
      * @param string $quoteId

@@ -1,10 +1,12 @@
 <?php
 /** @var \Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Retry $block */
+
+/** @var \Magento\Framework\Escaper $escaper */
 ?>
 <?php if ($block->isShowButton()): ?>
     <button type="button"
             class="action-default scalable"
-            onclick="setLocation('<?= $block->escapeHtml($block->getRetryUrl()); ?>')">
-        <span><?= $block->escapeHtml(__('Re-sync Bold Order')) ?></span>
+            onclick="setLocation('<?= $escaper->escapeHtml($block->getRetryUrl()); ?>')">
+        <span><?= $escaper->escapeHtml(__('Re-sync Bold Order')) ?></span>
     </button>
 <?php endif; ?>

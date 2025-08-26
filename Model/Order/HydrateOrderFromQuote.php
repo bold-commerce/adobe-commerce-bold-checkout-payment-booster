@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
+use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order\Address;
+use Psr\Log\LoggerInterface;
 
 /**
  * Hydrate Bold order from Magento quote.
@@ -62,6 +66,12 @@ class HydrateOrderFromQuote
      */
     private $searchCriteriaBuilder;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterface */
+    private $magentoQuoteBoldOrderRepository;
+
+    /** @var LoggerInterface */
+    private $logger;
+
     /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
@@ -69,6 +79,8 @@ class HydrateOrderFromQuote
      * @param ToOrderAddress $quoteToOrderAddressConverter
      * @param ProductRepositoryInterface $productRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param LoggerInterface $logger
      */
     public function __construct(
         BoldClient $client,
@@ -76,7 +88,9 @@ class HydrateOrderFromQuote
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
         ProductRepositoryInterface $productRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        LoggerInterface $logger
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
@@ -84,6 +98,8 @@ class HydrateOrderFromQuote
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
         $this->productRepository = $productRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->logger = $logger;
     }
 
     /**
@@ -167,6 +183,8 @@ class HydrateOrderFromQuote
         if ($hydrateResponse->getStatus() !== 201) {
             throw new LocalizedException(__('Failed to hydrate order with id="%1"', $publicOrderId));
         }
+
+        $this->magentoQuoteBoldOrderRepository->saveHydratedAt((string) $quote->getId());
     }
 
     /**
@@ -247,19 +265,7 @@ class HydrateOrderFromQuote
      */
     private function formatCartItems(array $cartItems): array
     {
-        $cartItemIds = array_column($cartItems, 'id');
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter('entity_id', $cartItemIds, 'in')
-            ->create();
-        $products = $this->productRepository
-            ->getList($searchCriteria)
-            ->getItems();
-
         foreach ($cartItems as &$item) {
-            if (array_key_exists($item['id'], $products)) {
-                $item['sku'] = $products[$item['id']]->getSku();
-            }
-
             $item['vendor'] = '';
             $item['weight'] = (int)ceil($item['weight']);
         }

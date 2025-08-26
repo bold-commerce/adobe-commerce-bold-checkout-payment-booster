@@ -1,0 +1,49 @@
+<?php
+
+/** @noinspection PhpUndefinedMethodInspection */
+
+/** @var \Magento\Framework\Escaper $escaper */
+
+/** @var \Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Info $block */
+
+?>
+
+<?php
+$block->getInfo();
+$order = $block->getOrder();
+?>
+<?php if ($block->isShowInfo()): ?>
+    <section class="admin__page-section order-view-account-information">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $escaper->escapeHtml(__('Bold Order Information')); ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <div class="admin__page-section-item order-information">
+                <div class="admin__page-section-item-title">
+                <span class="title"><?= $escaper->escapeHtml(__('Bold Order Information')); ?></span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <table class="admin__table-secondary order-information-table">
+                        <tbody>
+                        <tr>
+                            <th><?=  $escaper->escapeHtml(__('Public Order ID:')); ?></th>
+                            <td><?=  $escaper->escapeHtml(__($order->getPublicOrderId())); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?=  $escaper->escapeHtml(__('Hydrated:')); ?></th>
+                            <td><?=$escaper->escapeHtml(__($order->getSuccessfulHydrateAt()));?></td>
+                        </tr>
+                        <tr>
+                            <th><?=  $escaper->escapeHtml(__('Authorized:')); ?></th>
+                            <td><?=$escaper->escapeHtml(__($order->getSuccessfulAuthFullAt())); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?=  $escaper->escapeHtml(__('Completed:')); ?></th>
+                            <td><?= $escaper->escapeHtml(__($order->getSuccessfulStateAt())); ?></td>
+                        </tr>
+                        </tbody></table>
+                </div>
+            </div>
+        </div>
+    </section>
+<?php endif; ?>

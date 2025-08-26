@@ -112,6 +112,11 @@
                         <field id="log_enabled">1</field>
                     </depends>
                 </field>
+                <field id="enable_sales_order_view_tab" translate="label" type="select" sortOrder="55" showInWebsite="1">
+                    <label>Enable Bold Order Info Tab</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[ Enable Bold Order info tab in sales view. ]]></comment>
+                </field>
                 <group id="digital_wallets_quote_cleanup" translate="label" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Digital Wallets Quote Cleanup</label>
                     <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

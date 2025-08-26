@@ -27,6 +27,7 @@ class Config
     private const PATH_EPS_URL = 'checkout/bold_checkout_payment_booster_advanced/eps_url';
     private const PATH_STATIC_EPS_URL = 'checkout/bold_checkout_payment_booster_advanced/static_eps_url';
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
+    private const PATH_DEBUG_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/debug_log_enabled';
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
     private const PATH_CONFIGURATION_GROUP_LABEL = 'checkout/bold_checkout_payment_booster/configuration_group_label';
     private const PATH_BOLD_BOOSTER_FLOW_ID = 'checkout/bold_checkout_payment_booster/bold_booster_flow_id';
@@ -36,6 +37,9 @@ class Config
         'checkout/bold_checkout_payment_booster/is_product_wallet_pay_enabled';
     private const PATH_IS_TAX_INCLUDED_IN_PRICES = 'tax/calculation/price_includes_tax';
     private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
+    private const PATH_IS_SHOW_BOLD_INFO_TAB =
+        'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
+    public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -212,6 +216,21 @@ class Config
     }
 
     /**
+     * Check if debug logging is enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function getDebugLogIsEnabled(int $websiteId): bool
+    {
+        return (bool)$this->scopeConfig->getValue(
+            self::PATH_DEBUG_LOG_IS_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
      * Get saved Bold API token.
      *
      * @param int $websiteId
@@ -380,6 +399,21 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_IS_TAX_INCLUDED_IN_SHIPPING,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if the Sales Order View tab should be displayed.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isShowSalesOrderViewTab(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_SHOW_BOLD_INFO_TAB,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

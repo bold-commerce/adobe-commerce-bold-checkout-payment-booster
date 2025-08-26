@@ -18,6 +18,9 @@
         <column xsi:type="int" name="id" unsigned="true" nullable="false" identity="true"/>
         <column xsi:type="int" name="quote_id" unsigned="true" nullable="false" comment="Magento Quote Identifier"/>
         <column xsi:type="varchar" name="bold_order_id" nullable="false" length="255" comment="Bold Public Order Identifier"/>
+        <column xsi:type="timestamp" name="successful_hydrate_at" nullable="true" comment="Last Successful Hydrate Bold Order"/>
+        <column xsi:type="timestamp" name="successful_auth_full_at" nullable="true" comment="Last Successful Bold Full Amount Authorization"/>
+        <column xsi:type="timestamp" name="successful_state_at" nullable="true" comment="Last Successful Bold Order State Update"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>

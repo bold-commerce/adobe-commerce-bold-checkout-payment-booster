@@ -39,6 +39,7 @@ class Config
     private const PATH_IS_SHOW_BOLD_INFO_TAB =
         'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
     public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
+    private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -209,21 +210,6 @@ class Config
     {
         return (bool)$this->scopeConfig->getValue(
             self::PATH_LOG_IS_ENABLED,
-            ScopeInterface::SCOPE_WEBSITES,
-            $websiteId
-        );
-    }
-
-    /**
-     * Check if debug logging is enabled.
-     *
-     * @param int $websiteId
-     * @return bool
-     */
-    public function getDebugLogIsEnabled(int $websiteId): bool
-    {
-        return (bool)$this->scopeConfig->getValue(
-            self::PATH_DEBUG_LOG_IS_ENABLED,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
@@ -413,6 +399,21 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_IS_SHOW_BOLD_INFO_TAB,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Determine if the fallback observer should be used.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function useFallbackObserver(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_USE_FALLBACK_OBSERVER,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

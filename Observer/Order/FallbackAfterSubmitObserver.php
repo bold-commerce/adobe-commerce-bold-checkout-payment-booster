@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
@@ -30,13 +31,15 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
     private $logger;
 
     /**
+     * Constructor
+     *
      * @param CheckoutData $checkoutData
      * @param SetCompleteState $setCompleteState
      * @param CheckPaymentMethod $checkPaymentMethod
      * @param OrderExtensionDataFactory $orderExtensionDataFactory
      * @param OrderExtensionDataResource $orderExtensionDataResource
      * @param LoggerInterface $logger
-     * @param MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param Config $config
      */
     public function __construct(
@@ -46,11 +49,12 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionDataResource $orderExtensionDataResource,
         LoggerInterface $logger,
-        MagentoQuoteBoldOrderRepositoryInterfaceFactory $magentoQuoteBoldOrderRepositoryFactory,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
         Config $config
     ) {
         $this->config = $config;
         $this->logger = $logger;
+
         parent::__construct(
             $checkoutData,
             $setCompleteState,
@@ -58,7 +62,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
             $orderExtensionDataFactory,
             $orderExtensionDataResource,
             $logger,
-            $magentoQuoteBoldOrderRepositoryFactory
+            $magentoQuoteBoldOrderRepository
         );
     }
 
@@ -72,14 +76,11 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
     {
         $order = $observer->getEvent()->getOrder();
         $websiteId = (int) $order->getStore()->getWebsiteId();
-        if ($this->config->useFallbackObserver($websiteId))
-        {
-            try {
-                parent::execute($observer);
-            } catch (NoSuchEntityException $e) {
-            } catch (LocalizedException $e) {
-                $this->logger->critical($e);
-            }
+        if ($this->config->useFallbackObserver($websiteId)) try {
+            parent::execute($observer);
+        } catch (NoSuchEntityException $e) {
+        } catch (LocalizedException $e) {
+            $this->logger->critical($e);
         }
     }
 }

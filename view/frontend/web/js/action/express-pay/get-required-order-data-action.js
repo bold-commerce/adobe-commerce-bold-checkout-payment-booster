@@ -15,6 +15,27 @@ define(
     ) {
         'use strict';
 
+        // Constants for DOM selectors
+        const PRICE_SELECTORS= [
+                '.bundle-info .price-box .price',
+                '.product-info-main .price-box .price',
+                '.product-panel .price-box .price'
+        ];
+
+        /**
+         * Get the first available price element from the DOM
+         * @returns {jQuery|null} The price element or null if not found
+         */
+        function getPriceElement() {
+            for (const selector of PRICE_SELECTORS) {
+                const $element = $(selector);
+                if ($element.length > 0) {
+                    return $element;
+                }
+            }
+            return $();
+        }
+
         /**
          * @returns {[{label: string, amount: number}]}
          */
@@ -22,11 +43,7 @@ define(
             let $priceElement;
             let productPrice;
 
-            $priceElement = $('.bundle-info .price-box .price');
-
-            if ($priceElement.length === 0) {
-                $priceElement = $('.product-info-main .price-box .price');
-            }
+            $priceElement = getPriceElement();
 
             // Get price for simple, configurable, bundle, virtual and downloadable products
             if ($priceElement.length === 1) {
@@ -148,7 +165,9 @@ define(
                         break;
                     case 'totals':
                         // if on product page and active quote is not bold quote
-                        if ($('body').hasClass('catalog-product-view') && !window.checkoutConfig.quoteData?.extension_attributes?.bold_order_id) {
+                        if ($('body').hasClass('catalog-product-view')
+                            && (!$('.minicart-wrapper .active').length > 0)
+                            && !window.checkoutConfig.quoteData?.extension_attributes?.bold_order_id) {
                             payload[requirement] = getProductTotalsData();
                         } else {
                             payload[requirement] = getQuoteTotalsData();

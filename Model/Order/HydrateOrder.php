@@ -87,8 +87,6 @@ class HydrateOrder implements HydrateOrderInterface
                 'bold_order_hydrate_after',
                 ['quote' => $quote, 'publicOrderId' => $publicOrderId]
             );
-
-
         } catch (Throwable $e) {
             $quoteId = $quote ? $quote->getId() : 'N/A';
             $this->logger->error(

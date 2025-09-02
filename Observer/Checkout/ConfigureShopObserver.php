@@ -205,9 +205,10 @@ class ConfigureShopObserver implements ObserverInterface
     /**
      * Copy default configuration from website scope to default scope if single store mode is enabled.
      *
+     * @param int $websiteId
      * @return void
      */
-    private function copyDefaultConfig($websiteId)
+    private function copyDefaultConfig(int $websiteId)
     {
         if (!$this->storeManager->isSingleStoreMode()) {
             return;

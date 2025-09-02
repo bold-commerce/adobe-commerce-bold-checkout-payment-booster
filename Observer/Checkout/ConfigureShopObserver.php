@@ -11,18 +11,35 @@ use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\GenerateSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\RegisterSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\ShopId;
 use Exception;
+use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigCollectionFactory;
+use Magento\Framework\App\Cache\TypeListInterface as CacheTypeList;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Save shop Id and register shared secret when checkout configuration is saved.
  */
 class ConfigureShopObserver implements ObserverInterface
 {
+    /** @var CacheTypeList */
+    private $cacheTypeList;
+
+    /** @var ConfigCollectionFactory */
+    private $configCollectionFactory;
+
+    /** @var WriterInterface */
+    private $configWriter;
+
+    /** @var LoggerInterface */
+    private $logger;
+
     /**
      * @var Config
      */
@@ -65,6 +82,11 @@ class ConfigureShopObserver implements ObserverInterface
      * @param GenerateSharedSecret $generateSharedSecret
      * @param RegisterSharedSecret $registerSharedSecret
      * @param FlowService $flowService
+     * @param AddDomainToCorsAllowList $addDomainToCorsAllowList
+     * @param CacheTypeList $cacheTypeList
+     * @param ConfigCollectionFactory $configCollectionFactory
+     * @param WriterInterface $configWriter
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Config $config,
@@ -73,7 +95,11 @@ class ConfigureShopObserver implements ObserverInterface
         GenerateSharedSecret $generateSharedSecret,
         RegisterSharedSecret $registerSharedSecret,
         FlowService $flowService,
-        AddDomainToCorsAllowList $addDomainToCorsAllowList
+        AddDomainToCorsAllowList $addDomainToCorsAllowList,
+        CacheTypeList $cacheTypeList,
+        ConfigCollectionFactory     $configCollectionFactory,
+        WriterInterface       $configWriter,
+        LoggerInterface       $logger
     ) {
         $this->config = $config;
         $this->shopId = $shopId;
@@ -82,6 +108,10 @@ class ConfigureShopObserver implements ObserverInterface
         $this->registerSharedSecret = $registerSharedSecret;
         $this->flowService = $flowService;
         $this->addDomainToCorsAllowList = $addDomainToCorsAllowList;
+        $this->cacheTypeList = $cacheTypeList;
+        $this->configCollectionFactory = $configCollectionFactory;
+        $this->configWriter = $configWriter;
+        $this->logger = $logger;
     }
 
     /**
@@ -99,6 +129,7 @@ class ConfigureShopObserver implements ObserverInterface
         $this->saveSharedSecret($websiteId);
         $this->addDomainToCorsAllowList($websiteId);
         $this->getOrCreatePaymentBoosterFlowID($websiteId);
+        $this->copyDefaultConfig($websiteId);
     }
 
     /**
@@ -169,5 +200,42 @@ class ConfigureShopObserver implements ObserverInterface
     {
         $magentoUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB);
         $this->addDomainToCorsAllowList->addDomain($websiteId, $magentoUrl);
+    }
+
+    /**
+     * Copy default configuration from website scope to default scope if single store mode is enabled.
+     *
+     * @return void
+     */
+    private function copyDefaultConfig($websiteId)
+    {
+        if (!$this->storeManager->isSingleStoreMode()) {
+            return;
+        }
+        try {
+            $collection = $this->configCollectionFactory->create()
+                ->addFieldToFilter('scope', 'websites')
+                ->addFieldToFilter('scope_id', (string) $websiteId)
+                ->addFieldToFilter('path', ['like' => 'checkout/bold_checkout_payment_booster%']);
+
+            if ($collection->getSize() === 0) {
+                return;
+            }
+
+            foreach ($collection->getItems() as $config) {
+                $path = $config->getDataByKey('path');
+                $value = $config->getDataByKey('value');
+
+                $this->configWriter->save(
+                    $path,
+                    $value,
+                    ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                    0
+                );
+            }
+            $this->cacheTypeList->cleanType('config');
+        } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
+        }
     }
 }

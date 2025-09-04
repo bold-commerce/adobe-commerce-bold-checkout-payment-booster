@@ -506,7 +506,11 @@ class CreatorTest extends TestCase
             ->method('create')
             ->willReturn($quoteIdMaskStub);
 
-        if ($this->getMagentoVersion() != '2.4.8' && $this->getMagentoVersion() != '2.4.8-p1') {
+        if (
+            $this->getMagentoVersion() != '2.4.8'
+            && $this->getMagentoVersion() != '2.4.8-p1'
+            && $this->getMagentoVersion() != '2.4.9-alpha2'
+        ) {
             $quoteRepositoryMock
                 ->expects($matcher)
                 ->method('save')

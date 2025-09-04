@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Exception\LocalizedException;
@@ -50,22 +52,28 @@ class HydrateOrderFromQuote
      */
     private $quoteToOrderAddressConverter;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterface */
+    private $magentoQuoteBoldOrderRepository;
+
     /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      */
     public function __construct(
         BoldClient $client,
         GetCartLineItems $getCartLineItems,
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
         $this->addressConverter = $addressConverter;
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -149,6 +157,8 @@ class HydrateOrderFromQuote
         if ($hydrateResponse->getStatus() !== 201) {
             throw new LocalizedException(__('Failed to hydrate order with id="%1"', $publicOrderId));
         }
+
+        $this->magentoQuoteBoldOrderRepository->saveHydratedAt((string) $quote->getId());
     }
 
     /**

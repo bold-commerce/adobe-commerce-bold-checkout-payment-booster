@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Registry;
 
@@ -38,13 +39,7 @@ class Retry extends \Magento\Backend\Block\Template
         $order = $this->getOrder();
         $method = $order->getPayment()->getMethod();
 
-        $boldMethods = [
-            'bold',
-            'bold_wallet',
-            'bold_fastlane'
-        ];
-
-        return in_array($method, $boldMethods, true);
+        return in_array($method, Config::BOLD_PAYMENT_METHODS_CODE, true);
     }
 
     /**

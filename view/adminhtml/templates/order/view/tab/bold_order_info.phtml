@@ -1,0 +1,47 @@
+<?php
+
+/** @noinspection PhpUndefinedMethodInspection */
+
+/** @var \Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Info $block */
+
+?>
+
+<?php
+$block->getInfo();
+$order = $block->getOrder();
+?>
+<?php if ($block->canShowTab()): ?>
+    <section class="admin__page-section order-view-account-information">
+        <div class="admin__page-section-title">
+            <span class="title"><?= $block->escapeHtml(__('Bold Order Information')); ?></span>
+        </div>
+        <div class="admin__page-section-content">
+            <div class="admin__page-section-item order-information">
+                <div class="admin__page-section-item-title">
+                <span class="title"><?= $block->escapeHtml(__('Bold Order Information')); ?></span>
+                </div>
+                <div class="admin__page-section-item-content">
+                    <table class="admin__table-secondary order-information-table">
+                        <tbody>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Public Order ID:')); ?></th>
+                            <td><?= $block->escapeHtml($order->getData('public_order_id') ?: ''); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Hydrated:')); ?></th>
+                            <td><?= $block->escapeHtml($order->getData('successful_hydrate_at') ?: ''); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Authorized:')); ?></th>
+                            <td><?= $block->escapeHtml($order->getData('successful_auth_full_at') ?: ''); ?></td>
+                        </tr>
+                        <tr>
+                            <th><?= $block->escapeHtml(__('Completed:')); ?></th>
+                            <td><?= $block->escapeHtml($order->getData('successful_state_at') ?: ''); ?></td>
+                        </tr>
+                        </tbody></table>
+                </div>
+            </div>
+        </div>
+    </section>
+<?php endif; ?>

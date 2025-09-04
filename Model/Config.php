@@ -36,6 +36,10 @@ class Config
         'checkout/bold_checkout_payment_booster/is_product_wallet_pay_enabled';
     private const PATH_IS_TAX_INCLUDED_IN_PRICES = 'tax/calculation/price_includes_tax';
     private const PATH_IS_TAX_INCLUDED_IN_SHIPPING = 'tax/calculation/shipping_includes_tax';
+    private const PATH_IS_SHOW_BOLD_INFO_TAB =
+        'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
+    public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
+    private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -380,6 +384,36 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_IS_TAX_INCLUDED_IN_SHIPPING,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if the Sales Order View tab should be displayed.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isShowSalesOrderViewTab(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_SHOW_BOLD_INFO_TAB,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Determine if the fallback observer should be used.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function useFallbackObserver(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_USE_FALLBACK_OBSERVER,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

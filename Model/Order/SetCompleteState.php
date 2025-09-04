@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -32,19 +33,25 @@ class SetCompleteState
      */
     private $logger;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterface */
+    private $magentoQuoteBoldOrderRepository;
+
     /**
      * @param BoldClient $client
      * @param GetOrderPublicIdByOrderId $getOrderPublicId
      * @param LoggerInterface $logger
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      */
     public function __construct(
         BoldClient                $client,
         GetOrderPublicIdByOrderId $getOrderPublicId,
-        LoggerInterface           $logger
+        LoggerInterface           $logger,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->client = $client;
         $this->getOrderPublicId = $getOrderPublicId;
         $this->logger = $logger;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -67,6 +74,9 @@ class SetCompleteState
         $response = $this->client->put($websiteId, $url, $params);
         if ($response->getStatus() !== 201) {
             $this->logger->error(__('Failed to set complete state for order with id="%1"', $order->getEntityId()));
+            return;
         }
+        $quoteId = $order->getQuoteId();
+        $this->magentoQuoteBoldOrderRepository->saveStateAt((string) $quoteId);
     }
 }

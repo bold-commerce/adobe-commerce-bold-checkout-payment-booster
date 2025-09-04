@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
@@ -51,13 +52,21 @@ class AfterSubmitObserver implements ObserverInterface
      */
     private $logger;
 
+    /** @var MagentoQuoteBoldOrderRepositoryInterface */
+    private $magentoQuoteBoldOrderRepository;
+
     /**
-     * @param CheckoutData $checkoutData
-     * @param SetCompleteState $setCompleteState
-     * @param CheckPaymentMethod $checkPaymentMethod
-     * @param OrderExtensionDataFactory $orderExtensionDataFactory
-     * @param OrderExtensionDataResource $orderExtensionDataResource
-     * @param LoggerInterface $logger
+     * Constructor method.
+     *
+     * @param CheckoutData $checkoutData Instance of CheckoutData.
+     * @param SetCompleteState $setCompleteState Instance of SetCompleteState.
+     * @param CheckPaymentMethod $checkPaymentMethod Instance of CheckPaymentMethod.
+     * @param OrderExtensionDataFactory $orderExtensionDataFactory Instance of OrderExtensionDataFactory.
+     * @param OrderExtensionDataResource $orderExtensionDataResource Instance of OrderExtensionDataResource.
+     * @param LoggerInterface $logger Logger instance for handling logs.
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository Interface for managing
+     * Magento Quote Bold Order Repository.
+     * @return void
      */
     public function __construct(
         CheckoutData $checkoutData,
@@ -65,7 +74,8 @@ class AfterSubmitObserver implements ObserverInterface
         CheckPaymentMethod $checkPaymentMethod,
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionDataResource $orderExtensionDataResource,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->checkoutData = $checkoutData;
         $this->orderExtensionDataFactory = $orderExtensionDataFactory;
@@ -73,6 +83,7 @@ class AfterSubmitObserver implements ObserverInterface
         $this->setCompleteState = $setCompleteState;
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->logger = $logger;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -85,19 +96,31 @@ class AfterSubmitObserver implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
+        $order = $observer->getEvent()->getOrder();
+        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            return;
+        }
+
+        $orderId = $order->getEntityId();
+        // Skip if Magento order does Not have an ID yet
+        // or skip if the Bold Order Quote Relation has already a successful State call timestamp
+        if (!$orderId || $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order)) {
+            return;
+        }
+
         $publicOrderId = $this->checkoutData->getPublicOrderId();
 
         if ($publicOrderId !== null) {
             $this->checkoutData->resetCheckoutData();
         }
 
-        $order = $observer->getEvent()->getOrder();
-        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
-            return;
+        if (!$publicOrderId) {
+            // If missing Public order id, try to get from the Bold Order Quote relation
+            $publicOrderId = $this->magentoQuoteBoldOrderRepository->getPublicOrderIdFromOrder($order);
         }
-        $orderId = (int)$order->getEntityId();
+
         $orderExtensionData = $this->orderExtensionDataFactory->create();
-        $orderExtensionData->setOrderId($orderId);
+        $orderExtensionData->setOrderId((int) $orderId);
 
         if ($publicOrderId !== null) {
             $orderExtensionData->setPublicId($publicOrderId);

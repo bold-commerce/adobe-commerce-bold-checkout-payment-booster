@@ -72,6 +72,7 @@
                 <digital_wallets_quote_cleanup_occurrence>1</digital_wallets_quote_cleanup_occurrence>
                 <digital_wallets_quote_cleanup_sequence>* * * * *</digital_wallets_quote_cleanup_sequence>
                 <digital_wallets_quote_cleanup_retention_period>1</digital_wallets_quote_cleanup_retention_period>
+                <use_fallback_observer>1</use_fallback_observer>
             </bold_checkout_payment_booster_advanced>
         </checkout>
     </default>

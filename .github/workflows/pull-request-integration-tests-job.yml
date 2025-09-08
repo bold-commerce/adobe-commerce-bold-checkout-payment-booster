@@ -47,6 +47,10 @@ jobs:
             magento-version: "2.4.8-p1"
             composer-version: "v2"
             maria-db-version: "10.6"
+          - php-version: "8.4"
+            magento-version: "2.4.9-alpha2"
+            composer-version: "v2"
+            maria-db-version: "10.6"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -133,7 +137,7 @@ jobs:
         working-directory: integration-pipeline-test
         run: |
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.event.pull_request.head.ref }} --no-scripts
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 

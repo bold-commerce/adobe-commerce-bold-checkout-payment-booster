@@ -1,68 +1,73 @@
 {
-  "name": "bold-commerce/module-checkout-payment-booster",
-  "description": "Bold Payment Booster integration for Adobe Commerce",
-  "type": "magento2-module",
-  "license": [
-    "MIT"
-  ],
-  "version": "2.6.2",
-  "require": {
-    "php": ">=7.2 <8.5",
-    "ext-curl": "*",
-    "ext-intl": "*",
-    "ext-json": "*",
-    "ext-pcre": "*",
-    "psr/log": "^1.0 || ^2.0 || ^3.0",
-    "magento/framework": ">=102.0.1 <=103.0.8-p1",
-    "magento/module-backend": ">=101.0.1 <=102.0.8",
-    "magento/module-catalog": ">=103.0.1 <=104.0.8-p1",
-    "magento/module-checkout": ">=100.3.1 <=100.4.8-p1",
-    "magento/module-checkout-agreements": ">=100.3.1 <=100.4.8-p1",
-    "magento/module-config": ">=101.1.1 <=101.2.8",
-    "magento/module-cron": ">=100.3.1 <=100.4.8-p1",
-    "magento/module-customer": ">=102.0.1 <=103.0.8-p1",
-    "magento/module-directory": ">=100.3.1 <=100.4.8-p1",
-    "magento/module-payment": ">=100.3.1 <=100.4.8-p1",
-    "magento/module-quote": ">=101.1.1 <=101.2.8-p1",
-    "magento/module-sales": ">=102.0.1 <=103.0.8",
-    "magento/module-store": ">=101.0.1 <=101.1.8"
-  },
-  "require-dev": {
-    "dms/phpunit-arraysubset-asserts": "*",
-    "bitexpert/phpstan-magento": "^v0.32",
-    "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
-    "magento/magento-coding-standard": ">=36",
-    "php-parallel-lint/php-parallel-lint": "^1.4",
-    "phpstan/extension-installer": "^1.4",
-    "phpstan/phpstan": "^1.12",
-    "phpunit/phpunit": "^9.6",
-    "squizlabs/php_codesniffer": "^3.10"
-  },
-  "replace": {
-    "bold-commerce/module-checkout":"*"
-  },
-  "suggest": {
-    "colinodell/psr-testlogger": "For asserting that messages are logged correctly during testing"
-  },
-  "autoload": {
-    "files": [
-      "registration.php"
+    "name": "bold-commerce/module-checkout-payment-booster",
+    "description": "Bold Payment Booster integration for Adobe Commerce",
+    "type": "magento2-module",
+    "license": [
+        "MIT"
     ],
-    "psr-4": {
-      "Bold\\CheckoutPaymentBooster\\": ""
-    }
-  },
-  "config": {
-    "allow-plugins": {
-      "dealerdirect/phpcodesniffer-composer-installer": true,
-      "magento/composer-dependency-version-audit-plugin": true,
-      "phpstan/extension-installer": true
-    }
-  },
-  "repositories": [
-    {
-      "type": "composer",
-      "url": "https://repo.magento.com/"
-    }
-  ]
+    "version": "2.6.4",
+    "require": {
+        "php": ">=7.2 <8.5",
+        "ext-curl": "*",
+        "ext-intl": "*",
+        "ext-json": "*",
+        "ext-pcre": "*",
+        "psr/log": "^1.0 || ^2.0 || ^3.0",
+        "magento/framework": ">=102.0.1 <=103.0.9",
+        "magento/module-backend": ">=101.0.1 <=102.0.9",
+        "magento/module-catalog": ">=103.0.1 <=104.0.9",
+        "magento/module-checkout": ">=100.3.1 <=100.4.9",
+        "magento/module-checkout-agreements": ">=100.3.1 <=100.4.9",
+        "magento/module-config": ">=101.1.1 <=101.2.9",
+        "magento/module-cron": ">=100.3.1 <=100.4.9",
+        "magento/module-customer": ">=102.0.1 <=103.0.9",
+        "magento/module-directory": ">=100.3.1 <=100.4.9",
+        "magento/module-payment": ">=100.3.1 <=100.4.9",
+        "magento/module-quote": ">=101.1.1 <=101.2.9",
+        "magento/module-sales": ">=102.0.1 <=103.0.9",
+        "magento/module-store": ">=101.0.1 <=101.1.9"
+    },
+    "require-dev": {
+        "dms/phpunit-arraysubset-asserts": "*",
+        "bitexpert/phpstan-magento": "^0.32",
+        "allure-framework/allure-phpunit": "^3.1",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "magento/magento-coding-standard": "*",
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^1.9",
+        "phpunit/phpunit": "^9.5 || ^10.5",
+        "squizlabs/php_codesniffer": "^3.10"
+    },
+    "replace": {
+        "bold-commerce/module-checkout": "*"
+    },
+    "suggest": {
+        "colinodell/psr-testlogger": "For asserting that messages are logged correctly during testing"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "Bold\\CheckoutPaymentBooster\\": ""
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "magento/composer-dependency-version-audit-plugin": true,
+            "phpstan/extension-installer": true,
+            "laminas/laminas-dependency-plugin": true,
+            "magento/*": true,
+            "php-http/discovery": true
+        },
+        "sort-packages": true
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    ]
 }

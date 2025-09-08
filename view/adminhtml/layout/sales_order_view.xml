@@ -1,12 +1,21 @@
-<?xml version="1.0"?>
-<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+<?xml version = "1.0"?>
+
+<page xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation = "urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
-        <referenceBlock name="payment_additional_info">
-            <block class="Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Retry"
-                   name="retry.payment.button"
-                   template="Bold_CheckoutPaymentBooster::order/view/retry_button.phtml"
-                   after="-"/>
+        <referenceBlock name = "payment_additional_info">
+            <block class = "Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Retry"
+                   name = "retry.payment.button"
+                   template = "Bold_CheckoutPaymentBooster::order/view/retry_button.phtml"
+                   after = "-"/>
+        </referenceBlock>
+        <referenceBlock name = "sales_order_tabs">
+            <action method = "addTab">
+                <argument name = "name" xsi:type = "string">custom_tabs</argument>
+                <argument name = "block" xsi:type = "string">
+                    Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Info
+                </argument>
+            </action>
         </referenceBlock>
     </body>
 </page>

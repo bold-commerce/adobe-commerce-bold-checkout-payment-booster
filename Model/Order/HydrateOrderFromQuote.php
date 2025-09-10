@@ -9,9 +9,11 @@ use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Exception\LocalizedException;
+use Psr\Log\LoggerInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
@@ -56,24 +58,40 @@ class HydrateOrderFromQuote
     private $magentoQuoteBoldOrderRepository;
 
     /**
+     * @var CustomerSession
+     */
+    private $customerSession;
+
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param CustomerSession $customerSession
+     * @param LoggerInterface $logger
      */
     public function __construct(
         BoldClient $client,
         GetCartLineItems $getCartLineItems,
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        CustomerSession $customerSession,
+        LoggerInterface $logger
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
         $this->addressConverter = $addressConverter;
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->customerSession = $customerSession;
+        $this->logger = $logger;
     }
 
     /**
@@ -135,16 +153,39 @@ class HydrateOrderFromQuote
         /** @var CustomerInterface&Customer $customer */
         $customer = $quote->getCustomer();
 
+        // Determine platform customer id from quote or session (for logged-in Magento customers)
+        $platformId = null;
+        $isLoggedIn = $this->customerSession->isLoggedIn();
+        $sessionCustomerId = null;
+        if ($customer->getId()) {
+            $platformId = (string)$quote->getCustomerId();
+        } elseif ($isLoggedIn) {
+            $sessionCustomerId = (int)$this->customerSession->getCustomerId();
+            if ($sessionCustomerId > 0) {
+                $platformId = (string)$sessionCustomerId;
+            }
+        }
+
+        // Debug log (no PII): whether we detected login and have a platformId
+        try {
+            $this->logger->info('[CHK-9185] HydrateOrderFromQuote: login=' . ($isLoggedIn ? '1' : '0')
+                . ' quoteCustomerId=' . ($quote->getCustomerId() ? 'set' : 'unset')
+                . ' sessionCustomerId=' . ($sessionCustomerId ? 'set' : 'unset')
+                . ' platformId=' . ($platformId !== null ? 'set' : 'unset'));
+        } catch (\Throwable $e) {
+            // swallow logging errors to avoid impacting checkout
+        }
+
         if ($customer->getId()) {
             $body['customer'] = [
-                'platform_id' => (string)$quote->getCustomerId(),
+                'platform_id' => $platformId,
                 'first_name' => $quote->getCustomerFirstname(),
                 'last_name' => $quote->getCustomerLastname(),
                 'email_address' => $quote->getCustomerEmail(),
             ];
         } else {
             $body['customer'] = [
-                'platform_id' => null,
+                'platform_id' => $platformId,
                 'first_name' => $billingAddress->getFirstname(),
                 'last_name' => $billingAddress->getLastname(),
                 'email_address' => $billingAddress->getEmail(),
@@ -152,6 +193,13 @@ class HydrateOrderFromQuote
         }
 
         $url = sprintf(self::HYDRATE_ORDER_URL, $publicOrderId);
+        // Debug log URL and whether customer block contains platform_id
+        try {
+            $this->logger->info('[CHK-9185] HydrateOrderFromQuote PUT ' . $url
+                . ' customer.platform_id=' . (isset($body['customer']['platform_id']) && $body['customer']['platform_id'] !== null ? 'set' : 'unset'));
+        } catch (\Throwable $e) {
+        }
+
         $hydrateResponse = $this->client->put($websiteId, $url, $body);
 
         if ($hydrateResponse->getStatus() !== 201) {

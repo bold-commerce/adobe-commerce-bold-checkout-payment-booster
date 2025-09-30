@@ -20,6 +20,9 @@ use Magento\Backend\App\Action\Context;
  */
 class Export extends Action
 {
+    private CONST ERROR_MESSAGE_NOT_FOUND = 'Log file not found.';
+    private CONST ERROR_MESSAGE_UNABLE_READ = 'Unable to read log file: %1';
+
     /** @var string  */
     private const LOG_FILENAME = 'bold_checkout_payment_booster.log';
 
@@ -68,7 +71,8 @@ class Export extends Action
         $logFilePath = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/log/' . self::LOG_FILENAME;
 
         if (!$this->fileDriver->isExists($logFilePath)) {
-            $this->messageManager->addErrorMessage(__('Log file not found.'));
+            $message = __(self::ERROR_MESSAGE_NOT_FOUND)->render();
+            $this->messageManager->addErrorMessage($message);
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
 
@@ -81,7 +85,8 @@ class Export extends Action
                     self::LOG_FILENAME . '"', true)
                 ->setContents($contents);
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage(__('Unable to read log file: %1'), $e->getMessage());
+            $message = __(self::ERROR_MESSAGE_UNABLE_READ)->render();
+            $this->messageManager->addErrorMessage($message, $e->getMessage());
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
     }

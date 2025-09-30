@@ -68,7 +68,7 @@ class Export extends Action
         $logFilePath = $this->directoryList->getPath(DirectoryList::VAR_DIR) . '/log/' . self::LOG_FILENAME;
 
         if (!$this->fileDriver->isExists($logFilePath)) {
-            $this->messageManager->addErrorMessage('Log file not found.');
+            $this->messageManager->addErrorMessage(__('Log file not found.'));
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
 
@@ -81,7 +81,7 @@ class Export extends Action
                     self::LOG_FILENAME . '"', true)
                 ->setContents($contents);
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage('Unable to read log file: %1', $e->getMessage());
+            $this->messageManager->addErrorMessage(__('Unable to read log file: %1'), $e->getMessage());
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
     }

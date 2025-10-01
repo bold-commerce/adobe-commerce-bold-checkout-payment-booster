@@ -43,4 +43,45 @@ class MagentoQuoteBoldOrder extends AbstractModel implements MagentoQuoteBoldOrd
     {
         return $this->getData(self::BOLD_ORDER_ID);
     }
+
+    public function setSuccessfulHydrateAt(string $timestamp): MagentoQuoteBoldOrderInterface
+    {
+        $this->setData(self::SUCCESSFUL_HYDRATE_AT, $timestamp);
+
+        return $this;
+    }
+
+    public function getSuccessfulHydrateAt(): ?string
+    {
+        return $this->getData(self::SUCCESSFUL_HYDRATE_AT);
+    }
+
+    public function setSuccessfulAuthFullAt(string $timestamp): MagentoQuoteBoldOrderInterface
+    {
+        $this->setData(self::SUCCESSFUL_AUTH_FULL_AT, $timestamp);
+
+        return $this;
+    }
+
+    public function getSuccessfulAuthFullAt(): ?string
+    {
+        return $this->getData(self::SUCCESSFUL_AUTH_FULL_AT);
+    }
+
+    public function setSuccessfulStateAt(string $timestamp): MagentoQuoteBoldOrderInterface
+    {
+        $this->setData(self::SUCCESSFUL_STATE_AT, $timestamp);
+
+        return $this;
+    }
+
+    public function getSuccessfulStateAt(): ?string
+    {
+        return $this->getData(self::SUCCESSFUL_STATE_AT);
+    }
+
+    public function isProcessed(): bool
+    {
+        return $this->getSuccessfulStateAt() !== null;
+    }
 }

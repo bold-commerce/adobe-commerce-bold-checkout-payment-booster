@@ -1,34 +1,49 @@
 {
-  "bold_checkout_payment_booster_order": {
-    "column": {
-      "id": true,
-      "order_id": true,
-      "public_id": true,
-      "is_capture_in_progress": true,
-      "is_refund_in_progress": true,
-      "is_cancel_in_progress": true
+    "bold_checkout_payment_booster_order": {
+        "column": {
+            "id": true,
+            "order_id": true,
+            "public_id": true,
+            "is_capture_in_progress": true,
+            "is_refund_in_progress": true,
+            "is_cancel_in_progress": true
+        },
+        "index": {
+            "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
     },
-    "index": {
-      "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true
+    "quote": {
+        "column": {
+            "is_digital_wallets": true
+        }
     },
-    "constraint": {
-      "PRIMARY": true
-    }
-  },
-  "quote": {
-    "column": {
-      "is_digital_wallets": true
-    }
-  },
-  "bold_booster_quote_order_id": {
-    "column": {
-      "id": true,
-      "quote_id": true,
-      "bold_order_id": true
+    "bold_booster_quote_order_id": {
+        "column": {
+            "id": true,
+            "quote_id": true,
+            "bold_order_id": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID_QUOTE_ENTITY_ID": true
+        }
     },
-    "constraint": {
-      "PRIMARY": true,
-      "BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID_QUOTE_ENTITY_ID": true
+    "bold_booster_magento_quote_bold_order": {
+        "column": {
+            "id": true,
+            "quote_id": true,
+            "bold_order_id": true,
+            "successful_hydrate_at": true,
+            "successful_auth_full_at": true,
+            "successful_state_at": true
+        },
+        "constraint": {
+            "PRIMARY": true,
+            "BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID": true,
+            "BOLD_BOOSTER_MAGENTO_QUOTE_BOLD_ORDER_QUOTE_ID_QUOTE_ENTITY_ID": true
+        }
     }
-  }
 }

@@ -99,6 +99,19 @@
                     <validate>required-url</validate>
                     <comment><![CDATA[Bold static EPS URL. Do not change.]]></comment>
                 </field>
+                <field id="enable_checkout_api_integration" translate="label" type="select" sortOrder="50" showInWebsite="1">
+                    <label>Enable Bold Checkout API Integration</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[ Enable Bold Checkout API integration for Agentic commerce. ]]></comment>
+                </field>
+                <field id="integrate_checkout_api_button" translate="label" type="text" sortOrder="50" showInWebsite="1">
+                    <label>Integrate Bold Checkout API</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\IntegrateCheckoutApiButton</frontend_model>
+                    <comment><![CDATA[ Exchange integration secure key with Bold Checkout and validate key with successful API integration .]]></comment>
+                    <depends>
+                        <field id="enable_checkout_api_integration">1</field>
+                    </depends>
+                </field>
                 <field id="log_enabled" translate="label" type="select" sortOrder="50" showInWebsite="1">
                     <label>Enable Bold Checkout Requests Logs</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

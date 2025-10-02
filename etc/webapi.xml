@@ -64,4 +64,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/validate" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\ValidateApiInterface" method="validate"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

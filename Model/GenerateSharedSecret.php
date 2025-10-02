@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority;
+namespace Bold\CheckoutPaymentBooster\Model;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Math\Random;

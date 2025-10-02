@@ -6,8 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Observer\Checkout;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Eps\AddDomainToCorsAllowList;
+use Bold\CheckoutPaymentBooster\Model\GenerateSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\PaymentBooster\FlowService;
-use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\GenerateSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\RemoteStateAuthority\RegisterSharedSecret;
 use Bold\CheckoutPaymentBooster\Model\ShopId;
 use Exception;

@@ -25,6 +25,8 @@ use Psr\Log\LoggerInterface;
  */
 class CreateInvoice
 {
+    const ACTION = 'Captured';
+
     /**
      * @var SearchCriteriaBuilder
      */
@@ -56,7 +58,18 @@ class CreateInvoice
     private $orderExtensionDataRepository;
 
     /**
+     * @var TransactionComment
+     */
+    private $transactionComment;
+
+    /**
+     * @param LoggerInterface $logger
      * @param OrderRepositoryInterface $orderRepository
+     * @param OrderExtensionDataRepository $orderExtensionDataRepository
+     * @param Builder $transactionBuilder
+     * @param TransactionRepositoryInterface $transactionRepository
+     * @param SearchCriteriaBuilder $searchCriteriaBuilder
+     * @param TransactionComment $transactionComment
      */
     public function __construct(
         LoggerInterface $logger,
@@ -64,7 +77,8 @@ class CreateInvoice
         OrderExtensionDataRepository $orderExtensionDataRepository,
         Builder $transactionBuilder,
         TransactionRepositoryInterface $transactionRepository,
-        SearchCriteriaBuilder $searchCriteriaBuilder
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        TransactionComment $transactionComment
     ) {
         $this->logger = $logger;
         $this->orderRepository = $orderRepository;
@@ -72,6 +86,7 @@ class CreateInvoice
         $this->transactionBuilder = $transactionBuilder;
         $this->transactionRepository = $transactionRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->transactionComment = $transactionComment;
     }
 
     /**
@@ -107,6 +122,9 @@ class CreateInvoice
             $this->updateAuthorization($order, $payment);
 
             $this->orderRepository->save($order);
+
+            $this->transactionComment->addComment(self::ACTION, $order);
+
             $orderExtensionData->setIsCaptureInProgress(false);
             $this->orderExtensionDataRepository->save($orderExtensionData);
         } catch (LocalizedException $e) {

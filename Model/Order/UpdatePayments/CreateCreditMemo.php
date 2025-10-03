@@ -16,6 +16,8 @@ use Magento\Sales\Model\Service\CreditmemoService;
  */
 class CreateCreditMemo
 {
+    const ACTION = 'Refunded';
+
     /**
      * @var CreditmemoFactory
      */
@@ -32,18 +34,26 @@ class CreateCreditMemo
     private $orderExtensionDataRepository;
 
     /**
+     * @var TransactionComment
+     */
+    private $transactionComment;
+
+    /**
      * @param CreditmemoFactory $creditMemoFactory
      * @param CreditmemoService $creditMemoService
      * @param OrderExtensionDataRepository $orderExtensionDataRepository
+     * @param TransactionComment $transactionComment
      */
     public function __construct(
         CreditmemoFactory $creditMemoFactory,
         CreditmemoService $creditMemoService,
-        OrderExtensionDataRepository $orderExtensionDataRepository
+        OrderExtensionDataRepository $orderExtensionDataRepository,
+        TransactionComment $transactionComment
     ) {
         $this->creditMemoFactory = $creditMemoFactory;
         $this->creditMemoService = $creditMemoService;
         $this->orderExtensionDataRepository = $orderExtensionDataRepository;
+        $this->transactionComment = $transactionComment;
     }
 
     /**
@@ -61,6 +71,7 @@ class CreateCreditMemo
         try {
             $creditMemo = $this->creditMemoFactory->createByOrder($order, $order->getData());
             $this->creditMemoService->refund($creditMemo);
+            $this->transactionComment->addComment(self::ACTION, $order);
         } catch (LocalizedException $e) {
             $orderExtensionData->setIsRefundInProgress(false);
             $this->orderExtensionDataRepository->save($orderExtensionData);

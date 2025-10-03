@@ -26,6 +26,8 @@ class Config
     private const PATH_INTEGRATION_API_URL = 'checkout/bold_checkout_payment_booster_advanced/api_url';
     private const PATH_EPS_URL = 'checkout/bold_checkout_payment_booster_advanced/eps_url';
     private const PATH_STATIC_EPS_URL = 'checkout/bold_checkout_payment_booster_advanced/static_eps_url';
+    private const PATH_CHECKOUT_API_INTEGRATION_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/enable_checkout_api_integration';
+    private const PATH_CHECKOUT_API_INTEGRATION_VALIDATED = 'checkout/bold_checkout_payment_booster_advanced/is_checkout_api_integration_validated';
     private const PATH_LOG_IS_ENABLED = 'checkout/bold_checkout_payment_booster_advanced/log_enabled';
     private const PATH_SHARED_SECRET = 'checkout/bold_checkout_payment_booster/shared_secret';
     private const PATH_CONFIGURATION_GROUP_LABEL = 'checkout/bold_checkout_payment_booster/configuration_group_label';
@@ -195,6 +197,70 @@ class Config
     {
         return $this->scopeConfig->getValue(
             self::PATH_SHOP_ID,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Set if checkout api integration is enabled.
+     *
+     * @param int $websiteId
+     * @param bool $isEnabled
+     * @return void
+     */
+    public function setCheckoutApiIntegrationIsEnabled(int $websiteId, bool $isEnabled): void
+    {
+        $this->configWriter->save(
+            self::PATH_CHECKOUT_API_INTEGRATION_ENABLED,
+            (string) $isEnabled,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if checkout api integration is enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function getCheckoutApiIntegrationIsEnabled(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_CHECKOUT_API_INTEGRATION_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Set if checkout api integration is validated.
+     *
+     * @param int $websiteId
+     * @param bool $isValidated
+     * @return void
+     */
+    public function setCheckoutApiIntegrationIsValidated(int $websiteId, bool $isValidated): void
+    {
+        $this->configWriter->save(
+            self::PATH_CHECKOUT_API_INTEGRATION_VALIDATED,
+            (string) $isValidated,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if checkout api integration is validated.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function getCheckoutApiIntegrationIsValidated(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_CHECKOUT_API_INTEGRATION_VALIDATED,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

@@ -81,7 +81,7 @@ class Export extends Action
                     self::LOG_FILENAME . '"', true)
                 ->setContents($contents);
         } catch (Exception $e) {
-            $this->messageManager->addErrorMessage('Unable to read log file: %1', $e->getMessage());
+            $this->messageManager->addErrorMessage(sprintf('Unable to read log file: %s', $e->getMessage()));
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
     }

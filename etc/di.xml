@@ -211,4 +211,13 @@
             </argument>
         </arguments>
     </type>
+
+    <type name="Magento\Framework\Console\CommandListInterface">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="checkout_payment_booster_integrate_checkout_api" xsi:type="object">Bold\CheckoutPaymentBooster\Console\Command\IntegrateCheckoutApi</item>
+            </argument>
+        </arguments>
+    </type>
+
 </config>

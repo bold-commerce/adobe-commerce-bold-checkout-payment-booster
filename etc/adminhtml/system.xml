@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="checkout">
-            <group id="bold_checkout_payment_booster_onboard" translate="label" sortOrder="-100" showInWebsite="1">
+            <group id="bold_checkout_payment_booster_onboard" sortOrder="-100" showInDefault="1" showInWebsite="1" showInStore="1">
                 <frontend_model>Bold\CheckoutPaymentBooster\Block\System\Config\Form\Field\OnboardBanner</frontend_model>
             </group>
             <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1" showInWebsite="1">
@@ -167,6 +167,52 @@
                         </depends>
                     </field>
                 </group>
+            </group>
+            <group id="bold_checkout_payment_booster_diagnostic" translate="label" sortOrder="170" showInDefault="1" showInWebsite="1">
+                <label>Bold Checkout Payment Booster Diagnostic Information</label>
+                <field id="version_info" translate="label" type="text" sortOrder="10" showInWebsite="1">
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\VersionInfo</frontend_model>
+                </field>
+                <field id="send_diagnostic" translate="label" type="text" sortOrder="20" showInWebsite="1">
+                    <label>Send Diagnostic Data</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\SendDiagnosticButton</frontend_model>
+                    <comment><![CDATA[Send diagnostic information to Bold's API for troubleshooting and support purposes.]]></comment>
+                </field>
+                <field id="cron_enabled" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Enable Scheduled Diagnostic Sending</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>
+                        <![CDATA[When enabled, a scheduled cron job will automatically send diagnostic data to the Bold API only when the module configuration changes are detected. By default every 28th of the month (0 0 */28 * *)]]>
+                    </comment>
+                </field>
+                <field id="frequency" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Frequency</label>
+                    <source_model>Bold\CheckoutPaymentBooster\Model\Config\Source\Frequency</source_model>
+                    <backend_model>Bold\CheckoutPaymentBooster\Model\Config\Backend\Diagnostic\SendDiagnosticCronValue</backend_model>
+                    <config_path>checkout/bold_checkout_payment_booster_diagnostic/frequency</config_path>
+                    <depends>
+                        <field id="cron_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="occurrence" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Run Every</label>
+                    <validate>validate-digits validate-number-range number-range-1-31</validate>
+                    <config_path>checkout/bold_checkout_payment_booster_diagnostic/occurrence</config_path>
+                    <comment>How often to perform the cleanup: 1-23 for hours, 1-31 for days or 1-4 for weeks.</comment>
+                    <depends>
+                        <field id="cron_enabled">1</field>
+                        <field id="frequency" separator=",">hourly,daily,weekly</field>
+                    </depends>
+                </field>
+                <field id="sequence" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Cron Sequence</label>
+                    <config_path>checkout/bold_checkout_payment_booster_diagnostic/sequence</config_path>
+                    <comment><![CDATA[See <a href="https://crontab.guru/" target="_blank">Crontab Guru</a> for examples.]]></comment>
+                    <depends>
+                        <field id="cron_enabled">1</field>
+                        <field id="frequency">custom</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

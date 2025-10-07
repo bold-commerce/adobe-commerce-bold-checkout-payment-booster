@@ -64,4 +64,10 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/bold/diagnostic/data/json" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\DiagnosticApiInterface" method="getDiagnosticDataAsJson"/>
+        <resources>
+            <resource ref="Magento_Backend::admin"/>
+        </resources>
+    </route>
 </routes>

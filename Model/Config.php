@@ -8,7 +8,10 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\StoreResolver;
 
 /**
  * Module config.
@@ -40,6 +43,8 @@ class Config
         'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
     public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
     private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
+    private const PATH_CRON_ENABLED = 'checkout/bold_checkout_payment_booster_diagnostic/cron_enabled';
+    private const PATH_LAST_SENT_DIAGNOSTIC = 'checkout/bold_checkout_payment_booster_diagnostic/last_sent_data';
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -61,25 +66,39 @@ class Config
      */
     private $encryptor;
 
+    /** @var StoreManagerInterface  */
+    private $storeManager;
+
+    /** @var StoreResolver  */
+    private $storeResolver;
+
     /**
      * @param ScopeConfigInterface&\Magento\Framework\App\Config $scopeConfig
      * @param WriterInterface $configWriter
      * @param TypeListInterface $cacheTypeList
      * @param EncryptorInterface $encryptor
+     * @param StoreManagerInterface $storeManager
+     * @param StoreResolver $storeResolver
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         WriterInterface $configWriter,
         TypeListInterface $cacheTypeList,
-        EncryptorInterface $encryptor
+        EncryptorInterface $encryptor,
+        StoreManagerInterface $storeManager,
+        StoreResolver $storeResolver
     ) {
         $this->scopeConfig = $scopeConfig;
         $this->configWriter = $configWriter;
         $this->cacheTypeList = $cacheTypeList;
         $this->encryptor = $encryptor;
+        $this->storeManager = $storeManager;
+        $this->storeResolver = $storeResolver;
     }
 
     /**
+     * Get API base URL.
+     *
      * @param int $websiteId
      * @return string|null
      */
@@ -171,6 +190,7 @@ class Config
      * Save Bold shop id to config.
      *
      * @param int $websiteId
+     * @param string|null $shopId
      * @return void
      */
     public function setShopId(int $websiteId, ?string $shopId): void
@@ -186,7 +206,7 @@ class Config
     }
 
     /**
-     * Get Bold Shop Id.
+     * Get Bold Shop ID.
      *
      * @param int $websiteId
      * @return string|null
@@ -414,6 +434,69 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_USE_FALLBACK_OBSERVER,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if diagnostic cron is enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isDiagnosticCronEnabled(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_CRON_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Get last sent diagnostic data.
+     *
+     * @param int $websiteId
+     * @return string|null
+     */
+    public function getSavedDiagnosticData(int $websiteId): ?string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_LAST_SENT_DIAGNOSTIC,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        ) ?? null;
+    }
+
+    /**
+     * Retrieve current website id
+     *
+     * @return int
+     * @throws NoSuchEntityException
+     */
+    public function getCurrentWebsiteId(): int
+    {
+        $store = $this->storeManager->getStore($this->storeResolver->getCurrentStoreId());
+        return (int)$store->getWebsiteId();
+    }
+
+    /**
+     * Save last sent diagnostic data.
+     *
+     * @param string $data
+     * @param int|null $websiteId
+     * @return void
+     * @throws NoSuchEntityException
+     */
+    public function saveLastSentDiagnosticData(string $data, int $websiteId = null): void
+    {
+        if ($websiteId == null) {
+            $websiteId = $this->getCurrentWebsiteId();
+        }
+        $this->configWriter->save(
+            Config::PATH_LAST_SENT_DIAGNOSTIC,
+            $data,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

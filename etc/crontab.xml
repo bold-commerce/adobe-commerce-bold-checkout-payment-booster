@@ -4,5 +4,8 @@
         <job name="bold_booster_deactivate_digital_wallets_quotes" instance="Bold\CheckoutPaymentBooster\Cron\DigitalWallets\DeactivateQuotes" method="execute">
             <config_path>crontab/default/jobs/bold_booster_deactivate_digital_wallets_quotes/schedule/cron_expression</config_path>
         </job>
+        <job name="bold_diagnostic_send" instance="Bold\CheckoutPaymentBooster\Cron\Diagnostics\SendDiagnostic" method="execute">
+            <config_path>crontab/default/jobs/bold_checkout_payment_booster_diagnostic/schedule/cron_expression</config_path>
+        </job>
     </group>
 </config>

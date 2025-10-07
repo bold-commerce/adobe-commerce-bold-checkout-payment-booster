@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Bold\CheckoutPaymentBooster\Model\Config\Backend\DigitalWallets;
+namespace Bold\CheckoutPaymentBooster\Model\Config\Backend\Diagnostic;
 
 use Bold\CheckoutPaymentBooster\Model\Config\Backend\AbstractCronExpressionValue;
 
-class DeactivateQuotes extends AbstractCronExpressionValue
+class SendDiagnosticCronValue extends AbstractCronExpressionValue
 {
     public const CRON_EXPRESSION_PATH =
-        'crontab/default/jobs/bold_booster_deactivate_digital_wallets_quotes/schedule/cron_expression';
-    public const CRON_EXPRESSION_CONFIG_GROUP_PATH = 'checkout/bold_checkout_payment_booster_advanced/';
-    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_FREQUENCY = 'digital_wallets_quote_cleanup_frequency';
-    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_OCCURRENCE = 'digital_wallets_quote_cleanup_occurrence';
-    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_SEQUENCE = 'digital_wallets_quote_cleanup_sequence';
+        'crontab/default/jobs/bold_checkout_payment_booster_diagnostic/schedule/cron_expression';
+    public const CRON_EXPRESSION_CONFIG_GROUP_PATH =
+        'checkout/bold_checkout_payment_booster_diagnostic/';
+    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_FREQUENCY = 'frequency';
+    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_OCCURRENCE = 'occurrence';
+    public const CRON_EXPRESSION_CONFIG_GROUP_CONFIG_SEQUENCE = 'sequence';
 
     /**
      * Get cron expression path

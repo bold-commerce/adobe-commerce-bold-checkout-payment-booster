@@ -1,0 +1,100 @@
+//
+// Diagnostic Styles
+// Styles for diagnostic information display in admin panel
+//
+
+// Version Information Block
+.diagnostic-version-info {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 12px;
+    margin: 5px 0;
+
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    &__label {
+        padding: 6px 0;
+        font-weight: bold;
+        width: 140px;
+        color: #495057;
+    }
+
+    &__value {
+        padding: 6px 0;
+        color: #6c757d;
+    }
+
+    &__status {
+        padding: 6px 0;
+    }
+
+    &__update-warning {
+        margin-top: 10px;
+        padding: 8px;
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        color: #856404;
+        font-size: 12px;
+
+        &-link {
+            color: #856404;
+            text-decoration: underline;
+        }
+    }
+
+    &__error {
+        color: #dc3545;
+        padding: 10px;
+    }
+}
+
+// Status Indicators
+.status-available {
+    color: #ff6b35;
+    font-weight: bold;
+}
+
+.status-up-to-date {
+    color: #28a745;
+    font-weight: bold;
+}
+
+// Send Diagnostic Button Block
+.diagnostic-send-button {
+    &__button {
+        margin-right: 10px;
+    }
+
+    &__status-indicator {
+        margin-left: 10px;
+    }
+}
+
+// Export Log Button
+.diagnostic-export-button {
+    margin-top: 5px;
+}
+
+// Transaction Info (Order View)
+.diagnostic-transaction-info {
+    &__header {
+        padding-top: 20px;
+        padding-bottom: 10px;
+    }
+
+    &__detail {
+        padding-bottom: 10px;
+    }
+}
+
+// Fastlane Email Watermark (Frontend)
+.fastlane-email-watermark {
+    float: right;
+    margin-right: 35px;
+}

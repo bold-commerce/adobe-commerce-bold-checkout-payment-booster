@@ -1,0 +1,12 @@
+<?php
+/** @var \Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Transaction $block */
+?>
+<?php if ($block->isShowTransaction()): ?>
+    <?php if ($block->getTransactionInfo()) :?>
+        <div style="padding-top: 20px; padding-bottom: 10px;"><strong>Last Transaction Details</strong></div>
+        <?php $lastTransaction = $block->getLastTransaction(); ?>
+        <div style="padding-bottom: 10px;"><?php echo $block->escapeHtml($lastTransaction['processed_at']); ?></div>
+        <div style="padding-bottom: 10px;"><strong>Gateway:</strong> <?php echo $block->escapeHtml($lastTransaction['provider']); ?></div>
+        <div style="padding-bottom: 10px;"><strong>Transaction ID:</strong> <?php echo $block->escapeHtml($lastTransaction['provider_id']); ?></div>
+    <?php endif;?>
+<?php endif; ?>

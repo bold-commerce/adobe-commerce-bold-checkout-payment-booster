@@ -76,7 +76,8 @@ class GetCartLineItems
      *     image: string,
      *     requires_shipping: bool,
      *     line_item_key: string,
-     *     price: int
+     *     price: int,
+     *     discount: int
      * }>
      * @throws LocalizedException
      */
@@ -107,7 +108,8 @@ class GetCartLineItems
      *     image: string,
      *     requires_shipping: bool,
      *     line_item_key: string,
-     *     price: int
+     *     price: int,
+     *     discount: int
      * }
      */
     private function getLineItem(CartItemInterface $item): array
@@ -124,6 +126,7 @@ class GetCartLineItems
             'line_item_key' => (string)$item->getId(),
             'price' => $this->getLineItemPrice($item),
             'sku' => $item->getSku(),
+            'discount' => $this->getLineItemDiscount($item),
         ];
     }
 
@@ -209,6 +212,14 @@ class GetCartLineItems
             $item = $parentItem;
         }
         return (int)$item->getQty();
+    }
+
+    private function getLineItemDiscount(Item $item): int
+    {
+        $item = $item->getParentItem() ?: $item;
+        $discountAmount = $item->getOriginalPrice() - $item->getPrice();
+
+        return $this->convertToCents((float)$discountAmount);
     }
 
     /**

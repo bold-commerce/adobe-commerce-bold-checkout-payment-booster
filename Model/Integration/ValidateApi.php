@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Integration;
 
-use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
-use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Integration\ValidateApiInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
-use Magento\Framework\Exception\AuthorizationException;
 
 class ValidateApi implements ValidateApiInterface
 {
@@ -22,24 +22,33 @@ class ValidateApi implements ValidateApiInterface
      * @var GetWebsiteIdByShopId
      */
     private $getWebsiteIdByShopId;
+
     /**
-     * @var ResultInterfaceFactory
+     * @var IntegrationResultInterfaceFactory
      */
     private $responseFactory;
 
     /**
-     * @param ResultInterfaceFactory $responseFactory
+     * @var ValidateDataInterfaceFactory
+     */
+    private $validateDataFactory;
+
+    /**
+     * @param IntegrationResultInterfaceFactory $responseFactory
      * @param SharedSecretAuthorization $sharedSecretAuthorization
      * @param GetWebsiteIdByShopId $getWebsiteIdByShopId
+     * @param ValidateDataInterfaceFactory $validateDataFactory
      */
     public function __construct(
-        ResultInterfaceFactory $responseFactory,
+        IntegrationResultInterfaceFactory $responseFactory,
         SharedSecretAuthorization $sharedSecretAuthorization,
-        GetWebsiteIdByShopId $getWebsiteIdByShopId
+        GetWebsiteIdByShopId $getWebsiteIdByShopId,
+        ValidateDataInterfaceFactory $validateDataFactory
     ) {
         $this->responseFactory = $responseFactory;
         $this->sharedSecretAuthorization = $sharedSecretAuthorization;
         $this->getWebsiteIdByShopId = $getWebsiteIdByShopId;
+        $this->validateDataFactory = $validateDataFactory;
     }
 
     /**
@@ -47,14 +56,19 @@ class ValidateApi implements ValidateApiInterface
      */
     public function validate(
         string $shopId
-    ): ResultInterface {
+    ): IntegrationResultInterface {
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
-        // Do not remove this check until resource authorized by ACL.
-        if (!$this->sharedSecretAuthorization->isAuthorized($websiteId)) {
-            // Shared secret authorization failed.
-            throw new AuthorizationException(__('The consumer isn\'t authorized to access resource.'));
+        $result = $this->responseFactory->create();
+
+        if (!$this->sharedSecretAuthorization->isAuthorized($websiteId, true)) {
+            return $result
+                ->setResponseHttpStatus(401)
+                ->addErrorWithMessage(__('The consumer isn\'t authorized to access resource.')->getText());
         }
 
-        return $this->responseFactory->create(['validation' => 'success']);
+        $validationDataObject = $this->validateDataFactory->create();
+        $validationDataObject->setValidation('success');
+
+        return $result->setResponseHttpStatus(200)->setData($validationDataObject);
     }
 }

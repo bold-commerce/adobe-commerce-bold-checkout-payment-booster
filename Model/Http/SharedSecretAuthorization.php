@@ -51,32 +51,41 @@ class SharedSecretAuthorization
      * @param int $websiteId
      * @return bool
      */
-    public function isAuthorized(int $websiteId): bool
+    public function isAuthorized(int $websiteId, bool $useBearer = false): bool
     {
-        $timestampHeader = (string)$this->request->getHeader('X-HMAC-Timestamp', '');
-        if (!$this->validateTimestamp($timestampHeader)) {
-            return false;
-        }
         $sharedSecret = $this->config->getSharedSecret($websiteId);
-        $signatureHeader = (string)$this->request->getHeader('Signature', '');
-        preg_match('/signature="(\S*?)"/', $signatureHeader, $matches);
-        $signature = $matches[1] ?? null;
-        if (!$signature) {
-            return false;
-        }
-        $timestamp = sprintf('x-hmac-timestamp: %s', $timestampHeader);
+        if ($useBearer) {
+            $bearerToken = (string)$this->request->getHeader('Authorization', '');
+            $bearerTokenParts = explode(' ', $bearerToken);
+            if(!isset($bearerTokenParts[1])) {
+                return false;
+            }
+            return hash_equals($bearerTokenParts[1], $sharedSecret);
+        } else {
+            $timestampHeader = (string)$this->request->getHeader('X-HMAC-Timestamp', '');
+            if (!$this->validateTimestamp($timestampHeader)) {
+                return false;
+            }
+            $signatureHeader = (string)$this->request->getHeader('Signature', '');
+            preg_match('/signature="(\S*?)"/', $signatureHeader, $matches);
+            $signature = $matches[1] ?? null;
+            if (!$signature) {
+                return false;
+            }
+            $timestamp = sprintf('x-hmac-timestamp: %s', $timestampHeader);
 
-        return hash_equals(
-            base64_encode(
-                hash_hmac(
-                    'sha256',
-                    $timestamp,
-                    $sharedSecret,
-                    true
-                )
-            ),
-            $signature
-        );
+            return hash_equals(
+                base64_encode(
+                    hash_hmac(
+                        'sha256',
+                        $timestamp,
+                        $sharedSecret,
+                        true
+                    )
+                ),
+                $signature
+            );
+        }
     }
 
     /**

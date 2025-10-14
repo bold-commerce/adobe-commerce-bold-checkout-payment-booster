@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Data\Integration;
 
-use Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterfaceFactory;
 use Magento\Framework\Webapi\Rest\Response;
 
 /**
  * Http client response data model.
  */
-class IntegrationResult implements IntegrationResultInterface
+class CreateQuoteResponse implements CreateQuoteResponseInterface
 {
     /**
-     * @var \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface|string[]
+     * @var \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface|string[]
      */
     protected $data = [];
 
@@ -48,9 +48,9 @@ class IntegrationResult implements IntegrationResultInterface
     /**
      * Get response data.
      *
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface|string[]
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface|string[]
      */
-    public function getData(): \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface|array
+    public function getData(): \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface|array
     {
         return $this->data;
     }
@@ -68,10 +68,10 @@ class IntegrationResult implements IntegrationResultInterface
     /**
      * Set response data.
      *
-     * @param \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface $data
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface
+     * @param \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface $data
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function setData(\Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface $data): IntegrationResultInterface
+    public function setData(mixed $data): CreateQuoteResponseInterface
     {
         $this->data = $data;
         return $this;
@@ -81,9 +81,9 @@ class IntegrationResult implements IntegrationResultInterface
      * Set response errors.
      *
      * @param \Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface[] $errors
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function setErrors(array $errors): IntegrationResultInterface
+    public function setErrors(array $errors): CreateQuoteResponseInterface
     {
         $this->errors = $errors;
         return $this;
@@ -93,9 +93,9 @@ class IntegrationResult implements IntegrationResultInterface
      * add error to response errors.
      *
      * @param \Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface $error
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function addError(\Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface $error): IntegrationResultInterface
+    public function addError(\Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface $error): CreateQuoteResponseInterface
     {
         $this->errors = array_merge([$error], $this->errors);
         return $this;
@@ -105,9 +105,9 @@ class IntegrationResult implements IntegrationResultInterface
      * add error by message to response errors.
      *
      * @param string $message
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function addErrorWithMessage(string $message): IntegrationResultInterface
+    public function addErrorWithMessage(string $message): CreateQuoteResponseInterface
     {
         $error = $this->errorDataFactory->create()->setMessage($message);
         return $this->addError($error);
@@ -117,9 +117,9 @@ class IntegrationResult implements IntegrationResultInterface
      * Set response HTTPS Status Code.
      *
      * @param int $code
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function setResponseHttpStatus(int $code): IntegrationResultInterface
+    public function setResponseHttpStatus(int $code): CreateQuoteResponseInterface
     {
         $this->response->setHttpResponseCode($code);
         return $this;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Integration;
 
-use Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterface;
-use Bold\CheckoutPaymentBooster\Api\Data\Integration\IntegrationResultInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateResponseInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateResponseInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Integration\ValidateApiInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
@@ -24,7 +24,7 @@ class ValidateApi implements ValidateApiInterface
     private $getWebsiteIdByShopId;
 
     /**
-     * @var IntegrationResultInterfaceFactory
+     * @var ValidateResponseInterfaceFactory
      */
     private $responseFactory;
 
@@ -34,13 +34,13 @@ class ValidateApi implements ValidateApiInterface
     private $validateDataFactory;
 
     /**
-     * @param IntegrationResultInterfaceFactory $responseFactory
+     * @param ValidateResponseInterfaceFactory $responseFactory
      * @param SharedSecretAuthorization $sharedSecretAuthorization
      * @param GetWebsiteIdByShopId $getWebsiteIdByShopId
      * @param ValidateDataInterfaceFactory $validateDataFactory
      */
     public function __construct(
-        IntegrationResultInterfaceFactory $responseFactory,
+        ValidateResponseInterfaceFactory $responseFactory,
         SharedSecretAuthorization $sharedSecretAuthorization,
         GetWebsiteIdByShopId $getWebsiteIdByShopId,
         ValidateDataInterfaceFactory $validateDataFactory
@@ -56,7 +56,7 @@ class ValidateApi implements ValidateApiInterface
      */
     public function validate(
         string $shopId
-    ): IntegrationResultInterface {
+    ): ValidateResponseInterface {
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
         $result = $this->responseFactory->create();
 

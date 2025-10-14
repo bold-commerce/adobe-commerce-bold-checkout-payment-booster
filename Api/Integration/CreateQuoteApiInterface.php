@@ -7,15 +7,15 @@ namespace Bold\CheckoutPaymentBooster\Api\Integration;
 /**
  * Validate Bold Checkout API Integration.
  */
-interface ValidateApiInterface
+interface CreateQuoteApiInterface
 {
     /**
      * Validate Bold Checkout API Integration.
      *
      * @param string $shopId
-     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateResponseInterface
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface
      */
-    public function validate(
+    public function createQuote(
         string $shopId,
-    ): \Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateResponseInterface;
+    ): \Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface;
 }

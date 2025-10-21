@@ -95,7 +95,10 @@ define(
 
         function getQuoteTotalsData() {
             const totals = quote.getTotals();
-            const order_balance = parseFloat(totals()['grand_total'] || 0) * 100;
+
+            const order_balance = window.checkoutConfig.bold.addTaxAmountFrontendBalance
+                ? (parseFloat((totals()['grand_total'] || 0)) + parseFloat((totals()['tax_amount'] || 0))) * 100
+                : parseFloat((totals()['grand_total'] || 0)) * 100;
 
             return {
                 order_total: parseFloat(totals()['grand_total'] || 0) * 100,

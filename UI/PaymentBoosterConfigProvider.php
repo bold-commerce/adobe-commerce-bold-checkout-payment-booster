@@ -195,6 +195,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'isCartWalletPayEnabled' => $this->config->isCartWalletPayEnabled($websiteId),
                 'isTaxIncludedInPrices' => $this->config->isTaxIncludedInPrices($websiteId),
                 'isTaxIncludedInShipping' => $this->config->isTaxIncludedInShipping($websiteId),
+                'addTaxAmountFrontendBalance' => $this->config->addTaxAmountFrontendBalance($websiteId),
                 'paymentBooster' => [
                     'payment' => [
                         'method' => Service::CODE,

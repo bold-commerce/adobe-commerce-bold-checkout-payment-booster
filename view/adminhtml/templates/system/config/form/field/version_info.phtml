@@ -1,0 +1,46 @@
+<?php
+/**
+ * @var \Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\VersionInfo $block
+ */
+$versionData = $block->getVersionData();
+?>
+<div class="diagnostic-version-info">
+    <table class="diagnostic-version-info__table">
+        <tr>
+            <td class="diagnostic-version-info__label"><?= $block->escapeHtml(__('Installed Version')) ?>:</td>
+            <td class="diagnostic-version-info__value"><?= $block->escapeHtml($versionData['current_version']) ?><br><?= $block->escapeHtml($versionData['install_path']) ?></td>
+        </tr>
+        <tr>
+            <td class="diagnostic-version-info__label"><?= $block->escapeHtml(__('Update Status')) ?>:</td>
+            <td class="diagnostic-version-info__status">
+                <?php if ($versionData['is_update_available']): ?>
+                    <span class="status-available">⚠ <?= $block->escapeHtml(__('Update Available')) ?><br><span class="diagnostic-version-info__value">Latest version: </span>v<?= $block->escapeHtml($versionData['latest_version']) ?></span>
+                <?php else: ?>
+                    <span class="status-up-to-date">✓ <?= $block->escapeHtml(__('Up to Date')) ?></span>
+                <?php endif; ?>
+            </td>
+        </tr>
+    </table>
+
+    <?php if ($versionData['is_update_available'] && $versionData['latest_version']): ?>
+    <div class="diagnostic-version-info__update-warning">
+        <strong><?= $block->escapeHtml(__('Update Available')) ?>:</strong>
+        <?= $block->escapeHtml(__('A newer version (%1) is available.', $versionData['latest_version'])) ?>
+
+        <?php if ($versionData['install_path'] === 'app/code'): ?>
+            <?php
+            $manualGuideUrl = 'https://developer.boldcommerce.com/guides/checkout/bold-boosters/' .
+                'adobe-commerce-bold-booster-for-paypal?config=manual';
+            ?>
+            <?= $block->escapeHtml(__(
+                'Please follow the <a href="%1" target="_blank" ' .
+                'class="diagnostic-version-info__update-warning-link">manual installation guide</a> ' .
+                'to update the module.',
+                $manualGuideUrl
+            ), ['a']) ?>
+        <?php else: ?>
+            <?= $block->escapeHtml(__('Please update via Composer: %1', $versionData['package_name'])) ?>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+</div>

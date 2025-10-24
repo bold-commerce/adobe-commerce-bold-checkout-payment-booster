@@ -128,8 +128,17 @@ class CreateQuoteApi implements CreateQuoteApiInterface
 
             if ($requestItems) {
                 foreach ($requestItems as $requestItem) {
-                    /** @var Product $product */
-                    $product = $this->productRepository->get($requestItem['sku'], false, $storeId);
+                    if (isset($requestItem['product_id'])) {
+                        /** @var Product $product */
+                        $product = $this->productRepository->getById($requestItem['product_id'], false, $storeId);
+                    } else if (isset($requestItem['sku'])) {
+                        /** @var Product $product */
+                        $product = $this->productRepository->get($requestItem['sku'], false, $storeId);
+                    } else {
+                        return $result
+                            ->setResponseHttpStatus(422)
+                            ->addErrorWithMessage(__('Each item must include either sku or product_id.')->getText());
+                    }
                     if ($product) {
                         $quote->addProduct($product, $requestItem['quantity']);
                     }

@@ -15,6 +15,7 @@ interface QuoteDataInterface
     CONST QUOTE_MASK_ID = 'quote_mask_id';
     CONST QUOTE = 'quote';
     CONST TOTALS = 'totals';
+    CONST SHIPPING_METHODS = 'shipping_methods';
 
     /**
      * @return string
@@ -30,6 +31,11 @@ interface QuoteDataInterface
      * @return \Magento\Quote\Api\Data\TotalsInterface
      */
     public function getTotals(): TotalsInterface;
+
+    /**
+     * @return \Magento\Quote\Api\Data\ShippingMethodInterface[]
+     */
+    public function getShippingMethods(): array;
 
     /**
      * @param string $quoteMaskId
@@ -48,4 +54,10 @@ interface QuoteDataInterface
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface
      */
     public function setTotals(\Magento\Quote\Api\Data\TotalsInterface $totals): \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface;
+
+    /**
+     * @param \Magento\Quote\Api\Data\ShippingMethodInterface[] $shippingMethods
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface
+     */
+    public function setShippingMethods(array $shippingMethods): \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface;
 }

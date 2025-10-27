@@ -13,12 +13,14 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Order\UpdatePaymentsInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\ValidateApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\ValidateApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\CreateQuoteApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\CreateQuoteApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteCustomerInfoApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateQuoteCustomerInfoApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Payment"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Http\Client\Result"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\CreateQuoteResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteCustomerInfoResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\UpdateQuoteCustomerInfoResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\QuoteData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ErrorData"/>

@@ -13,6 +13,11 @@ use Magento\Framework\DataObject;
 class QuoteData extends DataObject implements QuoteDataInterface
 {
     /**
+     * @var \Magento\Quote\Api\Data\ShippingMethodInterface[]
+     */
+    private $shippingMethods = [];
+
+    /**
      * @return string
      */
     public function getQuoteMaskId(): string
@@ -61,5 +66,23 @@ class QuoteData extends DataObject implements QuoteDataInterface
     public function setTotals(\Magento\Quote\Api\Data\TotalsInterface $totals): QuoteDataInterface
     {
         return $this->setData(self::TOTALS, $totals);
+    }
+
+    /**
+     * @return \Magento\Quote\Api\Data\ShippingMethodInterface[]
+     */
+    public function getShippingMethods(): array
+    {
+        return $this->shippingMethods;
+    }
+
+    /**
+     * @param \Magento\Quote\Api\Data\ShippingMethodInterface[] $shippingMethods
+     * @return \Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface
+     */
+    public function setShippingMethods(array $shippingMethods): QuoteDataInterface
+    {
+        $this->shippingMethods = $shippingMethods;
+        return $this;
     }
 }

@@ -78,4 +78,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/customer_info" method="PUT">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteCustomerInfoApiInterface" method="updateCustomerInfo"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

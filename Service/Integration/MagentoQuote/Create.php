@@ -7,7 +7,6 @@ namespace Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote;
 use Exception;
 use Magento\Customer\Model\Session as CustomerSession;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\CartTotalRepositoryInterface;
 use Magento\Quote\Api\Data\AddressInterfaceFactory;
@@ -16,6 +15,7 @@ use Magento\Quote\Api\Data\CartInterfaceFactory;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
+use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
 
 use function __;
 
@@ -41,21 +41,26 @@ class Create
      */
     private $quoteAddressFactory;
     /**
-     * @var SessionManagerInterface&CustomerSession
+     * @var CustomerSession
      */
     private $customerSession;
     /**
      * @var QuoteIdMaskFactory
      */
     private $quoteIdMaskFactory;
+    /**
+     * @var QuoteIdMaskResource
+     */
+    private $quoteIdMaskResource;
 
     public function __construct(
         CartInterfaceFactory $quoteFactory,
         CartRepositoryInterface $quoteRepository,
         CartTotalRepositoryInterface $quoteTotalRepository,
         AddressInterfaceFactory $quoteAddressFactory,
-        SessionManagerInterface $customerSession,
-        QuoteIdMaskFactory $quoteIdMaskFactory
+        CustomerSession $customerSession,
+        QuoteIdMaskFactory $quoteIdMaskFactory,
+        QuoteIdMaskResource $quoteIdMaskResource
     ) {
         $this->quoteFactory = $quoteFactory;
         $this->quoteRepository = $quoteRepository;
@@ -63,6 +68,7 @@ class Create
         $this->quoteAddressFactory = $quoteAddressFactory;
         $this->customerSession = $customerSession;
         $this->quoteIdMaskFactory = $quoteIdMaskFactory;
+        $this->quoteIdMaskResource = $quoteIdMaskResource;
     }
 
     /**
@@ -109,8 +115,8 @@ class Create
         $quoteIdMask = $this->quoteIdMaskFactory->create();
 
         try {
-            $quoteIdMask->setQuoteId($quote->getId())
-                ->save();
+            $quoteIdMask->setQuoteId($quote->getId());
+            $this->quoteIdMaskResource->save($quoteIdMask);
         } catch (Exception $exception) {
             $this->deactivateQuote($quote);
 

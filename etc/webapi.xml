@@ -85,4 +85,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/shipping_method" method="PUT">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\SetQuoteShippingMethodApiInterface" method="setShippingMethod"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

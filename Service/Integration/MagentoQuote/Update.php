@@ -269,6 +269,71 @@ class Update
     }
 
     /**
+     * Set shipping method on quote.
+     *
+     * @param CartInterface $quote
+     * @param string $carrierCode
+     * @param string $methodCode
+     * @return CartInterface
+     * @throws LocalizedException
+     */
+    public function setShippingMethod(CartInterface $quote, string $carrierCode, string $methodCode): CartInterface
+    {
+        try {
+            /** @var Quote $quote */
+            $shippingAddress = $quote->getShippingAddress();
+            
+            if (!$shippingAddress || !$shippingAddress->getCountryId()) {
+                throw new LocalizedException(
+                    __('Cannot set shipping method. Quote does not have a valid shipping address.')
+                );
+            }
+
+            if ($quote->getIsVirtual()) {
+                throw new LocalizedException(
+                    __('Cannot set shipping method. Quote contains only virtual products.')
+                );
+            }
+
+            // Validate that the shipping method is available for this quote
+            $availableMethods = $this->getAvailableShippingMethods($quote);
+            $shippingMethodCode = $carrierCode . '_' . $methodCode;
+            $isMethodAvailable = false;
+            
+            foreach ($availableMethods as $method) {
+                $availableMethodCode = $method->getCarrierCode() . '_' . $method->getMethodCode();
+                if ($availableMethodCode === $shippingMethodCode) {
+                    $isMethodAvailable = true;
+                    break;
+                }
+            }
+            
+            if (!$isMethodAvailable) {
+                throw new LocalizedException(
+                    __(
+                        'Shipping method "%1" is not available for this quote. Please use the Quote Update API to retrieve available shipping methods.',
+                        $shippingMethodCode
+                    )
+                );
+            }
+
+            // Set the shipping method using carrier_code and method_code
+            $shippingAddress->setShippingMethod($shippingMethodCode);
+            
+            // Request fresh shipping rate collection
+            $shippingAddress->setCollectShippingRates(true);
+            $shippingAddress->collectShippingRates();
+
+            return $quote;
+        } catch (Exception $e) {
+            throw new LocalizedException(
+                __('Could not set shipping method. Error: "%1"', $e->getMessage()),
+                $e
+            );
+        }
+    }
+
+    /**
      * Get available shipping methods for quote.
      *
      * @param CartInterface $quote

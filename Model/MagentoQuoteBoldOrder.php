@@ -84,4 +84,16 @@ class MagentoQuoteBoldOrder extends AbstractModel implements MagentoQuoteBoldOrd
     {
         return $this->getSuccessfulStateAt() !== null;
     }
+
+    public function setIsBoldIntegrationCart(bool $flag): MagentoQuoteBoldOrderInterface
+    {
+        $this->setData(self::IS_BOLD_INTEGRATION_CART, $flag);
+
+        return $this;
+    }
+
+    public function getIsBoldIntegrationCart(): bool
+    {
+        return (bool)$this->getData(self::IS_BOLD_INTEGRATION_CART);
+    }
 }

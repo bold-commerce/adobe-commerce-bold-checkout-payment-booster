@@ -15,6 +15,7 @@ interface MagentoQuoteBoldOrderInterface
     public const SUCCESSFUL_HYDRATE_AT = 'successful_hydrate_at';
     public const SUCCESSFUL_AUTH_FULL_AT = 'successful_auth_full_at';
     public const SUCCESSFUL_STATE_AT = 'successful_state_at';
+    public const IS_BOLD_INTEGRATION_CART = 'is_bold_integration_cart';
 
     /**
      * Sets the unique identifier for the quote.
@@ -99,4 +100,19 @@ interface MagentoQuoteBoldOrderInterface
      * @return bool Returns true if the process is completed or processed, otherwise false.
      */
     public function isProcessed(): bool;
+
+    /**
+     * Sets whether this is a Bold integration cart.
+     *
+     * @param bool $flag Whether this is a Bold integration cart.
+     * @return MagentoQuoteBoldOrderInterface
+     */
+    public function setIsBoldIntegrationCart(bool $flag): MagentoQuoteBoldOrderInterface;
+
+    /**
+     * Gets whether this is a Bold integration cart.
+     *
+     * @return bool Returns true if this is a Bold integration cart, otherwise false.
+     */
+    public function getIsBoldIntegrationCart(): bool;
 }

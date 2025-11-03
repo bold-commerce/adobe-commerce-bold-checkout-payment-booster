@@ -42,7 +42,12 @@ class CartRepositoryInterfacePlugin
     {
         $cartExtension = $result->getExtensionAttributes();
 
-        if ($cartExtension === null || $cartExtension->getBoldOrderId() !== null) {
+        if ($cartExtension === null) {
+            return $result;
+        }
+
+        // Skip if both attributes are already set
+        if ($cartExtension->getBoldOrderId() !== null && $cartExtension->getIsBoldIntegrationCart() !== null) {
             return $result;
         }
 
@@ -56,7 +61,15 @@ class CartRepositoryInterfacePlugin
             return $result;
         }
 
-        $cartExtension->setBoldOrderId($magentoQuoteBoldOrder->getBoldOrderId());
+        // Set bold_order_id if not already set
+        if ($cartExtension->getBoldOrderId() === null) {
+            $cartExtension->setBoldOrderId($magentoQuoteBoldOrder->getBoldOrderId());
+        }
+
+        // Set is_bold_integration_cart if not already set
+        if ($cartExtension->getIsBoldIntegrationCart() === null) {
+            $cartExtension->setIsBoldIntegrationCart($magentoQuoteBoldOrder->getIsBoldIntegrationCart());
+        }
 
         return $result;
     }
@@ -71,7 +84,15 @@ class CartRepositoryInterfacePlugin
     {
         $cartExtension = $quote->getExtensionAttributes();
 
-        if ($cartExtension === null || $cartExtension->getBoldOrderId() === null) {
+        if ($cartExtension === null) {
+            return;
+        }
+
+        $boldOrderId = $cartExtension->getBoldOrderId();
+        $isBoldIntegrationCart = $cartExtension->getIsBoldIntegrationCart();
+
+        // Only save if at least one attribute is set
+        if ($boldOrderId === null && $isBoldIntegrationCart === null) {
             return;
         }
 
@@ -79,7 +100,14 @@ class CartRepositoryInterfacePlugin
         $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderInterfaceFactory->create();
 
         $magentoQuoteBoldOrder->setQuoteId($quote->getId());
-        $magentoQuoteBoldOrder->setBoldOrderId($cartExtension->getBoldOrderId());
+
+        if ($boldOrderId !== null) {
+            $magentoQuoteBoldOrder->setBoldOrderId($boldOrderId);
+        }
+
+        if ($isBoldIntegrationCart !== null) {
+            $magentoQuoteBoldOrder->setIsBoldIntegrationCart($isBoldIntegrationCart);
+        }
 
         try {
             $this->magentoQuoteBoldOrderRepository->save($magentoQuoteBoldOrder);

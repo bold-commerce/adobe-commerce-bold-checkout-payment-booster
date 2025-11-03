@@ -107,6 +107,10 @@ class AfterSubmitObserver implements ObserverInterface
         if (!$orderId || $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order)) {
             return;
         }
+        
+        // Check if this is an integration cart
+        $isBoldIntegrationCart = $order->getExtensionAttributes() 
+            && $order->getExtensionAttributes()->getIsBoldIntegrationCart();
 
         $publicOrderId = $this->checkoutData->getPublicOrderId();
 
@@ -126,12 +130,24 @@ class AfterSubmitObserver implements ObserverInterface
             $orderExtensionData->setPublicId($publicOrderId);
         }
 
+        // Save is_bold_integration_cart flag if present
+        if ($isBoldIntegrationCart) {
+            $orderExtensionData->setIsBoldIntegrationCart(true);
+        }
+
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);
         } catch (Exception $e) {
             $this->logger->critical($e);
             return;
         }
+        
+        // Skip state call for integration orders
+        // Bold Checkout will handle the capture process for these orders
+        if ($isBoldIntegrationCart) {
+            return;
+        }
+        
         $this->setCompleteState->execute($order);
     }
 }

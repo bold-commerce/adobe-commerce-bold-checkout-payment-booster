@@ -6,7 +6,8 @@
             "public_id": true,
             "is_capture_in_progress": true,
             "is_refund_in_progress": true,
-            "is_cancel_in_progress": true
+            "is_cancel_in_progress": true,
+            "is_bold_integration_cart": true
         },
         "index": {
             "BOLD_CHECKOUT_PAYMENT_BOOSTER_ORDER_ORDER_ID": true
@@ -38,7 +39,8 @@
             "bold_order_id": true,
             "successful_hydrate_at": true,
             "successful_auth_full_at": true,
-            "successful_state_at": true
+            "successful_state_at": true,
+            "is_bold_integration_cart": true
         },
         "constraint": {
             "PRIMARY": true,

@@ -92,4 +92,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/place_order" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\PlaceOrderApiInterface" method="placeOrder"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

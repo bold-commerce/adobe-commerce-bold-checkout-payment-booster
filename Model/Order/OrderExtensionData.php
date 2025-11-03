@@ -123,4 +123,25 @@ class OrderExtensionData extends AbstractModel
     {
         return (bool)$this->getData(OrderExtensionDataResource::IS_CANCEL_IN_PROGRESS);
     }
+
+    /**
+     * Set whether this is a Bold integration cart.
+     *
+     * @param bool $flag
+     * @return void
+     */
+    public function setIsBoldIntegrationCart(bool $flag): void
+    {
+        $this->setData(OrderExtensionDataResource::IS_BOLD_INTEGRATION_CART, (int)$flag);
+    }
+
+    /**
+     * Get whether this is a Bold integration cart.
+     *
+     * @return bool
+     */
+    public function getIsBoldIntegrationCart(): bool
+    {
+        return (bool)$this->getData(OrderExtensionDataResource::IS_BOLD_INTEGRATION_CART);
+    }
 }

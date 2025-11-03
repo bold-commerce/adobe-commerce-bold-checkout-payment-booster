@@ -3,6 +3,10 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework:Api/etc/extension_attributes.xsd">
     <extension_attributes for="Magento\Quote\Api\Data\CartInterface">
         <attribute code="bold_order_id" type="string"/>
+        <attribute code="is_bold_integration_cart" type="boolean"/>
+    </extension_attributes>
+    <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
+        <attribute code="is_bold_integration_cart" type="boolean"/>
     </extension_attributes>
     <extension_attributes for="Magento\Sales\Api\Data\OrderPaymentInterface">
         <attribute code="additional_information" type="string[]"/>

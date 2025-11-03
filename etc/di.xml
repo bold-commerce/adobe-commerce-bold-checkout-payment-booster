@@ -15,6 +15,7 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\CreateQuoteApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\CreateQuoteApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteCustomerInfoApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateQuoteCustomerInfoApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\SetQuoteShippingMethodApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\SetQuoteShippingMethodApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\PlaceOrderApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\PlaceOrderApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Payment"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
@@ -23,6 +24,8 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\CreateQuoteResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\CreateQuoteResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteCustomerInfoResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\UpdateQuoteCustomerInfoResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\SetQuoteShippingMethodResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\SetQuoteShippingMethodResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\PlaceOrderResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\PlaceOrderResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\OrderDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\OrderData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\QuoteData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ErrorData"/>
@@ -38,6 +41,10 @@
     </type>
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_bold_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableBoldAddressValidationPlugin" />
+        <plugin name="transfer_integration_attribute" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\TransferIntegrationAttributePlugin" />
+    </type>
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="load_bold_order_extension_attributes" type="Bold\CheckoutPaymentBooster\Plugin\Sales\Api\OrderRepositoryInterfacePlugin" />
     </type>
     <type name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger">
         <arguments>

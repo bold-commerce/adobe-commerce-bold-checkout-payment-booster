@@ -7,6 +7,7 @@
         <column xsi:type="smallint" name="is_capture_in_progress" nullable="false" default="0" comment="Is Capture Event In Progress Flag"/>
         <column xsi:type="smallint" name="is_refund_in_progress" nullable="false" default="0" comment="Is Refund Event In Progress Flag"/>
         <column xsi:type="smallint" name="is_cancel_in_progress" nullable="false" default="0" comment="Is Cancel Event In Progress Flag"/>
+        <column xsi:type="boolean" name="is_bold_integration_cart" nullable="false" default="false" comment="Is Bold Integration Cart Flag"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>
@@ -21,6 +22,7 @@
         <column xsi:type="timestamp" name="successful_hydrate_at" nullable="true" comment="Last Successful Hydrate Bold Order"/>
         <column xsi:type="timestamp" name="successful_auth_full_at" nullable="true" comment="Last Successful Bold Full Amount Authorization"/>
         <column xsi:type="timestamp" name="successful_state_at" nullable="true" comment="Last Successful Bold Order State Update"/>
+        <column xsi:type="boolean" name="is_bold_integration_cart" nullable="false" default="false" comment="Is Bold Integration Cart Flag"/>
         <constraint xsi:type="primary" referenceId="PRIMARY">
             <column name="id"/>
         </constraint>

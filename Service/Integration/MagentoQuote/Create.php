@@ -89,7 +89,7 @@ class Create
             ->setShippingAddress($this->quoteAddressFactory->create())
             ->setInventoryProcessed(false);
         $quote->getExtensionAttributes()->setBoldOrderId($boldPublicOrderId);
-//        $quote->getExtensionAttributes()->setIsBoldIntegrationCart(true); // TODO: Implement the Extension Attribute
+        $quote->getExtensionAttributes()->setIsBoldIntegrationCart(true);
 
         if ($customer !== null && $customer->getId() !== null) {
             $quote->setCustomer($customer->getDataModel());

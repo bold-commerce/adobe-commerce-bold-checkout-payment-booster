@@ -110,6 +110,14 @@ class BeforePlaceObserver implements ObserverInterface
         $quoteId = $order->getQuoteId();
         /** @var CartInterface&Quote $quote */
         $quote = $this->cartRepository->get($quoteId);
+        
+        // Skip hydration and authorization for integration carts
+        // These are handled by the Place Order API endpoint
+        $isBoldIntegrationCart = $quote->getExtensionAttributes()->getIsBoldIntegrationCart();
+        if ($isBoldIntegrationCart) {
+            return;
+        }
+        
         $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
 
         if ($publicOrderId && $quoteId) {

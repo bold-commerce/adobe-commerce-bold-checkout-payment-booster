@@ -13,6 +13,7 @@ use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Update;
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Quote\Api\Data\CartInterface;
+use Magento\Quote\Model\Quote;
 
 class SetQuoteShippingMethodApi implements SetQuoteShippingMethodApiInterface
 {
@@ -104,6 +105,15 @@ class SetQuoteShippingMethodApi implements SetQuoteShippingMethodApiInterface
         try {
             /** @var CartInterface $quote */
             $quote = $this->quoteUpdateService->loadQuoteByMaskId($quoteMaskId);
+
+            // Validate this is an integration cart
+            /** @var Quote $quote */
+            $isBoldIntegrationCart = $quote->getExtensionAttributes()->getIsBoldIntegrationCart();
+            if (!$isBoldIntegrationCart) {
+                return $result
+                    ->setResponseHttpStatus(422)
+                    ->addErrorWithMessage(__('This endpoint can only be used for integration quotes.')->getText());
+            }
 
             // Set the shipping method
             $quote = $this->quoteUpdateService->setShippingMethod(

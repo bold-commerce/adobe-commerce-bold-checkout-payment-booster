@@ -13,7 +13,7 @@
         "ext-json": "*",
         "ext-pcre": "*",
         "psr/log": "^1.0 || ^2.0 || ^3.0",
-        "magento/framework": ">=102.0.1 <104.0.0",
+        "magento/framework": ">=102.0.1 <=103.0.9",
         "magento/module-backend": ">=101.0.1 <=102.0.9",
         "magento/module-catalog": ">=103.0.1 <=104.0.9",
         "magento/module-checkout": ">=100.3.1 <=100.4.9",

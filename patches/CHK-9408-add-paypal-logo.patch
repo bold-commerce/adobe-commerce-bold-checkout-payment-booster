@@ -1,0 +1,185 @@
+From 610a0055c6b081da8019b22302dc7db6739389c7 Mon Sep 17 00:00:00 2001
+Date: Mon, 3 Nov 2025 17:20:15 -0300
+Subject: [PATCH] CHK-9408: Adding paypal logo to checkout
+
+---
+ view/frontend/web/css/source/_module.less     | 54 +++++++++++++++++++
+ view/frontend/web/template/payment/spi.html   | 47 ++++++++--------
+ .../web/template/payment/wallet-payments.html | 15 ++++--
+ 3 files changed, 91 insertions(+), 25 deletions(-)
+
+diff --git a/view/frontend/web/css/source/_module.less b/view/frontend/web/css/source/_module.less
+index b0839444..5bf973e6 100644
+--- a/view/frontend/web/css/source/_module.less
++++ b/view/frontend/web/css/source/_module.less
+@@ -47,3 +47,57 @@
+     font-size: 100%;
+     color: #1a1a1a;
+ }
++
++.payment-method-title {
++    display: flex;
++    align-items: center;
++    justify-content: flex-start;
++    gap: 12px;
++    flex-wrap: nowrap;
++    margin-left: 2px;
++}
++
++.payment-method-title input[type="radio"] {
++    margin-right: 10px;
++    align-self: center;
++}
++
++.payment-method-title .label {
++    display: flex;
++    align-items: center;
++    gap: 10px;
++    white-space: nowrap;
++    margin: 0;
++    padding: 0;
++}
++
++.spi-paypal-img {
++    width: 175px;
++    height: 48px;
++    object-fit: contain;
++    display: inline-block;
++    vertical-align: middle;
++    border: 0;
++    margin-top: 0;
++}
++
++.wallet-paypal-img {
++    width: 160px;
++    height: 48px;
++    object-fit: contain;
++    display: inline-block;
++    vertical-align: middle;
++    border: 0;
++    margin-top: 0;
++}
++
++.payment-method-title img {
++    line-height: 1;
++}
++
++.payment-method-title table,
++.payment-method-title td {
++    border: none;
++    margin: 0;
++    padding: 0;
++}
+diff --git a/view/frontend/web/template/payment/spi.html b/view/frontend/web/template/payment/spi.html
+index 19fb9f45..7f82ab5e 100644
+--- a/view/frontend/web/template/payment/spi.html
++++ b/view/frontend/web/template/payment/spi.html
+@@ -4,48 +4,53 @@
+         <input type="radio"
+                name="payment[method]"
+                class="radio"
+-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+-        <label class="label" data-bind="attr: {'for': getCode()}"><span data-bind="text: getTitle()"></span></label>
++               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()" />
++
++        <label class="label" data-bind="attr: {'for': getCode()}">
++            <span data-bind="text: getTitle()"></span>
++            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg"
++                       alt="PayPal Acceptance Mark"
++                       class="spi-paypal-img" />
++        </label>
+     </div>
++
+     <div class="payment-method-content">
+         <!-- ko foreach: getRegion('messages') -->
+-            <!-- ko template: getTemplate() --><!-- /ko -->
++        <!-- ko template: getTemplate() --><!-- /ko -->
+         <!--/ko-->
+
+         <!-- ko if: (isBillingAddressRequired()) -->
+-            <div class="payment-method-billing-address">
+-                <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+-                    <!-- ko template: getTemplate() --><!-- /ko -->
+-                <!--/ko-->
+-            </div>
++        <div class="payment-method-billing-address">
++            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
++            <!-- ko template: getTemplate() --><!-- /ko -->
++            <!--/ko-->
++        </div>
+         <!-- /ko -->
+
+         <div class="checkout-agreements-block">
+             <!-- ko foreach: $parent.getRegion('before-place-order') -->
+-                <!-- ko template: getTemplate() --><!-- /ko -->
++            <!-- ko template: getTemplate() --><!-- /ko -->
+             <!--/ko-->
+         </div>
+         <div data-bind="blockLoader: isSpiLoading()">
+-            <div id="SPI">
+-
+-            </div>
++            <div id="SPI"></div>
+         </div>
+         <!-- ko if: (isPlaceOrderButtonVisible) -->
+-            <div class="actions-toolbar">
+-                <div class="primary">
+-                    <button class="action primary checkout"
+-                            type="submit"
+-                            data-bind="
++        <div class="actions-toolbar">
++            <div class="primary">
++                <button class="action primary checkout"
++                        type="submit"
++                        data-bind="
+                             click: placeOrderClick,
+                             attr: {title: $t('Place Order')},
+                             css: {disabled: isSpiLoading() || !isPlaceOrderActionAllowed()},
+                             enable: (getCode() == isChecked())
+                             "
+-                            disabled>
+-                        <span data-bind="i18n: 'Place Order'"></span>
+-                    </button>
+-                </div>
++                        disabled>
++                    <span data-bind="i18n: 'Place Order'"></span>
++                </button>
+             </div>
++        </div>
+         <!-- /ko -->
+     </div>
+ </div>
+diff --git a/view/frontend/web/template/payment/wallet-payments.html b/view/frontend/web/template/payment/wallet-payments.html
+index 3107b63b..5b6e48b7 100644
+--- a/view/frontend/web/template/payment/wallet-payments.html
++++ b/view/frontend/web/template/payment/wallet-payments.html
+@@ -4,9 +4,17 @@
+         <input type="radio"
+                name="payment[method]"
+                class="radio"
+-               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+-        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
++               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()" />
++
++        <label data-bind="attr: {'for': getCode()}" class="label">
++            <span data-bind="text: getTitle()"></span>
++            <!-- PayPal Wallet Logo -->
++            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg"
++                 alt="PayPal Logo"
++                 class="wallet-paypal-img" />
++        </label>
+     </div>
++
+     <div class="payment-method-content">
+         <!-- ko foreach: getRegion('messages') -->
+         <!-- ko template: getTemplate() --><!-- /ko -->
+@@ -17,8 +25,7 @@
+             <!--/ko-->
+         </div>
+         <div data-bind="blockLoader: isWalletPayLoading()">
+-            <div id="wallet-payments">
+-            </div>
++            <div id="wallet-payments"></div>
+         </div>
+     </div>
+ </div>

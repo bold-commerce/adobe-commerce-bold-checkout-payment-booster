@@ -510,6 +510,7 @@ class CreatorTest extends TestCase
             $this->getMagentoVersion() != '2.4.8'
             && $this->getMagentoVersion() != '2.4.8-p1'
             && $this->getMagentoVersion() != '2.4.9-alpha2'
+            && $this->getMagentoVersion() != '2.4.9-alpha3'
         ) {
             $quoteRepositoryMock
                 ->expects($matcher)

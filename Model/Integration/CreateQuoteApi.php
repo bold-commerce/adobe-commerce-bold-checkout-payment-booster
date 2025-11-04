@@ -11,11 +11,9 @@ use Bold\CheckoutPaymentBooster\Api\Integration\CreateQuoteApiInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Create;
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\Product;
+use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Items;
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Quote\Model\Quote;
-use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
 
@@ -49,8 +47,8 @@ class CreateQuoteApi implements CreateQuoteApiInterface
     /** @var Create */
     private $quoteCreateService;
 
-    /** @var ProductRepositoryInterface */
-    private $productRepository;
+    /** @var Items */
+    private $quoteItemsService;
 
     /** @var Request */
     private $request;
@@ -62,7 +60,7 @@ class CreateQuoteApi implements CreateQuoteApiInterface
      * @param StoreManagerInterface $storeManager
      * @param QuoteDataInterfaceFactory $quoteDataFactory
      * @param Create $quoteCreateService
-     * @param ProductRepositoryInterface $productRepository
+     * @param Items $quoteItemsService
      * @param Request $request
      */
     public function __construct(
@@ -72,7 +70,7 @@ class CreateQuoteApi implements CreateQuoteApiInterface
         StoreManagerInterface $storeManager,
         QuoteDataInterfaceFactory $quoteDataFactory,
         Create $quoteCreateService,
-        ProductRepositoryInterface $productRepository,
+        Items $quoteItemsService,
         Request  $request
     ) {
         $this->responseFactory = $responseFactory;
@@ -81,7 +79,7 @@ class CreateQuoteApi implements CreateQuoteApiInterface
         $this->storeManager = $storeManager;
         $this->quoteDataFactory = $quoteDataFactory;
         $this->quoteCreateService = $quoteCreateService;
-        $this->productRepository = $productRepository;
+        $this->quoteItemsService = $quoteItemsService;
         $this->request = $request;
     }
 
@@ -127,23 +125,8 @@ class CreateQuoteApi implements CreateQuoteApiInterface
             $quote = $this->quoteCreateService->createQuote($storeId, $publicOrderId);
 
             if ($requestItems) {
-                foreach ($requestItems as $requestItem) {
-                    if (isset($requestItem['product_id'])) {
-                        /** @var Product $product */
-                        $product = $this->productRepository->getById($requestItem['product_id'], false, $storeId);
-                    } else if (isset($requestItem['sku'])) {
-                        /** @var Product $product */
-                        $product = $this->productRepository->get($requestItem['sku'], false, $storeId);
-                    } else {
-                        return $result
-                            ->setResponseHttpStatus(422)
-                            ->addErrorWithMessage(__('Each item must include either sku or product_id.')->getText());
-                    }
-                    if ($product) {
-                        $quote->addProduct($product, $requestItem['quantity']);
-                    }
-                }
-
+                // Use Items service to add products to quote
+                $quote = $this->quoteItemsService->addProductsToQuote($quote, $requestItems, $storeId);
                 $quote = $this->quoteCreateService->saveQuote($quote);
             }
             $quoteMaskId = $this->quoteCreateService->createQuoteIdMask($quote);

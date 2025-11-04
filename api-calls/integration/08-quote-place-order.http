@@ -1,0 +1,71 @@
+### Place Order
+# Places the order with payment transaction data
+# Requires quote to have customer info, shipping address, and shipping method set
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/place_order
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}",
+      "amount": 10000,
+      "transaction_id": "ch_{{$timestamp}}",
+      "currency": "USD",
+      "step": "authorized",
+      "status": "authorized",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+
+### Place Order with Multiple Transactions
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/place_order
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}_1",
+      "amount": 5000,
+      "transaction_id": "ch_{{$timestamp}}_1",
+      "currency": "USD",
+      "step": "authorized",
+      "status": "authorized",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    },
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}_2",
+      "amount": 5000,
+      "transaction_id": "ch_{{$timestamp}}_2",
+      "currency": "USD",
+      "step": "authorized",
+      "status": "authorized",
+      "tender_type": "gift_card",
+      "tender_details": {
+        "last_four": "1234"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###

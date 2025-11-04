@@ -1,0 +1,7 @@
+### Validate Integration
+# Validates the shared secret and integration setup
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/validate
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+###

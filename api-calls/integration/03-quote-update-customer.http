@@ -1,0 +1,66 @@
+### Update Quote Customer Info
+# Updates customer information, billing and shipping addresses
+# Requires quoteMaskId from quote creation
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "customer": {
+    "email": "customer@example.com",
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "billing": {
+    "firstname": "John",
+    "lastname": "Doe",
+    "street": ["123 Main St", "Apt 4"],
+    "city": "Toronto",
+    "region": "Ontario",
+    "postcode": "M5V 3A8",
+    "country_id": "CA",
+    "telephone": "555-1234"
+  },
+  "shipping": {
+    "firstname": "John",
+    "lastname": "Doe",
+    "street": ["123 Main St", "Apt 4"],
+    "city": "Toronto",
+    "region": "Ontario",
+    "postcode": "M5V 3A8",
+    "country_id": "CA",
+    "telephone": "555-1234"
+  }
+}
+
+###
+
+### Update Only Customer Email
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "customer": {
+    "email": "newemail@example.com"
+  }
+}
+
+###
+
+### Update Only Shipping Address
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "shipping": {
+    "street": ["456 New St"],
+    "city": "Vancouver",
+    "region": "British Columbia",
+    "postcode": "V6B 1A1",
+    "country_id": "CA"
+  }
+}
+
+###

@@ -1,0 +1,38 @@
+### Set Shipping Method
+# Sets the shipping method on the quote
+# Requires shipping address to be set first (use update customer info endpoint)
+# Shipping method must be available for the quote
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/shipping_method
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "carrier_code": "flatrate",
+  "method_code": "flatrate"
+}
+
+###
+
+### Set Table Rate Shipping
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/shipping_method
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "carrier_code": "tablerate",
+  "method_code": "bestway"
+}
+
+###
+
+### Set Free Shipping
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/shipping_method
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "carrier_code": "freeshipping",
+  "method_code": "freeshipping"
+}
+
+###

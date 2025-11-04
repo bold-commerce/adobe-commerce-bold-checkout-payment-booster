@@ -1,0 +1,53 @@
+### Add Items to Quote
+# Adds new products to an existing quote
+# Products must NOT already exist in the quote (use update endpoint to change quantity)
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/add
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-WB05",
+      "quantity": 1
+    },
+    {
+      "product_id": 5,
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### Add Single Item by SKU
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/add
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-WB06",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Add Single Item by Product ID
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/add
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "product_id": 7,
+      "quantity": 3
+    }
+  ]
+}
+
+###

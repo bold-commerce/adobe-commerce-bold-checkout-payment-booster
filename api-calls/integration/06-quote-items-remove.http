@@ -1,0 +1,49 @@
+### Remove Items from Quote
+# Removes products from the quote
+# Products must exist in the quote
+DELETE {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/remove
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-WB05"
+    },
+    {
+      "product_id": 5
+    }
+  ]
+}
+
+###
+
+### Remove Single Item by SKU
+DELETE {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/remove
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-WB06"
+    }
+  ]
+}
+
+###
+
+### Remove Single Item by Product ID
+DELETE {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/remove
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "product_id": 7
+    }
+  ]
+}
+
+###

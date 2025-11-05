@@ -1,0 +1,36 @@
+### Create Quote with Items
+# Creates a new integration quote with initial products
+# Saves the quote_mask_id to the environment for subsequent requests
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/create
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "public_order_id": "order_{{$timestamp}}",
+  "items": [
+    {
+      "product_id": {{productId}},
+      "quantity": 2
+    },
+    {
+      "sku": "{{productSku}}",
+      "quantity": 1
+    }
+  ]
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+    
+    client.test("Response has quote_mask_id", function() {
+        var data = response.body.data;
+        client.assert(data.quote_mask_id, "quote_mask_id not found in response");
+        
+        // Save quote_mask_id to environment
+        client.global.set("quoteMaskId", data.quote_mask_id);
+    });
+%}
+
+###

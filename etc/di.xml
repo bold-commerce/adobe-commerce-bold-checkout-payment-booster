@@ -16,6 +16,9 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteCustomerInfoApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateQuoteCustomerInfoApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\SetQuoteShippingMethodApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\SetQuoteShippingMethodApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\PlaceOrderApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\PlaceOrderApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\AddQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\AddQuoteItemsApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateQuoteItemsApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\RemoveQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\RemoveQuoteItemsApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Payment"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
@@ -25,6 +28,9 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteCustomerInfoResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\UpdateQuoteCustomerInfoResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\SetQuoteShippingMethodResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\SetQuoteShippingMethodResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\PlaceOrderResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\PlaceOrderResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\AddQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\AddQuoteItemsResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\UpdateQuoteItemsResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\RemoveQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\RemoveQuoteItemsResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\OrderDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\OrderData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\QuoteData"/>

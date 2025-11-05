@@ -99,4 +99,25 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/items/add" method="POST">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\AddQuoteItemsApiInterface" method="addItems"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/items/update" method="PUT">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteItemsApiInterface" method="updateItems"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId/items/remove" method="DELETE">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\RemoveQuoteItemsApiInterface" method="removeItems"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

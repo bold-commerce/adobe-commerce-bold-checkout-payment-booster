@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Integration;
 
-use Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteCustomerInfoResponseInterface;
-use Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteCustomerInfoResponseInterfaceFactory;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteItemsResponseInterface;
+use Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteItemsResponseInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterfaceFactory;
-use Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteCustomerInfoApiInterface;
+use Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteItemsApiInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Update;
+use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Items;
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 
-class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
+class UpdateQuoteItemsApi implements UpdateQuoteItemsApiInterface
 {
     /**
      * @var SharedSecretAuthorization
@@ -28,7 +29,7 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
     private $getWebsiteIdByShopId;
 
     /**
-     * @var UpdateQuoteCustomerInfoResponseInterfaceFactory
+     * @var UpdateQuoteItemsResponseInterfaceFactory
      */
     private $responseFactory;
 
@@ -43,24 +44,31 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
     private $quoteUpdateService;
 
     /**
+     * @var Items
+     */
+    private $quoteItemsService;
+
+    /**
      * @var Request
      */
     private $request;
 
     /**
-     * @param UpdateQuoteCustomerInfoResponseInterfaceFactory $responseFactory
+     * @param UpdateQuoteItemsResponseInterfaceFactory $responseFactory
      * @param SharedSecretAuthorization $sharedSecretAuthorization
      * @param GetWebsiteIdByShopId $getWebsiteIdByShopId
      * @param QuoteDataInterfaceFactory $quoteDataFactory
      * @param Update $quoteUpdateService
+     * @param Items $quoteItemsService
      * @param Request $request
      */
     public function __construct(
-        UpdateQuoteCustomerInfoResponseInterfaceFactory $responseFactory,
+        UpdateQuoteItemsResponseInterfaceFactory $responseFactory,
         SharedSecretAuthorization $sharedSecretAuthorization,
         GetWebsiteIdByShopId $getWebsiteIdByShopId,
         QuoteDataInterfaceFactory $quoteDataFactory,
         Update $quoteUpdateService,
+        Items $quoteItemsService,
         Request $request
     ) {
         $this->responseFactory = $responseFactory;
@@ -68,32 +76,40 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
         $this->getWebsiteIdByShopId = $getWebsiteIdByShopId;
         $this->quoteDataFactory = $quoteDataFactory;
         $this->quoteUpdateService = $quoteUpdateService;
+        $this->quoteItemsService = $quoteItemsService;
         $this->request = $request;
     }
 
     /**
      * @inheritDoc
      */
-    public function updateCustomerInfo(
+    public function updateItems(
         string $shopId,
         string $quoteMaskId
-    ): UpdateQuoteCustomerInfoResponseInterface {
+    ): UpdateQuoteItemsResponseInterface {
         $websiteId = $this->getWebsiteIdByShopId->getWebsiteId($shopId);
         $result = $this->responseFactory->create();
 
+        // Authorize request
         if (!$this->sharedSecretAuthorization->isAuthorized($websiteId, true)) {
             return $result
                 ->setResponseHttpStatus(401)
                 ->addErrorWithMessage(__('The consumer isn\'t authorized to access resource.')->getText());
         }
 
+        // Parse request body
         $params = json_decode($this->request->getContent(), true);
-
-        // Validate that at least one of customer, billing, or shipping is provided
-        if (empty($params['customer']) && empty($params['billing']) && empty($params['shipping'])) {
+        if (!$params) {
             return $result
                 ->setResponseHttpStatus(422)
-                ->addErrorWithMessage(__('At least one of customer, billing, or shipping must be provided.')->getText());
+                ->addErrorWithMessage(__('Invalid request body.')->getText());
+        }
+
+        // Validate items array exists
+        if (!isset($params['items']) || !is_array($params['items']) || empty($params['items'])) {
+            return $result
+                ->setResponseHttpStatus(422)
+                ->addErrorWithMessage(__('The key items is required and must be a non-empty array.')->getText());
         }
 
         try {
@@ -109,20 +125,11 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
                     ->addErrorWithMessage(__('This endpoint can only be used for integration quotes.')->getText());
             }
 
-            // Update customer information if provided
-            if (!empty($params['customer'])) {
-                $quote = $this->quoteUpdateService->updateCustomerInfo($quote, $params['customer']);
-            }
+            // Get store ID for product lookup
+            $storeId = (int)$quote->getStoreId();
 
-            // Update billing address if provided
-            if (!empty($params['billing'])) {
-                $quote = $this->quoteUpdateService->updateBillingAddress($quote, $params['billing']);
-            }
-
-            // Update shipping address if provided
-            if (!empty($params['shipping'])) {
-                $quote = $this->quoteUpdateService->updateShippingAddress($quote, $params['shipping']);
-            }
+            // Update item quantities in quote
+            $quote = $this->quoteItemsService->updateQuoteItemQuantities($quote, $params['items'], $storeId);
 
             // Save the quote with updates
             $quote = $this->quoteUpdateService->saveQuote($quote);

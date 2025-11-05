@@ -1,0 +1,54 @@
+### Update Item Quantities
+# Updates quantities of existing products in the quote
+# Products must already exist in the quote (use add endpoint to add new products)
+# Quantity must be greater than 0 (use remove endpoint to remove products)
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/update
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "{{productSku}}",
+      "quantity": 5
+    },
+    {
+      "product_id": {{productId}},
+      "quantity": 3
+    }
+  ]
+}
+
+###
+
+### Update Single Item Quantity by SKU
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/update
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "{{productSku}}",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### Update Single Item Quantity by Product ID
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/items/update
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "product_id": {{productId}},
+      "quantity": 1
+    }
+  ]
+}
+
+###

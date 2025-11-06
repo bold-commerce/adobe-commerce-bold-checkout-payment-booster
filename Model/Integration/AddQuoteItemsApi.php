@@ -13,6 +13,8 @@ use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Update;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Items;
 use Magento\Framework\App\Request\Http as Request;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 
@@ -137,9 +139,17 @@ class AddQuoteItemsApi implements AddQuoteItemsApiInterface
             // Get updated totals and shipping methods
             $quoteTotals = $this->quoteUpdateService->getQuoteTotals($quote);
             $shippingMethods = $this->quoteUpdateService->getAvailableShippingMethods($quote);
-        } catch (\Exception $e) {
+        } catch (NoSuchEntityException $e) {
+            return $result
+                ->setResponseHttpStatus(404)
+                ->addErrorWithMessage($e->getMessage());
+        } catch (LocalizedException $e) {
             return $result
                 ->setResponseHttpStatus(422)
+                ->addErrorWithMessage($e->getMessage());
+        } catch (\Exception $e) {
+            return $result
+                ->setResponseHttpStatus(500)
                 ->addErrorWithMessage($e->getMessage());
         }
 

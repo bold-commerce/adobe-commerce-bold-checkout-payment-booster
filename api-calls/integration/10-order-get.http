@@ -1,0 +1,10 @@
+### Get Order
+# Get order by platform order ID (entity_id)
+# Returns complete order details
+# @name getOrder
+GET {{baseUrl}}/rest/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+###
+

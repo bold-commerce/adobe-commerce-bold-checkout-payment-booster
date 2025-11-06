@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
-use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
-use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
-use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
+use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -36,8 +34,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
      * @param CheckoutData $checkoutData
      * @param SetCompleteState $setCompleteState
      * @param CheckPaymentMethod $checkPaymentMethod
-     * @param OrderExtensionDataFactory $orderExtensionDataFactory
-     * @param OrderExtensionDataResource $orderExtensionDataResource
+     * @param OrderExtensionDataRepository $orderExtensionDataRepository
      * @param LoggerInterface $logger
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param Config $config
@@ -46,8 +43,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
         CheckoutData $checkoutData,
         SetCompleteState $setCompleteState,
         CheckPaymentMethod $checkPaymentMethod,
-        OrderExtensionDataFactory $orderExtensionDataFactory,
-        OrderExtensionDataResource $orderExtensionDataResource,
+        OrderExtensionDataRepository $orderExtensionDataRepository,
         LoggerInterface $logger,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
         Config $config
@@ -59,8 +55,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
             $checkoutData,
             $setCompleteState,
             $checkPaymentMethod,
-            $orderExtensionDataFactory,
-            $orderExtensionDataResource,
+            $orderExtensionDataRepository,
             $logger,
             $magentoQuoteBoldOrderRepository
         );

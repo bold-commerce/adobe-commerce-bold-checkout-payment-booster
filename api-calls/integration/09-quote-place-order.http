@@ -1,6 +1,7 @@
 ### Place Order
 # Places the order with payment transaction data
 # Requires quote to have customer info, shipping address, and shipping method set
+# @name placeOrder
 POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/place_order
 Authorization: Bearer {{sharedSecret}}
 Content-Type: application/json
@@ -26,9 +27,14 @@ Content-Type: application/json
   ]
 }
 
+> {%
+    client.global.set("platformOrderId", response.body.data.platform_order_id);
+%}
+
 ###
 
 ### Place Order with Multiple Transactions
+# @name placeOrderMultiple
 POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/place_order
 Authorization: Bearer {{sharedSecret}}
 Content-Type: application/json
@@ -67,5 +73,9 @@ Content-Type: application/json
     }
   ]
 }
+
+> {%
+    client.global.set("platformOrderId", response.body.data.platform_order_id);
+%}
 
 ###

@@ -7,9 +7,8 @@ namespace Bold\CheckoutPaymentBooster\Observer\Order;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
-use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
-use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
+use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -38,14 +37,9 @@ class AfterSubmitObserver implements ObserverInterface
     private $checkPaymentMethod;
 
     /**
-     * @var OrderExtensionDataFactory
+     * @var OrderExtensionDataRepository
      */
-    private $orderExtensionDataFactory;
-
-    /**
-     * @var OrderExtensionDataResource
-     */
-    private $orderExtensionDataResource;
+    private $orderExtensionDataRepository;
 
     /**
      * @var LoggerInterface
@@ -61,8 +55,7 @@ class AfterSubmitObserver implements ObserverInterface
      * @param CheckoutData $checkoutData Instance of CheckoutData.
      * @param SetCompleteState $setCompleteState Instance of SetCompleteState.
      * @param CheckPaymentMethod $checkPaymentMethod Instance of CheckPaymentMethod.
-     * @param OrderExtensionDataFactory $orderExtensionDataFactory Instance of OrderExtensionDataFactory.
-     * @param OrderExtensionDataResource $orderExtensionDataResource Instance of OrderExtensionDataResource.
+     * @param OrderExtensionDataRepository $orderExtensionDataRepository Repository for order extension data.
      * @param LoggerInterface $logger Logger instance for handling logs.
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository Interface for managing
      * Magento Quote Bold Order Repository.
@@ -72,14 +65,12 @@ class AfterSubmitObserver implements ObserverInterface
         CheckoutData $checkoutData,
         SetCompleteState $setCompleteState,
         CheckPaymentMethod $checkPaymentMethod,
-        OrderExtensionDataFactory $orderExtensionDataFactory,
-        OrderExtensionDataResource $orderExtensionDataResource,
+        OrderExtensionDataRepository $orderExtensionDataRepository,
         LoggerInterface $logger,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->checkoutData = $checkoutData;
-        $this->orderExtensionDataFactory = $orderExtensionDataFactory;
-        $this->orderExtensionDataResource = $orderExtensionDataResource;
+        $this->orderExtensionDataRepository = $orderExtensionDataRepository;
         $this->setCompleteState = $setCompleteState;
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->logger = $logger;
@@ -123,20 +114,26 @@ class AfterSubmitObserver implements ObserverInterface
             $publicOrderId = $this->magentoQuoteBoldOrderRepository->getPublicOrderIdFromOrder($order);
         }
 
-        $orderExtensionData = $this->orderExtensionDataFactory->create();
-        $orderExtensionData->setOrderId((int) $orderId);
+        // Load existing record or create new one (idempotent pattern)
+        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int) $orderId);
+        
+        // If no existing record, set the order_id for the new record
+        if (!$orderExtensionData->getId()) {
+            $orderExtensionData->setOrderId((int) $orderId);
+        }
 
-        if ($publicOrderId !== null) {
+        // Update public order id if present and not already set
+        if ($publicOrderId !== null && !$orderExtensionData->getPublicId()) {
             $orderExtensionData->setPublicId($publicOrderId);
         }
 
-        // Save is_bold_integration_cart flag if present
-        if ($isBoldIntegrationCart) {
+        // Set is_bold_integration_cart flag if present and not already set to true
+        if ($isBoldIntegrationCart && !$orderExtensionData->getIsBoldIntegrationCart()) {
             $orderExtensionData->setIsBoldIntegrationCart(true);
         }
 
         try {
-            $this->orderExtensionDataResource->save($orderExtensionData);
+            $this->orderExtensionDataRepository->save($orderExtensionData);
         } catch (Exception $e) {
             $this->logger->critical($e);
             return;

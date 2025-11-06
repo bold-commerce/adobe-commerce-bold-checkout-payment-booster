@@ -19,6 +19,8 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\AddQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\AddQuoteItemsApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateQuoteItemsApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\RemoveQuoteItemsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\RemoveQuoteItemsApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\GetQuoteApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\GetQuoteApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\GetOrderApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\GetOrderApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Payment"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
@@ -31,6 +33,8 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\AddQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\AddQuoteItemsResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\UpdateQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\UpdateQuoteItemsResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\RemoveQuoteItemsResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\RemoveQuoteItemsResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\GetQuoteResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\GetQuoteResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\GetOrderResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\GetOrderResponse"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\OrderDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\OrderData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\QuoteData"/>

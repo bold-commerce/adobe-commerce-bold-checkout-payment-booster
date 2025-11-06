@@ -13,6 +13,7 @@ use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Create;
 use Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote\Items;
 use Magento\Framework\App\Request\Http as Request;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
@@ -131,9 +132,13 @@ class CreateQuoteApi implements CreateQuoteApiInterface
             }
             $quoteMaskId = $this->quoteCreateService->createQuoteIdMask($quote);
             $quoteTotals = $this->quoteCreateService->getQuoteTotals($quote);
-        } catch (\Exception $e) {
+        } catch (LocalizedException $e) {
             return $result
                 ->setResponseHttpStatus(422)
+                ->addErrorWithMessage($e->getMessage());
+        } catch (\Exception $e) {
+            return $result
+                ->setResponseHttpStatus(500)
                 ->addErrorWithMessage($e->getMessage());
         }
 

@@ -120,4 +120,18 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/quote/:quoteMaskId" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\GetQuoteApiInterface" method="getQuote"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
+    <route url="/V1/shops/:shopId/integration/order/:platformOrderId" method="GET">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\GetOrderApiInterface" method="getOrder"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

@@ -1,0 +1,219 @@
+###############################################################################
+# Order Update Payment Tests
+#
+# IMPORTANT: These amounts match the order total from sample products:
+#   - Product ID 1 (qty: 2) + SKU 24-MB01 (qty: 1) = $124.14 total (12414 cents)
+#
+# TESTING FLOW:
+#   1. Run 02-quote-create.http (creates quote with sample products)
+#   2. Run 03-quote-update-customer.http (first scenario - add customer info)
+#   3. Run 07-quote-set-shipping.http (first scenario - flatrate)
+#   4. Run 09-quote-place-order.http (first scenario - place order)
+#   5. Now test payment updates below:
+#
+# TEST SCENARIOS:
+#   - Paid: Mark order as paid/captured (creates invoice)
+#   - Partially Refunded: Refund $50, order stays in "Processing"
+#   - Second Partial Refund: Refund remaining $74.14, order moves to "Closed"
+#   - Refunded: Full refund in one call, order moves to "Closed"
+#   - Cancelled: Cancel unpaid order (must not have invoice)
+#   - Multiple Transactions: Split payment across multiple payment methods
+#
+###############################################################################
+
+### Update Order Payment - Paid (Create Invoice)
+# Update order payment to mark as paid and create invoice
+# Requires order to exist and use Bold payment method
+# NOTE: Amounts are in CENTS. Order total is $124.14 (12414 cents) when using sample products
+#       from quote creation (product_id: 1, qty: 2 + sku: 24-MB01, qty: 1)
+# @name updateOrderPaymentPaid
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "paid",
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}",
+      "amount": 12414,
+      "transaction_id": "ch_{{$timestamp}}_captured",
+      "currency": "USD",
+      "step": "captured",
+      "status": "captured",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+
+### Update Order Payment - Refunded (Create Credit Memo)
+# Update order payment to mark as refunded and create credit memo
+# NOTE: Amount 12414 cents = $124.14 - matches full order amount for complete refund
+# @name updateOrderPaymentRefunded
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "refunded",
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}",
+      "amount": 12414,
+      "transaction_id": "re_{{$timestamp}}",
+      "currency": "USD",
+      "step": "refunded",
+      "status": "refunded",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+
+### Update Order Payment - Partially Refunded (Create Credit Memo)
+# Update order payment to mark as partially refunded and create credit memo
+# NOTE: Amount 5000 cents = $50.00 - partial refund of $124.14 order
+#       Order will stay in "Processing" state. Remaining refundable: $74.14
+# @name updateOrderPaymentPartiallyRefunded
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "partially_refunded",
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}",
+      "amount": 5000,
+      "transaction_id": "re_{{$timestamp}}_partial",
+      "currency": "USD",
+      "step": "refunded",
+      "status": "refunded",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+
+### Update Order Payment - Second Partial Refund (Complete Refund)
+# Use this after the first partial refund to complete the full refund
+# NOTE: Amount 7414 cents = $74.14 - remaining amount after first $50 refund
+#       Total refunded will be $124.14, order will move to "Closed" state
+# @name updateOrderPaymentSecondPartialRefund
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "refunded",
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}",
+      "amount": 7414,
+      "transaction_id": "re_{{$timestamp}}_remaining",
+      "currency": "USD",
+      "step": "refunded",
+      "status": "refunded",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+
+### Update Order Payment - Cancelled (Cancel Order)
+# Update order payment to mark as cancelled and cancel the order
+# NOTE: Transactions array can be empty for cancellation (no new payment processing)
+#       Order MUST NOT have any invoices (cannot cancel captured orders)
+#       If order has been captured/paid, use refund instead
+# @name updateOrderPaymentCancelled
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "cancelled",
+  "transactions": []
+}
+
+###
+
+### Update Order Payment - Multiple Transactions
+# Update order payment with multiple transactions
+# NOTE: Multiple transaction amounts are summed: 6207 + 6207 = 12414 cents ($124.14)
+#       This demonstrates split payment (credit card + gift card)
+# @name updateOrderPaymentMultiple
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/order/{{platformOrderId}}/payments
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "financial_status": "paid",
+  "transactions": [
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}_1",
+      "amount": 6207,
+      "transaction_id": "ch_{{$timestamp}}_1",
+      "currency": "USD",
+      "step": "captured",
+      "status": "captured",
+      "tender_type": "credit_card",
+      "tender_details": {
+        "last_four": "4242",
+        "card_type": "visa",
+        "cardholder_name": "John Doe"
+      },
+      "gateway_response_data": {}
+    },
+    {
+      "gateway": "stripe",
+      "payment_id": "payment_{{$timestamp}}_2",
+      "amount": 6207,
+      "transaction_id": "ch_{{$timestamp}}_2",
+      "currency": "USD",
+      "step": "captured",
+      "status": "captured",
+      "tender_type": "gift_card",
+      "tender_details": {
+        "last_four": "1234"
+      },
+      "gateway_response_data": {}
+    }
+  ]
+}
+
+###
+

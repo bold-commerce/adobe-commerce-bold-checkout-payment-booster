@@ -134,4 +134,11 @@
             <resource ref="anonymous" />
         </resources>
     </route>
+    <route url="/V1/shops/:shopId/integration/order/:platformOrderId/payments" method="PUT">
+        <service class="Bold\CheckoutPaymentBooster\Api\Integration\UpdateOrderPaymentsApiInterface" method="updatePayments"/>
+        <resources>
+            <!-- Authorization performed in service class -->
+            <resource ref="anonymous" />
+        </resources>
+    </route>
 </routes>

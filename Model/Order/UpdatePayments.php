@@ -27,6 +27,17 @@ use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json as Serializer;
 
+/**
+ * Update order payment service (RSA - Remote State Authority implementation).
+ *
+ * This is the legacy RSA implementation for updating order payments.
+ * In the future, we plan to migrate to the Integration API implementation
+ * (UpdateOrderPaymentsApi) which uses Bearer token authentication and
+ * follows the integration API pattern.
+ *
+ * TODO: Consider leveraging Service\Integration\MagentoOrder\Payment service
+ * if this endpoint is kept, to avoid code duplication.
+ */
 class UpdatePayments implements UpdatePaymentsInterface
 {
     private const FINANCIAL_STATUS_PAID = 'paid';
@@ -132,6 +143,11 @@ class UpdatePayments implements UpdatePaymentsInterface
 
     /**
      * Update payment
+     *
+     * TODO: Future plan is to migrate from RSA implementation to Integration API implementation.
+     * The new Integration API endpoint uses Bearer token authentication and follows the
+     * integration API pattern. Consider leveraging Service\Integration\MagentoOrder\Payment
+     * service if this endpoint is kept.
      *
      * @param string $shopId
      * @param string $financialStatus

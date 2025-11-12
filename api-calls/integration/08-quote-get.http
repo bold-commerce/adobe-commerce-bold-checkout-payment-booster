@@ -1,0 +1,9 @@
+### Get Quote
+# Get quote with recalculated totals and shipping methods
+# @name getQuote
+GET {{baseUrl}}/rest/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+###
+

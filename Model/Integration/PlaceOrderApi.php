@@ -12,7 +12,6 @@ use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
 use Magento\Framework\App\Request\Http as Request;
-use Magento\Framework\Exception\CouldNotSaveException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartManagementInterface;
@@ -174,8 +173,8 @@ class PlaceOrderApi implements PlaceOrderApiInterface
             
             if (!$quoteIdMask->getQuoteId()) {
                 return $result
-                    ->setResponseHttpStatus(422)
-                    ->addErrorWithMessage(__('Could not load quote. Error: No quote found with mask ID "%1"', $quoteMaskId)->getText());
+                    ->setResponseHttpStatus(404)
+                    ->addErrorWithMessage(__('No quote found with mask ID "%1"', $quoteMaskId)->render());
             }
 
             /** @var Quote $quote */
@@ -184,7 +183,7 @@ class PlaceOrderApi implements PlaceOrderApiInterface
             if (!$quote->getIsActive()) {
                 return $result
                     ->setResponseHttpStatus(422)
-                    ->addErrorWithMessage(__('Could not load quote. Error: Quote with ID "%1" is not active', $quoteMaskId)->getText());
+                    ->addErrorWithMessage(__('Quote with ID "%1" is not active', $quoteMaskId)->render());
             }
 
             // Validate this is an integration cart

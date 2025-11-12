@@ -84,35 +84,29 @@ class Update
      *
      * @param string $maskId
      * @return CartInterface
+     * @throws NoSuchEntityException
      * @throws LocalizedException
      */
     public function loadQuoteByMaskId(string $maskId): CartInterface
     {
-        try {
-            $quoteIdMask = $this->quoteIdMaskFactory->create();
-            $this->quoteIdMaskResource->load($quoteIdMask, $maskId, 'masked_id');
+        $quoteIdMask = $this->quoteIdMaskFactory->create();
+        $this->quoteIdMaskResource->load($quoteIdMask, $maskId, 'masked_id');
 
-            if (!$quoteIdMask->getQuoteId()) {
-                throw new NoSuchEntityException(
-                    __('No quote found with mask ID "%1"', $maskId)
-                );
-            }
-
-            $quote = $this->quoteRepository->get($quoteIdMask->getQuoteId());
-
-            if (!$quote->getIsActive()) {
-                throw new LocalizedException(
-                    __('Quote with ID "%1" is not active', $maskId)
-                );
-            }
-
-            return $quote;
-        } catch (NoSuchEntityException $e) {
-            throw new LocalizedException(
-                __('Could not load quote. Error: "%1"', $e->getMessage()),
-                $e
+        if (!$quoteIdMask->getQuoteId()) {
+            throw new NoSuchEntityException(
+                __('No quote found with mask ID "%1"', $maskId)
             );
         }
+
+        $quote = $this->quoteRepository->get($quoteIdMask->getQuoteId());
+
+        if (!$quote->getIsActive()) {
+            throw new LocalizedException(
+                __('Quote with ID "%1" is not active', $maskId)
+            );
+        }
+
+        return $quote;
     }
 
     /**
@@ -366,7 +360,7 @@ class Update
      *
      * @param CartInterface $quote
      * @return CartInterface
-     * @throws LocalizedException
+     * @throws Exception
      */
     public function saveQuote(CartInterface $quote): CartInterface
     {
@@ -389,8 +383,9 @@ class Update
                 }
             }
         } catch (LocalizedException $localizedException) {
-            throw new LocalizedException(
-                __('Could not save quote. Error: "%1"', $localizedException->getMessage()),
+            throw new Exception(
+                __('Could not save quote. Error: "%1"', $localizedException->getMessage())->getText(),
+                0,
                 $localizedException
             );
         }
@@ -403,15 +398,16 @@ class Update
      *
      * @param CartInterface $quote
      * @return \Magento\Quote\Api\Data\TotalsInterface
-     * @throws LocalizedException
+     * @throws Exception
      */
     public function getQuoteTotals(CartInterface $quote): \Magento\Quote\Api\Data\TotalsInterface
     {
         try {
             $totals = $this->quoteTotalRepository->get($quote->getId());
         } catch (LocalizedException $localizedException) {
-            throw new LocalizedException(
-                __('Could not get quote totals. Error: "%1"', $localizedException->getMessage()),
+            throw new Exception(
+                __('Could not get quote totals. Error: "%1"', $localizedException->getMessage())->getText(),
+                0,
                 $localizedException
             );
         }

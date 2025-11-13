@@ -11,9 +11,9 @@ use Bold\CheckoutPaymentBooster\Api\Integration\PlaceOrderApiInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\SharedSecretAuthorization;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\GetWebsiteIdByShopId;
+use Bold\CheckoutPaymentBooster\Service\Integration\MagentoOrder\Payment as MagentoOrderPaymentService;
 use Magento\Framework\App\Request\Http as Request;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\PaymentInterfaceFactory;
@@ -21,11 +21,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
-use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
-use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
 
 class PlaceOrderApi implements PlaceOrderApiInterface
@@ -86,14 +82,14 @@ class PlaceOrderApi implements PlaceOrderApiInterface
     private $orderRepository;
 
     /**
-     * @var SerializerInterface
-     */
-    private $serializer;
-
-    /**
      * @var LoggerInterface
      */
     private $logger;
+
+    /**
+     * @var MagentoOrderPaymentService
+     */
+    private $magentoOrderPaymentService;
 
     /**
      * @param PlaceOrderResponseInterfaceFactory $responseFactory
@@ -107,8 +103,8 @@ class PlaceOrderApi implements PlaceOrderApiInterface
      * @param CartManagementInterface $cartManagement
      * @param PaymentInterfaceFactory $paymentFactory
      * @param OrderRepositoryInterface $orderRepository
-     * @param SerializerInterface $serializer
      * @param LoggerInterface $logger
+     * @param MagentoOrderPaymentService $magentoOrderPaymentService
      */
     public function __construct(
         PlaceOrderResponseInterfaceFactory $responseFactory,
@@ -122,8 +118,8 @@ class PlaceOrderApi implements PlaceOrderApiInterface
         CartManagementInterface $cartManagement,
         PaymentInterfaceFactory $paymentFactory,
         OrderRepositoryInterface $orderRepository,
-        SerializerInterface $serializer,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        MagentoOrderPaymentService $magentoOrderPaymentService
     ) {
         $this->responseFactory = $responseFactory;
         $this->sharedSecretAuthorization = $sharedSecretAuthorization;
@@ -136,8 +132,8 @@ class PlaceOrderApi implements PlaceOrderApiInterface
         $this->cartManagement = $cartManagement;
         $this->paymentFactory = $paymentFactory;
         $this->orderRepository = $orderRepository;
-        $this->serializer = $serializer;
         $this->logger = $logger;
+        $this->magentoOrderPaymentService = $magentoOrderPaymentService;
     }
 
     /**
@@ -210,8 +206,8 @@ class PlaceOrderApi implements PlaceOrderApiInterface
             // Load the order
             $order = $this->orderRepository->get($orderId);
 
-            // Save transaction data to order payment
-            $this->saveTransactionData($order, $params);
+            // Save transaction data to order payment using MagentoOrder payment service
+            $this->magentoOrderPaymentService->saveTransactionData($order, $params);
 
             // Build response
             $orderData = $this->orderDataFactory->create();
@@ -278,44 +274,5 @@ class PlaceOrderApi implements PlaceOrderApiInterface
         }
     }
 
-    /**
-     * Save Bold transaction data to order payment.
-     *
-     * @param OrderInterface $order Magento order
-     * @param array<string, mixed> $transactionData Bold transaction data
-     * @return void
-     * @throws LocalizedException
-     */
-    private function saveTransactionData(OrderInterface $order, array $transactionData): void
-    {
-        // Extract transaction data from Bold Checkout authorization response
-        // At this point we know transactions exist due to validateTransactionData()
-        $transactions = $transactionData['transactions'];
-        $firstTransaction = $transactions[0];
-        $transactionId = $firstTransaction['transaction_id'];
-
-        /** @var OrderPaymentInterface&Payment $orderPayment */
-        $orderPayment = $order->getPayment();
-
-        $orderPayment->setTransactionId($transactionId);
-        $orderPayment->setIsTransactionClosed(false);
-        $orderPayment->addTransaction(TransactionInterface::TYPE_AUTH);
-
-        $tenderDetails = $firstTransaction['tender_details'] ?? null;
-        if ($tenderDetails) {
-            $orderPayment->setAdditionalInformation(
-                'tender_details',
-                $this->serializer->serialize($tenderDetails)
-            );
-        }
-
-        // Save the entire transaction data for reference
-        $orderPayment->setAdditionalInformation(
-            'bold_transaction_data',
-            $this->serializer->serialize($transactionData)
-        );
-
-        $this->orderRepository->save($order);
-    }
 }
 

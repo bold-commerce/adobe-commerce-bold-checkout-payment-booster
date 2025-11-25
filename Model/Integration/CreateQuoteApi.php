@@ -101,13 +101,7 @@ class CreateQuoteApi implements CreateQuoteApiInterface
 
         $params = json_decode($this->request->getContent(), true);
 
-        if (isset($params['public_order_id'])) {
-            $publicOrderId = $params['public_order_id'];
-        } else {
-            return $result
-                ->setResponseHttpStatus(422)
-                ->addErrorWithMessage(__('The key public_order_id is required.')->getText());
-        }
+        $publicOrderId = $params['public_order_id'] ?? null;
 
         if (isset($params['items'])) {
             $requestItems = $params['items'];
@@ -126,7 +120,6 @@ class CreateQuoteApi implements CreateQuoteApiInterface
             $quote = $this->quoteCreateService->createQuote($storeId, $publicOrderId);
 
             if ($requestItems) {
-                // Use Items service to add products to quote
                 $quote = $this->quoteItemsService->addProductsToQuote($quote, $requestItems, $storeId);
                 $quote = $this->quoteCreateService->saveQuote($quote);
             }

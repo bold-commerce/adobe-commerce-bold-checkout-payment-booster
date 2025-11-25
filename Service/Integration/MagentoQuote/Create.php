@@ -73,11 +73,11 @@ class Create
 
     /**
      * @param int $storeId
-     * @param string $boldPublicOrderId
+     * @param string|null $boldPublicOrderId
      * @return CartInterface
      * @throws LocalizedException
      */
-    public function createQuote(int $storeId, string $boldPublicOrderId): CartInterface
+    public function createQuote(int $storeId, ?string $boldPublicOrderId): CartInterface
     {
         /** @var Quote $quote */
         $quote = $this->quoteFactory->create();
@@ -88,7 +88,10 @@ class Create
             ->setBillingAddress($this->quoteAddressFactory->create())
             ->setShippingAddress($this->quoteAddressFactory->create())
             ->setInventoryProcessed(false);
-        $quote->getExtensionAttributes()->setBoldOrderId($boldPublicOrderId);
+        
+        if ($boldPublicOrderId !== null) {
+            $quote->getExtensionAttributes()->setBoldOrderId($boldPublicOrderId);
+        }
         $quote->getExtensionAttributes()->setIsBoldIntegrationCart(true);
 
         if ($customer !== null && $customer->getId() !== null) {

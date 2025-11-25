@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Service\Integration\MagentoQuote;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Exception;
 use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\Exception\LocalizedException;
@@ -56,12 +57,18 @@ class Update
     private $regionFactory;
 
     /**
+     * @var MagentoQuoteBoldOrderRepositoryInterface
+     */
+    private $magentoQuoteBoldOrderRepository;
+
+    /**
      * @param CartRepositoryInterface $quoteRepository
      * @param CartTotalRepositoryInterface $quoteTotalRepository
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
      * @param QuoteIdMaskResource $quoteIdMaskResource
      * @param ShipmentEstimationInterface $shipmentEstimation
      * @param RegionFactory $regionFactory
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
@@ -69,7 +76,8 @@ class Update
         QuoteIdMaskFactory $quoteIdMaskFactory,
         QuoteIdMaskResource $quoteIdMaskResource,
         ShipmentEstimationInterface $shipmentEstimation,
-        RegionFactory $regionFactory
+        RegionFactory $regionFactory,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->quoteTotalRepository = $quoteTotalRepository;
@@ -77,6 +85,7 @@ class Update
         $this->quoteIdMaskResource = $quoteIdMaskResource;
         $this->shipmentEstimation = $shipmentEstimation;
         $this->regionFactory = $regionFactory;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -107,6 +116,58 @@ class Update
         }
 
         return $quote;
+    }
+
+    /**
+     * Update public order ID on quote.
+     *
+     * @param CartInterface $quote
+     * @param string|null $providedPublicOrderId
+     * @return CartInterface
+     * @throws LocalizedException
+     */
+    public function updatePublicOrderId(CartInterface $quote, ?string $providedPublicOrderId): CartInterface
+    {
+        try {
+            /** @var Quote $quote */
+            $currentPublicOrderId = null;
+            try {
+                $relation = $this->magentoQuoteBoldOrderRepository->getByQuoteId((int)$quote->getId());
+                $currentPublicOrderId = $relation->getBoldOrderId();
+            } catch (\Exception $e) {
+                // No existing record, currentPublicOrderId remains null
+            }
+            
+            if ($currentPublicOrderId !== null && $currentPublicOrderId !== '') {
+                if ($currentPublicOrderId !== $providedPublicOrderId) {
+                    throw new LocalizedException(
+                        __(
+                            'Cannot change public_order_id. Quote already has public_order_id "%1" associated with it.',
+                            $currentPublicOrderId
+                        )
+                    );
+                }
+                $quote->getExtensionAttributes()->setBoldOrderId($currentPublicOrderId);
+                return $quote;
+            }
+            
+            if ($providedPublicOrderId !== null && $providedPublicOrderId !== '') {
+                $quote->getExtensionAttributes()->setBoldOrderId($providedPublicOrderId);
+                $this->magentoQuoteBoldOrderRepository->saveBoldQuotePublicOrderRelation(
+                    $providedPublicOrderId,
+                    (string)$quote->getId()
+                );
+            }
+            
+            return $quote;
+        } catch (LocalizedException $e) {
+            throw $e;
+        } catch (Exception $e) {
+            throw new LocalizedException(
+                __('Could not update public_order_id. Error: "%1"', $e->getMessage()),
+                $e
+            );
+        }
     }
 
     /**

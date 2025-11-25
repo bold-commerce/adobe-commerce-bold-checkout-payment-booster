@@ -1,5 +1,5 @@
-### Create Quote with Items
-# Creates a new integration quote with initial products
+### Create Quote with Items and Public Order ID
+# Creates a new integration quote with initial products and a public order ID
 # Saves the quote_mask_id to the environment for subsequent requests
 POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/create
 Authorization: Bearer {{sharedSecret}}
@@ -23,13 +23,56 @@ Content-Type: application/json
     client.test("Request executed successfully", function() {
         client.assert(response.status === 200, "Response status is not 200");
     });
-    
+
     client.test("Response has quote_mask_id", function() {
         var data = response.body.data;
         client.assert(data.quote_mask_id, "quote_mask_id not found in response");
-        
+
         // Save quote_mask_id to environment
         client.global.set("quoteMaskId", data.quote_mask_id);
+    });
+
+    client.test("Quote has public_order_id set", function() {
+        var data = response.body.data;
+        client.assert(data.quote.extension_attributes.bold_order_id, "bold_order_id not found in quote");
+    });
+%}
+
+###
+
+### Create Quote without Public Order ID
+# Creates a new integration quote without a public order ID
+# This demonstrates that public_order_id is now optional
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/create
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "product_id": {{productId}},
+      "quantity": 1
+    }
+  ]
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Response has quote_mask_id", function() {
+        var data = response.body.data;
+        client.assert(data.quote_mask_id, "quote_mask_id not found in response");
+
+        // Save quote_mask_id to environment for testing public_order_id update
+        client.global.set("quoteMaskId", data.quote_mask_id);
+    });
+
+    client.test("Quote has no public_order_id set", function() {
+        var data = response.body.data;
+        var boldOrderId = data.quote.extension_attributes.bold_order_id;
+        client.assert(!boldOrderId || boldOrderId === null, "bold_order_id should not be set");
     });
 %}
 

@@ -35,6 +35,72 @@ Content-Type: application/json
 
 ###
 
+### Set Public Order ID on Quote Without One
+# Use quoteMaskId from quote creation without public_order_id
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "public_order_id": "order_set_later_{{$timestamp}}"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Quote now has public_order_id set", function() {
+        var data = response.body.data;
+        client.assert(data.quote.extension_attributes.bold_order_id, "bold_order_id should now be set");
+    });
+%}
+
+###
+
+### Update Quote with Same Public Order ID (No-op)
+# This should succeed because the public_order_id matches the existing one
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "public_order_id": "order_{{$timestamp}}"
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+%}
+
+###
+
+### Try to Change Existing Public Order ID (Should Fail)
+# This should fail with 422 because the quote already has a different public_order_id
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "public_order_id": "order_different_{{$timestamp}}"
+}
+
+> {%
+    client.test("Request should fail with 422", function() {
+        client.assert(response.status === 422, "Response status should be 422");
+    });
+
+    client.test("Error message mentions public_order_id conflict", function() {
+        var errors = response.body.errors;
+        client.assert(errors && errors.length > 0, "Should have error messages");
+        var errorMsg = errors[0].message.toLowerCase();
+        client.assert(errorMsg.includes("public_order_id"), "Error should mention public_order_id");
+    });
+%}
+
+###
+
 ### Update Only Customer Email
 PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
 Authorization: Bearer {{sharedSecret}}

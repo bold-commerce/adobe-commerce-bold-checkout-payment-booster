@@ -91,18 +91,16 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
 
         $params = json_decode($this->request->getContent(), true);
 
-        // Validate that at least one of customer, billing, or shipping is provided
-        if (empty($params['customer']) && empty($params['billing']) && empty($params['shipping'])) {
+        if (empty($params['customer']) && empty($params['billing']) && empty($params['shipping']) && !isset($params['public_order_id'])) {
             return $result
                 ->setResponseHttpStatus(422)
-                ->addErrorWithMessage(__('At least one of customer, billing, or shipping must be provided.')->getText());
+                ->addErrorWithMessage(__('At least one of customer, billing, shipping, or public_order_id must be provided.')->getText());
         }
 
         try {
             /** @var CartInterface $quote */
             $quote = $this->quoteUpdateService->loadQuoteByMaskId($quoteMaskId);
 
-            // Validate this is an integration cart
             /** @var Quote $quote */
             $isBoldIntegrationCart = $quote->getExtensionAttributes()->getIsBoldIntegrationCart();
             if (!$isBoldIntegrationCart) {
@@ -111,17 +109,18 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
                     ->addErrorWithMessage(__('This endpoint can only be used for integration quotes.')->getText());
             }
 
-            // Update customer information if provided
+            if (isset($params['public_order_id'])) {
+                $quote = $this->quoteUpdateService->updatePublicOrderId($quote, $params['public_order_id']);
+            }
+
             if (!empty($params['customer'])) {
                 $quote = $this->quoteUpdateService->updateCustomerInfo($quote, $params['customer']);
             }
 
-            // Update billing address if provided
             if (!empty($params['billing'])) {
                 $quote = $this->quoteUpdateService->updateBillingAddress($quote, $params['billing']);
             }
 
-            // Update shipping address if provided
             if (!empty($params['shipping'])) {
                 $quote = $this->quoteUpdateService->updateShippingAddress($quote, $params['shipping']);
             }

@@ -40,6 +40,8 @@ class Config
         'checkout/bold_checkout_payment_booster_advanced/enable_sales_order_view_tab';
     public const BOLD_PAYMENT_METHODS_CODE = ['bold', 'bold_wallet','bold_fastlane'];
     private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
+    private const PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE =
+        'checkout/bold_checkout_payment_booster/add_tax_amount_frontend_balance';
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -414,6 +416,21 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_USE_FALLBACK_OBSERVER,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if tax is included in item prices.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function addTaxAmountFrontendBalance(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

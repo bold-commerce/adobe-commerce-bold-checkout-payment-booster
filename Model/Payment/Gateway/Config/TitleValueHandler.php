@@ -73,7 +73,7 @@ class TitleValueHandler implements ValueHandlerInterface
         if ($payment->getAdditionalInformation('card_details')) {
             $cardDetails = $this->serializer->unserialize($payment->getAdditionalInformation('card_details'));
             if (isset($cardDetails['brand']) && isset($cardDetails['last_four'])) {
-                return ucfirst($cardDetails['brand']) . ': ending in ' . $cardDetails['last_four'];
+                return ucfirst($cardDetails['brand']) . ': ' . __('ending in ') . $cardDetails['last_four'];
             }
             if (isset($cardDetails['account']) && isset($cardDetails['email'])) {
                 return 'PayPal: ' . $cardDetails['email'];

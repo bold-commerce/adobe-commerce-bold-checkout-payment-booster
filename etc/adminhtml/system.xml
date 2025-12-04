@@ -7,6 +7,10 @@
             </group>
             <group id="bold_checkout_payment_booster" translate="label" sortOrder="150" showInDefault="1" showInWebsite="1">
                 <label>Bold Checkout Payment Booster Extension</label>
+                <field id="version_info" translate="label" type="text" sortOrder="5" showInWebsite="1">
+                    <label>Version</label>
+                    <frontend_model>Bold\CheckoutPaymentBooster\Block\Adminhtml\System\Config\Form\Field\VersionInfo</frontend_model>
+                </field>
                 <field id="api_token" translate="label" type="obscure" sortOrder="10" showInWebsite="1">
                     <label>API Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
@@ -77,6 +81,15 @@
                     <label>Enable Digital Wallets on Product Pages</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Display Digital Wallets on your product pages.]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
+                </field>
+                <field id="add_tax_amount_frontend_balance" translate="label" type="select" sortOrder="80" showInWebsite="1">
+                    <label>Add tax amount in frontend</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[This config depends on your magento tax configuration.
+                    If set to yes it will add the tax amount to the order balance in the frontend.]]></comment>
                     <depends>
                         <field id="is_payment_booster_enabled">1</field>
                     </depends>

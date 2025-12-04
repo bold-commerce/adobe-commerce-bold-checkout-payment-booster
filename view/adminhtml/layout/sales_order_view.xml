@@ -4,10 +4,14 @@
       xsi:noNamespaceSchemaLocation = "urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceBlock name = "payment_additional_info">
+            <block class = "Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Transaction"
+                   name = "bold.transaction.info"
+                   template = "Bold_CheckoutPaymentBooster::order/view/transaction_info.phtml"
+                   after = "-"/>
             <block class = "Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View\Retry"
                    name = "retry.payment.button"
                    template = "Bold_CheckoutPaymentBooster::order/view/retry_button.phtml"
-                   after = "-"/>
+                   after = "bold.transaction.info"/>
         </referenceBlock>
         <referenceBlock name = "sales_order_tabs">
             <action method = "addTab">

@@ -5,6 +5,9 @@
         <attribute code="bold_order_id" type="string"/>
         <attribute code="is_bold_integration_cart" type="boolean"/>
     </extension_attributes>
+    <extension_attributes for="Magento\Quote\Api\Data\CartItemInterface">
+        <attribute code="product_id" type="int"/>
+    </extension_attributes>
     <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
         <attribute code="is_bold_integration_cart" type="boolean"/>
     </extension_attributes>

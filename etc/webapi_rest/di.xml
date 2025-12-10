@@ -2,6 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <type name="Magento\Quote\Api\CartRepositoryInterface">
         <plugin name="bold_booster_add_public_order_id" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Api\CartRepositoryInterfacePlugin"/>
+        <plugin name="bold_booster_add_product_id_to_cart_items" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Api\AddProductIdToCartItemPlugin" sortOrder="20"/>
     </type>
 
     <type name="Magento\Payment\Model\Checks\CanUseCheckout">

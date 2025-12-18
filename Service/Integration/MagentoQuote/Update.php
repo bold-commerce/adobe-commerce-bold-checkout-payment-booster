@@ -11,11 +11,14 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\CartTotalRepositoryInterface;
+use Magento\Quote\Api\Data\CartExtensionFactory;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\ShipmentEstimationInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
+use Magento\Quote\Model\ShippingAssignmentFactory;
+use Magento\Quote\Model\ShippingFactory;
 
 use function __;
 
@@ -62,6 +65,21 @@ class Update
     private $magentoQuoteBoldOrderRepository;
 
     /**
+     * @var CartExtensionFactory
+     */
+    private $cartExtensionFactory;
+
+    /**
+     * @var ShippingAssignmentFactory
+     */
+    private $shippingAssignmentFactory;
+
+    /**
+     * @var ShippingFactory
+     */
+    private $shippingFactory;
+
+    /**
      * @param CartRepositoryInterface $quoteRepository
      * @param CartTotalRepositoryInterface $quoteTotalRepository
      * @param QuoteIdMaskFactory $quoteIdMaskFactory
@@ -69,6 +87,9 @@ class Update
      * @param ShipmentEstimationInterface $shipmentEstimation
      * @param RegionFactory $regionFactory
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param CartExtensionFactory $cartExtensionFactory
+     * @param ShippingAssignmentFactory $shippingAssignmentFactory
+     * @param ShippingFactory $shippingFactory
      */
     public function __construct(
         CartRepositoryInterface $quoteRepository,
@@ -77,7 +98,10 @@ class Update
         QuoteIdMaskResource $quoteIdMaskResource,
         ShipmentEstimationInterface $shipmentEstimation,
         RegionFactory $regionFactory,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        CartExtensionFactory $cartExtensionFactory,
+        ShippingAssignmentFactory $shippingAssignmentFactory,
+        ShippingFactory $shippingFactory
     ) {
         $this->quoteRepository = $quoteRepository;
         $this->quoteTotalRepository = $quoteTotalRepository;
@@ -86,6 +110,9 @@ class Update
         $this->shipmentEstimation = $shipmentEstimation;
         $this->regionFactory = $regionFactory;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->cartExtensionFactory = $cartExtensionFactory;
+        $this->shippingAssignmentFactory = $shippingAssignmentFactory;
+        $this->shippingFactory = $shippingFactory;
     }
 
     /**
@@ -372,12 +399,8 @@ class Update
                 );
             }
 
-            // Set the shipping method using carrier_code and method_code
             $shippingAddress->setShippingMethod($shippingMethodCode);
-            
-            // Request fresh shipping rate collection
-            $shippingAddress->setCollectShippingRates(true);
-            $shippingAddress->collectShippingRates();
+            $quote = $this->prepareShippingAssignment($quote, $shippingAddress, $shippingMethodCode);
 
             return $quote;
         } catch (Exception $e) {
@@ -386,6 +409,43 @@ class Update
                 $e
             );
         }
+    }
+
+    /**
+     * Prepare shipping assignment with shipping method.
+     *
+     * @param CartInterface $quote
+     * @param \Magento\Quote\Api\Data\AddressInterface $address
+     * @param string $method
+     * @return CartInterface
+     */
+    private function prepareShippingAssignment(
+        CartInterface $quote,
+        \Magento\Quote\Api\Data\AddressInterface $address,
+        string $method
+    ): CartInterface {
+        $cartExtension = $quote->getExtensionAttributes();
+        if ($cartExtension === null) {
+            $cartExtension = $this->cartExtensionFactory->create();
+        }
+
+        $shippingAssignments = $cartExtension->getShippingAssignments();
+        if (empty($shippingAssignments)) {
+            $shippingAssignment = $this->shippingAssignmentFactory->create();
+        } else {
+            $shippingAssignment = $shippingAssignments[0];
+        }
+
+        $shipping = $shippingAssignment->getShipping();
+        if ($shipping === null) {
+            $shipping = $this->shippingFactory->create();
+        }
+
+        $shipping->setAddress($address);
+        $shipping->setMethod($method);
+        $shippingAssignment->setShipping($shipping);
+        $cartExtension->setShippingAssignments([$shippingAssignment]);
+        return $quote->setExtensionAttributes($cartExtension);
     }
 
     /**

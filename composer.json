@@ -5,7 +5,7 @@
     "license": [
         "MIT"
     ],
-    "version": "2.6.9",
+    "version": "2.7",
     "require": {
         "php": ">=7.2 <8.6",
         "ext-curl": "*",

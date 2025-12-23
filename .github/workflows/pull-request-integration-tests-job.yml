@@ -99,17 +99,17 @@ jobs:
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-#      - name: Cache Composer packages
-#        id: composer-cache
-#        uses: actions/cache@v4
-#        with:
-#          path: integration-pipeline-test/vendor
-#          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+      #      - name: Cache Composer packages
+      #        id: composer-cache
+      #        uses: actions/cache@v4
+      #        with:
+      #          path: integration-pipeline-test/vendor
+      #          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
 
-#      - name: clear composer cache prevent deps issue
-#        working-directory: integration-pipeline-test
-#        run: |
-#          rm -rf ~/.composer
+      #      - name: clear composer cache prevent deps issue
+      #        working-directory: integration-pipeline-test
+      #        run: |
+      #          rm -rf ~/.composer
 
       - name: add-credentials
         working-directory: integration-pipeline-test
@@ -140,8 +140,42 @@ jobs:
       - name: install-deps
         working-directory: integration-pipeline-test
         run: |
+          set -e
+
+          if [ "${{ matrix.php-version }}" = "8.1" ]; then
+            echo "Force PHP platform for PHP 8.1 (prevents Symfony 7+) Disable Composer security audit blocking (Magento legacy deps)"
+            composer config audit.block-insecure false
+            composer config platform.php 8.1.0
+            jq '
+              .conflict["symfony/filesystem"] = ">=6"
+              | .require["aws/aws-sdk-php"] = "<3.368"
+            ' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+          fi
+
+          if [ "${{ matrix.php-version }}" = "8.1" ]; then
+            echo "Remove known broken dev deps for Magento 2.4.4 / 2.4.5 on PHP 8.1"
+            composer remove --dev \
+              friendsofphp/php-cs-fixer \
+              allure-framework/allure-phpunit \
+              magento/magento2-functional-testing-framework \
+              symfony/finder \
+              --no-update || true
+          fi
+
+          if [ "${{ matrix.php-version }}" = "8.1" ]; then
+            echo "Re-add compatible dev dependencies"
+            composer require --dev \
+              friendsofphp/php-cs-fixer:^3.16 \
+              allure-framework/allure-phpunit:^1.5 \
+              phpunit/phpunit:^9.5 \
+              phpstan/phpstan:^1.10 \
+              symfony/finder:^5.4 \
+              magento/magento2-functional-testing-framework:^3.13 \
+              --no-update
+          fi
+
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts --no-update
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 

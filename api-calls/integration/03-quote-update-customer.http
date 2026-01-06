@@ -130,3 +130,208 @@ Content-Type: application/json
 }
 
 ###
+
+### Update Shipping Address AND Set Shipping Method in One Call
+# This combines address update and shipping method selection for better performance
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "shipping": {
+    "firstname": "John",
+    "lastname": "Doe",
+    "street": ["123 Main St", "Apt 4"],
+    "city": "Toronto",
+    "region": "Ontario",
+    "postcode": "M5V 3A8",
+    "country_id": "CA",
+    "telephone": "555-1234"
+  },
+  "selected_shipping_method": {
+    "carrier_code": "flatrate",
+    "method_code": "flatrate"
+  }
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Shipping method is set", function() {
+        var data = response.body.data;
+        var shippingMethod = data.quote.extension_attributes.shipping_assignments[0].shipping.method;
+        client.assert(shippingMethod === "flatrate_flatrate", "Shipping method should be flatrate_flatrate");
+    });
+
+    client.test("Totals include shipping cost", function() {
+        var data = response.body.data;
+        client.assert(data.totals.shipping_amount !== undefined, "Shipping amount should be present in totals");
+    });
+%}
+
+###
+
+### Update Only Shipping Method (Address Already Set)
+# Sets shipping method when address is already configured
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "selected_shipping_method": {
+    "carrier_code": "flatrate",
+    "method_code": "flatrate"
+  }
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Shipping method is set", function() {
+        var data = response.body.data;
+        var shippingMethod = data.quote.extension_attributes.shipping_assignments[0].shipping.method;
+        client.assert(shippingMethod === "flatrate_flatrate", "Shipping method should be flatrate_flatrate");
+    });
+%}
+
+###
+
+### Full Update: Customer + Billing + Shipping + Shipping Method
+# Complete quote update in a single API call
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "customer": {
+    "email": "customer@example.com",
+    "firstname": "Jane",
+    "lastname": "Smith"
+  },
+  "billing": {
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "street": ["789 Billing Ave"],
+    "city": "Toronto",
+    "region": "Ontario",
+    "postcode": "M5V 3A8",
+    "country_id": "CA",
+    "telephone": "555-9999"
+  },
+  "shipping": {
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "street": ["789 Billing Ave"],
+    "city": "Toronto",
+    "region": "Ontario",
+    "postcode": "M5V 3A8",
+    "country_id": "CA",
+    "telephone": "555-9999"
+  },
+  "selected_shipping_method": {
+    "carrier_code": "flatrate",
+    "method_code": "flatrate"
+  }
+}
+
+> {%
+    client.test("Request executed successfully", function() {
+        client.assert(response.status === 200, "Response status is not 200");
+    });
+
+    client.test("Customer email updated", function() {
+        var data = response.body.data;
+        client.assert(data.quote.billing_address.email === "customer@example.com", "Email should be updated");
+    });
+
+    client.test("Shipping method is set", function() {
+        var data = response.body.data;
+        var shippingMethod = data.quote.extension_attributes.shipping_assignments[0].shipping.method;
+        client.assert(shippingMethod === "flatrate_flatrate", "Shipping method should be flatrate_flatrate");
+    });
+%}
+
+###
+
+### Error: Missing carrier_code in selected_shipping_method
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "selected_shipping_method": {
+    "method_code": "flatrate"
+  }
+}
+
+> {%
+    client.test("Request should fail with 422", function() {
+        client.assert(response.status === 422, "Response status should be 422");
+    });
+
+    client.test("Error message mentions carrier_code", function() {
+        var errors = response.body.errors;
+        client.assert(errors && errors.length > 0, "Should have error messages");
+        var errorMsg = errors[0].message.toLowerCase();
+        client.assert(errorMsg.includes("carrier_code"), "Error should mention carrier_code");
+    });
+%}
+
+###
+
+### Error: Missing method_code in selected_shipping_method
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "selected_shipping_method": {
+    "carrier_code": "flatrate"
+  }
+}
+
+> {%
+    client.test("Request should fail with 422", function() {
+        client.assert(response.status === 422, "Response status should be 422");
+    });
+
+    client.test("Error message mentions method_code", function() {
+        var errors = response.body.errors;
+        client.assert(errors && errors.length > 0, "Should have error messages");
+        var errorMsg = errors[0].message.toLowerCase();
+        client.assert(errorMsg.includes("method_code"), "Error should mention method_code");
+    });
+%}
+
+###
+
+### Error: Invalid shipping method (not available for quote)
+PUT {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/quote/{{quoteMaskId}}/customer_info
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "selected_shipping_method": {
+    "carrier_code": "invalid_carrier",
+    "method_code": "invalid_method"
+  }
+}
+
+> {%
+    client.test("Request should fail with 422", function() {
+        client.assert(response.status === 422, "Response status should be 422");
+    });
+
+    client.test("Error message mentions shipping method not available", function() {
+        var errors = response.body.errors;
+        client.assert(errors && errors.length > 0, "Should have error messages");
+        var errorMsg = errors[0].message.toLowerCase();
+        client.assert(errorMsg.includes("not available") || errorMsg.includes("shipping method"), "Error should mention shipping method availability");
+    });
+%}
+
+###

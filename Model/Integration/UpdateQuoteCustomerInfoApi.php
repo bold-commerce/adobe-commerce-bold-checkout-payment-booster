@@ -91,10 +91,10 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
 
         $params = json_decode($this->request->getContent(), true);
 
-        if (empty($params['customer']) && empty($params['billing']) && empty($params['shipping']) && !isset($params['public_order_id'])) {
+        if (empty($params['customer']) && empty($params['billing']) && empty($params['shipping']) && !isset($params['public_order_id']) && empty($params['selected_shipping_method'])) {
             return $result
                 ->setResponseHttpStatus(422)
-                ->addErrorWithMessage(__('At least one of customer, billing, shipping, or public_order_id must be provided.')->getText());
+                ->addErrorWithMessage(__('At least one of customer, billing, shipping, public_order_id, or selected_shipping_method must be provided.')->getText());
         }
 
         try {
@@ -123,6 +123,28 @@ class UpdateQuoteCustomerInfoApi implements UpdateQuoteCustomerInfoApiInterface
 
             if (!empty($params['shipping'])) {
                 $quote = $this->quoteUpdateService->updateShippingAddress($quote, $params['shipping']);
+            }
+
+            // Set shipping method if provided
+            if (!empty($params['selected_shipping_method'])) {
+                // Validate that carrier_code and method_code are provided
+                if (empty($params['selected_shipping_method']['carrier_code'])) {
+                    return $result
+                        ->setResponseHttpStatus(422)
+                        ->addErrorWithMessage(__('The key carrier_code is required in selected_shipping_method.')->getText());
+                }
+
+                if (empty($params['selected_shipping_method']['method_code'])) {
+                    return $result
+                        ->setResponseHttpStatus(422)
+                        ->addErrorWithMessage(__('The key method_code is required in selected_shipping_method.')->getText());
+                }
+
+                $quote = $this->quoteUpdateService->setShippingMethod(
+                    $quote,
+                    $params['selected_shipping_method']['carrier_code'],
+                    $params['selected_shipping_method']['method_code']
+                );
             }
 
             // Save the quote with updates

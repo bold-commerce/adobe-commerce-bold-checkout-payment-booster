@@ -11,5 +11,9 @@ parameters:
 		- integration-pipeline-test
 		- vendor/*/
 		- Test
+		# MSI backward compatibility: This file contains direct references to Magento MSI classes
+		# which may not exist in all environments (e.g., legacy Magento 2.3.x or CI testing).
+		# The InventoryCheckerFactory ensures this code only executes when MSI modules are enabled.
+		- Model/Integration/InventoryChecker/MsiInventoryChecker.php
 	treatPhpDocTypesAsCertain: false
 	reportUnmatchedIgnoredErrors: false

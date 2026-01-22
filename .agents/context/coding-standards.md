@@ -467,3 +467,45 @@ Run on PHP 7.2 environment if possible, or carefully review:
 vendor/bin/phpcs                    # Check code style
 vendor/bin/phpstan analyse          # Check types
 ```
+
+---
+
+## Local Development Commands
+
+### Check PHPCS (Code Style)
+
+**From `/var/www/html` (inside Warden shell):**
+
+**Run PHPCS on entire module (errors only):**
+
+```bash
+cd /var/www/html
+find app/code/Bold/CheckoutPaymentBooster -name "*.php" -not -path "*/vendor/*" -not -path "*/.idea/*" | xargs vendor/bin/phpcs -n --standard=app/code/Bold/CheckoutPaymentBooster/.phpcs.xml 2>&1 | grep -v "DEPRECATED: "
+```
+
+**Run PHPCS on changed files only (errors only):**
+
+```bash
+cd /var/www/html
+git -C app/code/Bold/CheckoutPaymentBooster diff --name-only HEAD~1 HEAD | grep '\.php$' | sed 's|^|app/code/Bold/CheckoutPaymentBooster/|' | xargs vendor/bin/phpcs -n --standard=app/code/Bold/CheckoutPaymentBooster/.phpcs.xml 2>&1 | grep -v "DEPRECATED: "
+```
+
+### Run PHPStan (Type Analysis)
+
+**From `/var/www/html` (inside Warden shell):**
+
+**Run PHPStan on entire module (same as pipeline):**
+
+```bash
+cd /var/www/html
+vendor/bin/phpstan analyse --configuration=app/code/Bold/CheckoutPaymentBooster/phpstan.neon app/code/Bold/CheckoutPaymentBooster
+```
+
+**Run PHPStan on changed files only:**
+
+```bash
+cd /var/www/html
+git -C app/code/Bold/CheckoutPaymentBooster diff --name-only HEAD~1 HEAD | grep '\.php$' | sed 's|^|app/code/Bold/CheckoutPaymentBooster/|' | xargs vendor/bin/phpstan analyse --configuration=app/code/Bold/CheckoutPaymentBooster/phpstan.neon
+```
+
+**Note:** PHPStan errors must be fixed (unlike PHPCS warnings). The module uses level 7 (strict) with a baseline file for known issues.

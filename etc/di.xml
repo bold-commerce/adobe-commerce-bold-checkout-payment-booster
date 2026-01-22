@@ -22,6 +22,7 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\GetQuoteApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\GetQuoteApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\GetOrderApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\GetOrderApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Integration\UpdateOrderPaymentsApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\UpdateOrderPaymentsApi"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Integration\InventoryCheckApiInterface" type="Bold\CheckoutPaymentBooster\Model\Integration\InventoryCheckApi"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\PaymentInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Payment"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\TransactionInterface" type="Bold\CheckoutPaymentBooster\Model\Order\Transaction"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Order\Payment\ResultInterface" type="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\Result"/>
@@ -41,6 +42,9 @@
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ValidateDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ValidateData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\QuoteDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\QuoteData"/>
     <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\ErrorDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\ErrorData"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\InventoryCheckResponseInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\InventoryCheckResponse"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\InventoryCheckDataInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\InventoryCheckData"/>
+    <preference for="Bold\CheckoutPaymentBooster\Api\Data\Integration\InventoryItemResultInterface" type="Bold\CheckoutPaymentBooster\Model\Data\Integration\InventoryItemResult"/>
 
     <type name="Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod">
         <arguments>

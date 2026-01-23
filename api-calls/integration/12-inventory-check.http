@@ -1,0 +1,146 @@
+### Check Inventory - Multiple Items
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "{{productSku}}",
+      "quantity": 2,
+      "product_id": "{{productId}}"
+    },
+    {
+      "sku": "24-MB01",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Single Item by SKU
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-MB01",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Check Inventory - High Quantity (Test Out of Stock)
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-MB01",
+      "quantity": 9999,
+      "product_id": "1"
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Using Product ID Only
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "product_id": "1",
+      "quantity": 2
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Invalid SKU
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "INVALID-SKU-123",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Mixed Valid and Invalid
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-MB01",
+      "quantity": 1
+    },
+    {
+      "sku": "INVALID-SKU",
+      "quantity": 1
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Decimal Quantity
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-MB01",
+      "quantity": 2.5
+    }
+  ]
+}
+
+###
+
+### Check Inventory - Missing Items (Should Error)
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer {{sharedSecret}}
+Content-Type: application/json
+
+{}
+
+###
+
+### Check Inventory - Invalid Auth (Should 401)
+POST {{baseUrl}}/rest/default/V1/shops/{{shopId}}/integration/inventory/check
+Authorization: Bearer invalid-token-here
+Content-Type: application/json
+
+{
+  "items": [
+    {
+      "sku": "24-MB01",
+      "quantity": 1
+    }
+  ]
+}
+
+###

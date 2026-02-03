@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
-use Magento\Customer\Api\Data\CustomerInterface;
+use Bold\CheckoutPaymentBooster\Model\Config\Source\GatewayPriceFormat;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Rate;
@@ -249,67 +248,76 @@ class QuoteConverter
 
         $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
         $websiteId = (int)$quote->getStore()->getWebsiteId();
-        $taxIncluded = $this->config->isTaxIncludedInPrices($websiteId);
+        $taxIncludedInCatalog = $this->config->isTaxIncludedInPrices($websiteId);
+
+        // Apply formatting ONLY when catalog prices include tax AND the toggle is enabled.
+        $useFormatting = $this->config->isGatewayPriceFormattingEnabled($websiteId);
+        $mode = ($useFormatting && $taxIncludedInCatalog)
+            ? $this->config->getGatewayPriceFormat($websiteId)
+            : GatewayPriceFormat::LEGACY_MODE;
+
+        $items = [];
+        $itemTotalFromItems = 0.0;
+
+        /** @var Item $cartItem */
+        foreach ($quoteItems as $cartItem) {
+            /** @var CartItemInterface $cartItem */
+            $qty = (int)(ceil((float)$cartItem->getQty()) ?: (float)$cartItem->getQty());
+            if ($qty <= 0) {
+                continue;
+            }
+
+            if ($mode === GatewayPriceFormat::INCLUDE_TAX) {
+                $rowInclTax = (float)$cartItem->getRowTotalInclTax();
+                $unitPrice = $rowInclTax / $qty; // $qty is > 0 due to the guard above
+            } else {
+                $unitPrice = (float)$cartItem->getPrice();
+            }
+
+            $items[] = [
+                'name' => $cartItem->getName() ?? '',
+                'sku' => $cartItem->getSku() ?? '',
+                'unit_amount' => [
+                    'currency_code' => $currencyCode ?? '',
+                    'value' => number_format($unitPrice, 2, '.', ''),
+                ],
+                'quantity' => $qty,
+                'is_shipping_required' => !in_array(
+                    $cartItem->getProductType(),
+                    ['virtual', 'downloadable'],
+                    true
+                ),
+            ];
+            $itemTotalFromItems += ((float)number_format($unitPrice, 2, '.', '')) * $qty;
+        }
+
+        // Exclude Tax mode: Magento subtotal (excl tax) may not equal sum(unit*qty) due to rounding.
+        // Add a small adjustment line item so item_total matches Magento.
+        if ($mode === GatewayPriceFormat::EXCLUDE_TAX) {
+            $magentoSubtotal = (float)$quote->getSubtotal(); // excl tax subtotal
+            $delta = round($magentoSubtotal - $itemTotalFromItems, 2);
+
+            if (abs($delta) >= 0.01) {
+                $items[] = [
+                    'name' => $this->config->getPriceFormatLineItemTitle($websiteId),
+                    'sku' => 'rounding_adjustment',
+                    'unit_amount' => [
+                        'currency_code' => $currencyCode ?? '',
+                        'value' => number_format($delta, 2, '.', ''),
+                    ],
+                    'quantity' => 1,
+                    'is_shipping_required' => false,
+                ];
+                $itemTotalFromItems += $delta;
+            }
+        }
 
         $convertedQuote = [
             'order_data' => [
-                'items' => array_map(
-                    static function (CartItemInterface $cartItem) use ($currencyCode, $taxIncluded): array {
-                        $itemPrice = $taxIncluded
-                            ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
-                            : $cartItem->getRowTotal();
-
-                        return [
-                            'name' => $cartItem->getName() ?? '',
-                            'sku' => $cartItem->getSku() ?? '',
-                            'unit_amount' => [
-                                'currency_code' => $currencyCode ?? '',
-                                'value' =>  number_format(
-                                    $itemPrice / $cartItem->getQty(),
-                                    2,
-                                    '.',
-                                    ''
-                                ),
-                            ],
-                            'quantity' => (int)(ceil($cartItem->getQty()) ?: $cartItem->getQty()),
-                            'is_shipping_required' => !in_array(
-                                $cartItem->getProductType(),
-                                [
-                                    'virtual',
-                                    'downloadable',
-                                    // TODO: add virtual gift cards to this list (Adobe Commerce only)
-                                ],
-                                true
-                            ),
-                        ];
-                    },
-                    $quoteItems
-                ),
+                'items' => $items,
                 'item_total' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format(
-                        array_sum(
-                            array_map(
-                                static function (CartItemInterface $cartItem) use ($taxIncluded) {
-                                    $itemPrice = $taxIncluded
-                                        ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
-                                        : $cartItem->getRowTotal();
-                                    $roundedItemPrice = number_format(
-                                        $itemPrice / $cartItem->getQty(),
-                                        2,
-                                        '.',
-                                        ''
-                                    );
-
-                                    return $roundedItemPrice * $cartItem->getQty();
-                                },
-                                $quoteItems
-                            )
-                        ),
-                        2,
-                        '.',
-                        ''
-                    ),
+                    'value' => number_format($itemTotalFromItems, 2, '.', ''),
                 ],
             ],
         ];
@@ -357,29 +365,62 @@ class QuoteConverter
             ],
         ];
 
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $taxIncludedInCatalog = $this->config->isTaxIncludedInPrices($websiteId);
+
+        // Apply formatting ONLY when catalog prices include tax AND the toggle is enabled.
+        $useFormatting = $this->config->isGatewayPriceFormattingEnabled($websiteId);
+        $mode = ($useFormatting && $taxIncludedInCatalog)
+            ? $this->config->getGatewayPriceFormat($websiteId)
+            : GatewayPriceFormat::LEGACY_MODE;
+
+        // Sum item taxes once (used for include_tax mode)
+        $itemsTaxAmount = 0.0;
+        /** @var Item[] $allItems */
+        $allItems = $quote->getItems() ?? [];
+        foreach ($allItems as $item) {
+            $itemsTaxAmount += (float)($item->getTaxAmount() ?? 0.0);
+        }
+
         if ($quote->getIsVirtual()) {
-            /** @var Item[] $items */
-            $items = $quote->getItems();
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                array_sum(
-                    array_map(
-                        static function (Item $item): float {
-                            return $item->getTaxAmount() ?? 0.00;
-                        },
-                        $items
-                    )
-                ),
-                2,
-                '.',
-                ''
-            );
+            $addressTax = (float)($quote->getBillingAddress()->getTaxAmount() ?? 0.00);
+
+            if ($mode === GatewayPriceFormat::INCLUDE_TAX) {
+                // Items already include tax in their unit amounts; keep only non-item tax (if any).
+                $nonItemTax = max(0.0, $addressTax - $itemsTaxAmount);
+                $convertedQuote['order_data']['tax_total']['value'] = number_format($nonItemTax, 2, '.', '');
+            } else {
+                /** @var Item[] $items */
+                $items = $quote->getItems();
+                $convertedQuote['order_data']['tax_total']['value'] = number_format(
+                    array_sum(
+                        array_map(
+                            static function (Item $item): float {
+                                return $item->getTaxAmount() ?? 0.00;
+                            },
+                            $items
+                        )
+                    ),
+                    2,
+                    '.',
+                    ''
+                );
+            }
         } else {
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
-                2,
-                '.',
-                ''
-            );
+            $addressTax = (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00);
+
+            if ($mode === GatewayPriceFormat::INCLUDE_TAX) {
+                // Keep only non-item tax (e.g., shipping tax) to avoid double counting.
+                $nonItemTax = max(0.0, $addressTax - $itemsTaxAmount);
+                $convertedQuote['order_data']['tax_total']['value'] = number_format($nonItemTax, 2, '.', '');
+            } else {
+                $convertedQuote['order_data']['tax_total']['value'] = number_format(
+                    $addressTax,
+                    2,
+                    '.',
+                    ''
+                );
+            }
         }
 
         return $convertedQuote;

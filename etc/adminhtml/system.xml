@@ -180,6 +180,51 @@
                         </depends>
                     </field>
                 </group>
+                <group id="delayed_capture_config" translate="label" sortOrder="100" showInDefault="0" showInWebsite="1" showInStore="0">
+                    <label>Delayed Capture Configuration</label>
+                    <field id="is_delayed_capture_enabled" translate="label" type="select" sortOrder="90" showInWebsite="1">
+                        <label>Are you using delayed capture in BAC?</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_delayed_capture_enabled</config_path>
+                        <comment><![CDATA[Are you using delayed capture in BAC.]]></comment>
+                        <depends>
+                            <field id="is_payment_booster_enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="is_failed_capture_cancel_order" translate="label" type="select" sortOrder="100" showInWebsite="1">
+                        <label>Automatically cancel order if failed capture?</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_cancel_order</config_path>
+                        <comment><![CDATA[This is the native behavior for automatic captures. If an order has its capture failed, the magento order will be canceled.]]></comment>
+                        <depends>
+                            <field id="is_delayed_capture_enabled">1</field>
+                            <field id="is_payment_booster_enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="is_failed_capture_change_order_status" translate="label" type="select" sortOrder="100" showInWebsite="1">
+                        <label>Automatically change order status if failed capture?</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_change_order_status</config_path>
+                        <comment><![CDATA[This will change the order status to the configured status below.]]></comment>
+                        <depends>
+                            <field id="is_failed_capture_cancel_order">0</field>
+                            <field id="is_delayed_capture_enabled">1</field>
+                            <field id="is_payment_booster_enabled">1</field>
+                        </depends>
+                    </field>
+                    <field id="is_failed_capture_new_order_status" translate="label" type="select" sortOrder="100" showInWebsite="1">
+                        <label>New status for Failed capture order</label>
+                        <source_model>Bold\CheckoutPaymentBooster\Model\Config\Source\PendingStatuses</source_model>
+                        <config_path>checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_new_order_status</config_path>
+                        <comment><![CDATA[Order with failed capture (independent of reason) will be set to this specific status.]]></comment>
+                        <depends>
+                            <field id="is_failed_capture_change_order_status">1</field>
+                            <field id="is_delayed_capture_enabled">1</field>
+                            <field id="is_payment_booster_enabled">1</field>
+                        </depends>
+                        <validate>required-entry</validate>
+                    </field>
+                </group>
             </group>
         </section>
         <section id="payment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">

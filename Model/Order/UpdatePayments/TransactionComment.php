@@ -50,7 +50,7 @@ class TransactionComment
      * Add comment to order
      *
      * @param string $action
-     * @param Order $order
+     * @param Order|OrderInterface $order
      * @return void
      */
     public function addComment(string $action, Order $order)

@@ -7,7 +7,6 @@ namespace Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Model\Order;
 
@@ -67,12 +66,12 @@ class CancelOrder
     /**
      * Cancel order or change order status depending on configuration.
      *
-     * @param OrderInterface&Order $order
+     * @param Order $order
      * @return void
      * @throws AlreadyExistsException
      * @throws \Exception
      */
-    public function execute(OrderInterface $order): void
+    public function execute(Order $order): void
     {
         $websiteId = (int) $order->getStore()->getWebsiteId();
 
@@ -82,15 +81,18 @@ class CancelOrder
         }
 
         // merchant wants to cancel the order even if delayed capture is enabled and failed capture
-        if ($this->config->isDelayedCaptureEnabled($websiteId)
+        if (
+            $this->config->isDelayedCaptureEnabled($websiteId)
             && $this->config->isDelayedCaptureCancelOrder($websiteId)
         ) {
             $this->cancelOrder($order);
         }
 
         // merchant wants to change order status if delayed capture and order is not captured
-        if ($this->config->isDelayedCaptureEnabled($websiteId) &&
-            $this->config->isDelayedCaptureChangeOrderStatus($websiteId)) {
+        if (
+            $this->config->isDelayedCaptureEnabled($websiteId)
+            && $this->config->isDelayedCaptureChangeOrderStatus($websiteId)
+        ) {
             $this->changeOrderStatus->execute($order, $this->config->isDelayedCaptureNewOrderStatus($websiteId));
         }
     }
@@ -98,13 +100,13 @@ class CancelOrder
     /**
      * Cancels the specified order.
      *
-     * @param OrderInterface $order The order to be cancelled.
+     * @param Order $order The order to be cancelled.
      * @return void
      * @throws \Exception If an error occurs during the cancellation process.
      */
-    private function cancelOrder(OrderInterface $order)
+    private function cancelOrder(Order $order)
     {
-        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getId());
+        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getEntityId());
         $orderExtensionData->setIsCancelInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
         try {

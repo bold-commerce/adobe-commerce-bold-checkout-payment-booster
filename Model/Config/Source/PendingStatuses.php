@@ -30,7 +30,7 @@ class PendingStatuses implements \Magento\Framework\Option\ArrayInterface
     }
 
     /**
-     * @return array
+     * @return array<int, array{value: string, label: string|\Magento\Framework\Phrase}>
      */
     public function toOptionArray()
     {

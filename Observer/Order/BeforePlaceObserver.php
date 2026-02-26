@@ -18,7 +18,6 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order\Payment;
@@ -117,7 +116,7 @@ class BeforePlaceObserver implements ObserverInterface
     public function execute(Observer $observer): void
     {
         $order = $observer->getEvent()->getOrder();
-        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+        if (!$order instanceof Order || !$this->checkPaymentMethod->isBold($order)) {
             return;
         }
         $quoteId = $order->getQuoteId();
@@ -139,7 +138,7 @@ class BeforePlaceObserver implements ObserverInterface
     /**
      * Add Bold transaction data to order payment.
      *
-     * @param OrderInterface $order
+     * @param Order $order
      * @param array{
      *     data: array{
      *         transactions: array<array{
@@ -154,7 +153,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @return void
      * @throws LocalizedException
      */
-    private function saveTransactionData(OrderInterface $order, array $transactionData)
+    private function saveTransactionData(Order $order, array $transactionData)
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {

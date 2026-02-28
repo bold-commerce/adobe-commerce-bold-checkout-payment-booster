@@ -100,8 +100,9 @@ class Create implements CreateInterface
         }
 
         $hasBillingData = $quote->getBillingAddress()->getFirstname() && $quote->getBillingAddress()->getStreet();
+        $hasShippingData = $quote->getShippingAddress()->getFirstname() && $quote->getShippingAddress()->getStreet();
 
-        if (!$hasBillingData && !empty($quote->getShippingAddress()->getShippingMethod())) {
+        if (!$hasBillingData && !$hasShippingData && !empty($quote->getShippingAddress()->getShippingMethod())) {
             $quote->getShippingAddress()->setShippingMethod('');
         }
 

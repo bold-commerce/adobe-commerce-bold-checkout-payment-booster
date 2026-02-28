@@ -122,8 +122,8 @@ class QuoteConverter
         $convertedQuote = [
             'order_data' => [
                 'customer' => [
-                    'first_name' => $billingAddress->getFirstname() ?? '',
-                    'last_name' => $billingAddress->getLastname() ?? '',
+                    'first_name' => $billingAddress->getFirstname() ?: $shippingAddress->getFirstname() ?: '',
+                    'last_name' => $billingAddress->getLastname() ?: $shippingAddress->getLastname() ?: '',
                     'platform_id' => $customer->getId() ? (string)$quote->getCustomerId() : null,
                 ],
             ],

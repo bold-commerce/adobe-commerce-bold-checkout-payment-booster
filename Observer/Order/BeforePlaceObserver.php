@@ -116,7 +116,7 @@ class BeforePlaceObserver implements ObserverInterface
     public function execute(Observer $observer): void
     {
         $order = $observer->getEvent()->getOrder();
-        if (!$order instanceof Order || !$this->checkPaymentMethod->isBold($order)) {
+        if (!$order || !$this->checkPaymentMethod->isBold($order)) {
             return;
         }
         $quoteId = $order->getQuoteId();

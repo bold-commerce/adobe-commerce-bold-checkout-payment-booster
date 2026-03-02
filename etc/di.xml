@@ -28,15 +28,11 @@
     <type name="Magento\Quote\Model\QuoteManagement">
         <plugin name="disable_bold_address_validation" type="Bold\CheckoutPaymentBooster\Plugin\Quote\Model\QuoteManagement\DisableBoldAddressValidationPlugin" />
     </type>
-    <type name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger">
-        <arguments>
-            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
-        </arguments>
-    </type>
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger" type="Magento\Framework\Logger\Monolog">
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="debug" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger\Handler</item>
+                <item name="critical" xsi:type="object">Magento\Framework\Logger\Handler\Exception</item>
             </argument>
         </arguments>
     </virtualType>
@@ -45,6 +41,106 @@
             <argument name="fileName" xsi:type="string">/var/log/bold_checkout_payment_booster.log</argument>
         </arguments>
     </virtualType>
+    <type name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Controller\Adminhtml\Order\Retry">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrderRepository">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\GuestHydrateOrder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\HydrateOrder">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\CreateInvoice">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\TransactionComment">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\SimpleDiagnosticService">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Observer\Checkout\ConfigureShopObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Observer\Checkout\InitializeBoldOrderObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Observer\Order\FallbackAfterSubmitObserver">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Plugin\Checkout\Controller\Onepage\SuccessPlugin">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Deactivator">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\UI\Payment\FastlaneConfigProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\UI\PaymentBoosterConfigProvider">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
+    <type name="Bold\CheckoutPaymentBooster\ViewModel\ExpressPay">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
     <!-- Bold Payment Method Configuration. -->
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Method\Adapter" type="Magento\Payment\Model\Method\Adapter">
         <arguments>

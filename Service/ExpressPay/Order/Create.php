@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -51,18 +52,25 @@ class Create implements CreateInterface
      */
     private $checkoutSession;
 
+    /**
+     * @var Config
+     */
+    private $config;
+
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
         ClientInterface $httpClient,
-        SessionManagerInterface $checkoutSession
+        SessionManagerInterface $checkoutSession,
+        Config $config
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
         $this->quoteConverter = $quoteConverter;
         $this->httpClient = $httpClient;
         $this->checkoutSession = $checkoutSession;
+        $this->config = $config;
     }
 
     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
@@ -99,7 +107,12 @@ class Create implements CreateInterface
             }
         }
 
-        $hasBillingData = $quote->getBillingAddress()->getFirstname() && $quote->getBillingAddress()->getStreet();
+        $firstName = $quote->getBillingAddress()->getFirstname()
+            ?? ($this->config->isUseShippingNameAsFallback((int) $quote->getStore()->getWebsiteId())
+                ? $quote->getShippingAddress()->getFirstname()
+                : 'noname');
+
+        $hasBillingData = $firstName && $quote->getBillingAddress()->getStreet();
 
         if (!$hasBillingData && !empty($quote->getShippingAddress()->getShippingMethod())) {
             $quote->getShippingAddress()->setShippingMethod('');

@@ -44,4 +44,9 @@
     <type name="Magento\Checkout\Model\Session">
         <plugin name="bold_booster_prevent_session_clear" type="Bold\CheckoutPaymentBooster\Plugin\Checkout\Model\SessionPlugin"/>
     </type>
+
+    <type name="Magento\Checkout\Controller\Onepage\Success">
+        <plugin name="bold_booster_verify_payment_authorized_on_success"
+                type="Bold\CheckoutPaymentBooster\Plugin\Checkout\Controller\Onepage\SuccessPlugin"/>
+    </type>
 </config>

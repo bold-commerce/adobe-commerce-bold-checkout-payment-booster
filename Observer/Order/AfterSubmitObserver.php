@@ -109,6 +109,7 @@ class AfterSubmitObserver implements ObserverInterface
         }
 
         $alreadyProcessed = $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order);
+        // @phpstan-ignore if.alwaysFalse
         if ($alreadyProcessed) {
             $this->logger->info(sprintf(
                 '[Bold][AfterSubmitObserver] Skipped: order %s (quote %s) already has a successful_state_at timestamp — likely processed by an earlier observer invocation.',

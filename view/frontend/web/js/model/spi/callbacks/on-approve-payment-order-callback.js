@@ -89,6 +89,7 @@ define(
                         await updateWalletPayOrderAction(orderId, gatewayId);
                     } catch (error) {
                         console.error('Could not perform final sync of wallet pay order.', error);
+                        return;
                     }
                 }
             }

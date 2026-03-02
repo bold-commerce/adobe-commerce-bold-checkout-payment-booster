@@ -108,6 +108,7 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
 
+        // Used for fallback observer in case is enabled
         $alreadyProcessed = $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order);
         // @phpstan-ignore if.alwaysFalse
         if ($alreadyProcessed) {

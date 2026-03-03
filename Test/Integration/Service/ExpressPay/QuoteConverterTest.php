@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\ObjectManagerInterface;
@@ -53,6 +54,17 @@ class QuoteConverterTest extends TestCase
             ->getItems();
         /** @var Quote $quote */
         $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        // CartRepositoryInterface::getList() does not hydrate the product model on quote items.
+        // The tax calculator calls $item->getProduct()->getProductTaxClassIds() during
+        // collectTotals(), which fatal-errors when getProduct() returns null.
+        // Force-load the product for every item before collecting totals.
+        $productRepository = $objectManager->get(ProductRepositoryInterface::class);
+        foreach ($quote->getAllItems() as $item) {
+            if (!$item->getProduct()) {
+                $item->setProduct($productRepository->getById((int) $item->getProductId()));
+            }
+        }
 
         // Pre-collect totals so we can derive the expected financial values from the quote.
         $quote->getShippingAddress()->setCollectShippingRates(true);
@@ -469,6 +481,15 @@ class QuoteConverterTest extends TestCase
         $config->method('isTaxIncludedInShipping')->willReturn(false);
         $config->method('isUseShippingNameAsFallback')->willReturn(false);
         $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        // Force-load the product model for each quote item so the tax calculator
+        // can call getProductTaxClassIds() without hitting a null reference.
+        $productRepository = $objectManager->get(ProductRepositoryInterface::class);
+        foreach ($quote->getAllItems() as $item) {
+            if (!$item->getProduct()) {
+                $item->setProduct($productRepository->getById((int) $item->getProductId()));
+            }
+        }
 
         // Collect the full quote first so tax amounts are populated
         $quote->collectTotals();

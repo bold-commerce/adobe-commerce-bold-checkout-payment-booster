@@ -135,7 +135,7 @@ class SetCompleteStateTest extends TestCase
      * match any guard message (any remaining exception is from the HTTP client).
      *
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
-     * @magentoDataFixture Magento/Sales/_files/order_with_invoice.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
      */
     public function testBothChecksPassWhenAuthTimestampSetAndTransactionExists(): void
     {

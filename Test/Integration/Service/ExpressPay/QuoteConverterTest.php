@@ -352,4 +352,301 @@ class QuoteConverterTest extends TestCase
 
         self::assertEmpty($quoteConverter->convertCustomer($quote));
     }
+
+    // ─── CHK-9534: gateway price formatting modes ─────────────────────────────
+
+    /**
+     * In INCLUDE_TAX mode the unit_amount for each item must be rowTotalInclTax / qty
+     * (greater than the base price) so that the item total sent to Bold already contains tax.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertQuoteItemsUsesRowTotalInclTaxAsUnitPriceInIncludeTaxMode(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(true);
+        $config->method('isTaxIncludedInPrices')->willReturn(true);
+        $config->method('getGatewayPriceFormat')->willReturn(GatewayPriceFormat::INCLUDE_TAX);
+        $config->method('isTaxIncludedInShipping')->willReturn(false);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertQuoteItems($quote);
+
+        $items = $result['order_data']['items'] ?? [];
+        self::assertNotEmpty($items, 'Items array must not be empty.');
+
+        foreach ($items as $item) {
+            $unitValue = (float) $item['unit_amount']['value'];
+            // In INCLUDE_TAX mode the unit price must exceed the base tax-exclusive price ($10.00)
+            self::assertGreaterThan(
+                10.00,
+                $unitValue,
+                sprintf(
+                    'INCLUDE_TAX unit price (%s) must be greater than the base price (10.00). '
+                    . 'Verify rowTotalInclTax / qty is used.',
+                    $unitValue
+                )
+            );
+        }
+    }
+
+    /**
+     * In INCLUDE_TAX mode, convertTaxes() must return only the non-item portion of the address
+     * tax (e.g. shipping tax), NOT the full address tax amount — deducting item taxes prevents
+     * double-counting because item unit_amounts already include their tax.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertTaxesDeductsItemTaxesInIncludeTaxMode(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(true);
+        $config->method('isTaxIncludedInPrices')->willReturn(true);
+        $config->method('getGatewayPriceFormat')->willReturn(GatewayPriceFormat::INCLUDE_TAX);
+        $config->method('isTaxIncludedInShipping')->willReturn(false);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        // Collect the full quote first so tax amounts are populated
+        $quote->collectTotals();
+
+        $itemsTaxAmount = 0.0;
+        foreach ($quote->getAllItems() as $item) {
+            $itemsTaxAmount += (float) ($item->getTaxAmount() ?? 0.0);
+        }
+        $addressTaxAmount = (float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0);
+
+        // Skip if there is no address tax to assert against
+        if ($addressTaxAmount <= 0.0) {
+            self::markTestSkipped('Fixture has no address tax — cannot verify INCLUDE_TAX deduction.');
+        }
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertTaxes($quote);
+        $taxTotalValue = (float) ($result['order_data']['tax_total']['value'] ?? 0.0);
+
+        $expectedNonItemTax = max(0.0, round($addressTaxAmount - $itemsTaxAmount, 2));
+        self::assertEqualsWithDelta(
+            $expectedNonItemTax,
+            $taxTotalValue,
+            0.01,
+            'In INCLUDE_TAX mode tax_total must equal address tax minus item taxes (non-item tax only).'
+        );
+        // Confirm the returned tax is strictly less than the full address tax
+        self::assertLessThan(
+            $addressTaxAmount,
+            $taxTotalValue + 0.005,
+            'INCLUDE_TAX tax_total must be less than the full address tax to avoid double-counting.'
+        );
+    }
+
+    /**
+     * In EXCLUDE_TAX mode a rounding_adjustment line item must be appended when
+     * sum(unit_price * qty) differs from Magento's subtotal by >= $0.01.
+     *
+     * The fixture product price is $10.00 and uses integer quantities, so no natural
+     * rounding delta exists. We inject an item with a non-round price to force the delta.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertQuoteItemsAddsRoundingAdjustmentItemInExcludeTaxMode(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        // Force a rounding delta: set price to $9.99 so 2×$9.99 = $19.98,
+        // then override the quote's subtotal to $20.00 — the $0.02 gap triggers the adjustment.
+        foreach ($quote->getAllItems() as $item) {
+            $item->setPrice(9.99);
+            $item->setRowTotal(19.98);
+            break; // Affect only the first item; one is enough
+        }
+        $quote->getShippingAddress()->setSubtotal(20.00);
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(true);
+        $config->method('isTaxIncludedInPrices')->willReturn(true); // required to activate a non-LEGACY mode
+        $config->method('getGatewayPriceFormat')->willReturn(GatewayPriceFormat::EXCLUDE_TAX);
+        $config->method('isTaxIncludedInShipping')->willReturn(false);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertQuoteItems($quote);
+        $itemSkus = array_column($result['order_data']['items'] ?? [], 'sku');
+
+        self::assertContains(
+            'rounding_adjustment',
+            $itemSkus,
+            'A rounding_adjustment item must be present when sum(unit*qty) diverges from Magento subtotal by >= $0.01.'
+        );
+    }
+
+    /**
+     * In LEGACY mode (formatting disabled OR tax not included in catalog prices),
+     * convertQuoteItems() must behave identically to the old code: unit_amount uses
+     * the plain item price and no rounding_adjustment item is added.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertQuoteItemsDoesNotAddRoundingAdjustmentInLegacyMode(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(false); // LEGACY
+        $config->method('isTaxIncludedInPrices')->willReturn(false);
+        $config->method('getGatewayPriceFormat')->willReturn(GatewayPriceFormat::LEGACY_MODE);
+        $config->method('isTaxIncludedInShipping')->willReturn(false);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertQuoteItems($quote);
+        $itemSkus = array_column($result['order_data']['items'] ?? [], 'sku');
+
+        self::assertNotContains(
+            'rounding_adjustment',
+            $itemSkus,
+            'No rounding_adjustment item should appear in LEGACY mode.'
+        );
+    }
+
+    // ─── CHK-9535: shipping name as billing fallback ───────────────────────────
+
+    /**
+     * When billing firstname/lastname are null AND isUseShippingNameAsFallback is true,
+     * convertCustomer() must use the shipping address name.
+     *
+     * Uses the fixture purpose-built for CHK-9535: billing has no personal name while
+     * shipping retains the full name.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_named_shipping_unnamed_billing.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertCustomerUsesShippingNameWhenBillingNameNullAndFallbackEnabled(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        // The fixture already has billing firstname/lastname = ''; set to null to exercise
+        // the null-coalescing path in convertCustomer() ('' is treated as falsy in the ternary).
+        $quote->getBillingAddress()->setFirstname(null)->setLastname(null);
+        // Shipping name from the fixture is "John Smith" — use a distinct name here to
+        // clearly differentiate the source of the value in the assertion.
+        $quote->getShippingAddress()->setFirstname('Jane')->setLastname('Doe');
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isUseShippingNameAsFallback')->willReturn(true);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(false);
+        $config->method('isTaxIncludedInPrices')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertCustomer($quote);
+
+        self::assertSame('Jane', $result['order_data']['customer']['first_name']);
+        self::assertSame('Doe', $result['order_data']['customer']['last_name']);
+    }
+
+    /**
+     * When billing firstname/lastname are null AND isUseShippingNameAsFallback is false,
+     * convertCustomer() must fall back to the hard-coded sentinel values ('noname' / 'nolastname').
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_named_shipping_unnamed_billing.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertCustomerUsesDefaultSentinelWhenBillingNameNullAndFallbackDisabled(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_1')
+            ->create();
+        $quotes = $objectManager->create(CartRepositoryInterface::class)
+            ->getList($searchCriteria)
+            ->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        $quote->getBillingAddress()->setFirstname(null)->setLastname(null);
+        $quote->getShippingAddress()->setFirstname('Jane')->setLastname('Doe');
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+        $config->method('isGatewayPriceFormattingEnabled')->willReturn(false);
+        $config->method('isTaxIncludedInPrices')->willReturn(false);
+        $config->method('getPriceFormatLineItemTitle')->willReturn('Rounding');
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertCustomer($quote);
+
+        self::assertSame('noname', $result['order_data']['customer']['first_name']);
+        self::assertSame('nolastname', $result['order_data']['customer']['last_name']);
+    }
 }

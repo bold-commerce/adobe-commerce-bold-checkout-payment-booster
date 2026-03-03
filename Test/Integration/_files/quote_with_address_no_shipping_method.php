@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Fixture: a quote that has a complete shipping address (city + country populated so
  * QuoteConverter::convertShippingInformation() can find shipping rates) but has NO

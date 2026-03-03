@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Fixture: a quote that reproduces Johnny's billing-address scenario.
  *

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Fixture: a quote whose only item is a virtual product.
  *

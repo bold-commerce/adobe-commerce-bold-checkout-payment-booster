@@ -252,7 +252,7 @@ class QuoteConverter
      */
     public function convertQuoteItems(Quote $quote): array
     {
-        $quoteItems = $quote->getItems();
+        $quoteItems = $quote->getAllItems();
 
         if ($quoteItems === null) {
             return [];

@@ -17,7 +17,6 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Model\Order;
@@ -125,6 +124,7 @@ class BeforePlaceObserver implements ObserverInterface
                 $publicOrderId = $relation->getBoldOrderId() ?: null;
             } catch (NoSuchEntityException $e) {
                 // No relation record yet — will be created below.
+                $this->logger->debug('No relation record yet');
             }
         }
 
@@ -139,6 +139,8 @@ class BeforePlaceObserver implements ObserverInterface
         // If the DB write failed silently we catch it here and block authorization.
         $relationAfterHydrate = $this->magentoQuoteBoldOrderRepository->getByQuoteId((string) $quoteId);
         if ($relationAfterHydrate->getSuccessfulHydrateAt() === null) {
+            $this->logger->debug(sprintf('Cannot authorize Bold payment:
+            order hydration did not complete for quote %s.', $quoteId));
             throw new LocalizedException(
                 __(
                     'Cannot authorize Bold payment: order hydration did not complete for quote %1.',
@@ -173,6 +175,8 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {
+            $this->logger->debug('Bold payment authorization succeeded but returned no transaction ID.
+            The order cannot be placed.');
             throw new LocalizedException(
                 __('Bold payment authorization succeeded but returned no transaction ID. The order cannot be placed.')
             );

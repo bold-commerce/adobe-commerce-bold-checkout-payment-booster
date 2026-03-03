@@ -117,22 +117,48 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $order = $observer->getEvent()->getOrder();
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            $this->logger->info('Order is not a Bold order');
             return;
         }
         $quoteId = $order->getQuoteId();
         /** @var CartInterface&Quote $quote */
         $quote = $this->cartRepository->get($quoteId);
-        $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
+        $websiteId = (int)$quote->getStore()->getWebsiteId();
+
+        // Resolve publicOrderId: extension attribute → session → DB relation.
+        $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId()
+            ?? $this->checkoutData->getPublicOrderId();
+
+        if (!$publicOrderId) {
+            try {
+                $relation = $this->magentoQuoteBoldOrderRepository->getByQuoteId((string) $quoteId);
+                $publicOrderId = $relation->getBoldOrderId() ?: null;
+            } catch (NoSuchEntityException $e) {
+                // No relation record yet — will be created below.
+            }
+        }
 
         if ($publicOrderId && $quoteId) {
             $this->magentoQuoteBoldOrderRepository->saveBoldQuotePublicOrderRelation($publicOrderId, (string) $quoteId);
         }
 
-        $websiteId = (int)$quote->getStore()->getWebsiteId();
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
-        $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
+
+        // Ordering guard: hydrate must complete and persist its timestamp before authorization.
+        // saveHydratedAt() is called inside hydrate() but uses a silent try-catch internally.
+        // If the DB write failed silently we catch it here and block authorization.
+        $relationAfterHydrate = $this->magentoQuoteBoldOrderRepository->getByQuoteId((string) $quoteId);
+        if ($relationAfterHydrate->getSuccessfulHydrateAt() === null) {
+            throw new LocalizedException(
+                __(
+                    'Cannot authorize Bold payment: order hydration did not complete for quote %1.',
+                    $quoteId
+                )
+            );
+        }
+
+        $transactionData = $this->authorize->execute($publicOrderId, $websiteId, (string) $quoteId);
         $this->saveTransactionData($order, $transactionData);
-        $this->magentoQuoteBoldOrderRepository->saveAuthorizedAt((string) $quoteId);
     }
 
     /**
@@ -157,7 +183,9 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {
-            return;
+            throw new LocalizedException(
+                __('Bold payment authorization succeeded but returned no transaction ID. The order cannot be placed.')
+            );
         }
 
         /** @var OrderPaymentInterface&Payment $orderPayment */

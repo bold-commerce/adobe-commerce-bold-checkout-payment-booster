@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model\Payment;
 
-use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
 
@@ -20,18 +19,13 @@ class Authorize
      */
     private $client;
 
-    /** @var MagentoQuoteBoldOrderRepositoryInterface */
-    private $magentoQuoteBoldOrderRepository;
-
     /**
      * @param BoldClient $client
      */
     public function __construct(
-        BoldClient $client,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        BoldClient $client
     ) {
         $this->client = $client;
-        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -39,7 +33,6 @@ class Authorize
      *
      * @param string $publicOrderId
      * @param int $websiteId
-     * @param string $quoteId
      * @return array{
      *     data: array{
      *         transactions: array{
@@ -53,7 +46,7 @@ class Authorize
      * }
      * @throws LocalizedException
      */
-    public function execute(string $publicOrderId, int $websiteId, string $quoteId): array
+    public function execute(string $publicOrderId, int $websiteId): array
     {
         $url = sprintf(self::PATH_PAYMENTS_AUTH, $publicOrderId);
         $result = $this->client->post($websiteId, $url, []);
@@ -63,7 +56,7 @@ class Authorize
                 : __('The payment cannot be authorized.');
             throw new LocalizedException($message);
         }
-        $this->magentoQuoteBoldOrderRepository->saveAuthorizedAt($quoteId);
+
         return $result->getBody();
     }
 }

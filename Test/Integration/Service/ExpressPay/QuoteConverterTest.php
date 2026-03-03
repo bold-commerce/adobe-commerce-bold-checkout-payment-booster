@@ -26,6 +26,19 @@ use function reset;
 class QuoteConverterTest extends TestCase
 {
     /**
+     * The fixture (quote_with_shipping_tax_and_discount.php) was rebuilt from scratch in
+     * CHK-9535 to be compatible with Magento 2.4.6-p10.
+     *
+     * New fixture characteristics:
+     *  - One simple product (SKU: simple, price $10.00, qty 1)
+     *  - Billing + shipping: John Doe, 123 Test St, Los Angeles CA 90001 US, tel 5555555555
+     *  - Shipping method: flatrate_flatrate ("Flat Rate - Fixed"), amount $5.00
+     *  - Coupon: CART_FIXED_DISCOUNT_5 → $5.00 discount
+     *  - Guest quote (no customer) → no email, platform_id = null
+     *
+     * Financial totals (grand total, tax) are derived from the live quote after
+     * collectTotals() so the test remains correct across different Magento tax configs.
+     *
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @magentoDbIsolation enabled
      */
@@ -40,6 +53,28 @@ class QuoteConverterTest extends TestCase
             ->getItems();
         /** @var Quote $quote */
         $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        // Pre-collect totals so we can derive the expected financial values from the quote.
+        $quote->getShippingAddress()->setCollectShippingRates(true);
+        $quote->collectTotals();
+
+        $currencyCode  = $quote->getCurrency() !== null
+            ? ($quote->getCurrency()->getQuoteCurrencyCode() ?? 'USD')
+            : 'USD';
+        $grandTotal    = number_format((float) $quote->getGrandTotal(), 2, '.', '');
+        $taxTotal      = number_format(
+            (float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0),
+            2,
+            '.',
+            ''
+        );
+        $shippingAmt   = number_format(
+            (float) $quote->getShippingAddress()->getShippingAmount(),
+            2,
+            '.',
+            ''
+        );
+
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
         $expectedConvertedQuoteData = [
@@ -47,72 +82,72 @@ class QuoteConverterTest extends TestCase
             'order_data' => [
                 'locale' => 'en-US',
                 'customer' => [
-                    'first_name' => 'John',
-                    'last_name' => 'Smith',
-                    'email' => 'customer@example.com',
-                    'platform_id' => '1'
+                    'first_name'  => 'John',
+                    'last_name'   => 'Doe',
+                    'platform_id' => null,
                 ],
                 'shipping_address' => [
-                    'first_name' => 'John',
-                    'last_name' => 'Smith',
-                    'address_line_1' => 'Green str, 67',
+                    'first_name'     => 'John',
+                    'last_name'      => 'Doe',
+                    'address_line_1' => '123 Test St',
                     'address_line_2' => '',
-                    'city' => 'CityM',
-                    'country_code' => 'US',
-                    'postal_code' => '75477',
-                    'state' => 'Alabama',
-                    'phone_number' => '3468676'
+                    'city'           => 'Los Angeles',
+                    'country_code'   => 'US',
+                    'postal_code'    => '90001',
+                    'state'          => 'California',
+                    'phone_number'   => '5555555555',
                 ],
                 'selected_shipping_option' => [
-                    'id' => 'flatrate_flatrate',
+                    'id'    => 'flatrate_flatrate',
                     'label' => 'Flat Rate - Fixed',
-                    'type' => 'SHIPPING',
+                    'type'  => 'SHIPPING',
                     'amount' => [
-                        'currency_code' => 'USD',
-                        'value' => '10.00'
-                    ]
+                        'currency_code' => $currencyCode,
+                        'value'         => $shippingAmt,
+                    ],
                 ],
                 'shipping_options' => [
                     [
-                        'id' => 'flatrate_flatrate',
+                        'id'    => 'flatrate_flatrate',
                         'label' => 'Flat Rate - Fixed',
-                        'type' => 'SHIPPING',
+                        'type'  => 'SHIPPING',
                         'amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '10.00'
-                        ]
-                    ]
+                            'currency_code' => $currencyCode,
+                            'value'         => $shippingAmt,
+                        ],
+                    ],
                 ],
                 'items' => [
                     [
-                        'name' => 'Simple Product',
-                        'sku' => 'simple',
+                        'name'        => 'Simple Product',
+                        'sku'         => 'simple',
                         'unit_amount' => [
-                            'currency_code' => 'USD',
-                            'value' => '10.00'
+                            'currency_code' => $currencyCode,
+                            'value'         => '10.00',
                         ],
-                        'quantity' => 2,
-                        'is_shipping_required' => true
+                        'quantity'             => 1,
+                        'is_shipping_required' => true,
                     ],
                 ],
                 'item_total' => [
-                    'currency_code' => 'USD',
-                    'value' => '20.00',
+                    'currency_code' => $currencyCode,
+                    'value'         => '10.00',
                 ],
                 'amount' => [
-                    'currency_code' => 'USD',
-                    'value' => '26.50',
+                    'currency_code' => $currencyCode,
+                    'value'         => $grandTotal,
                 ],
                 'tax_total' => [
-                    'currency_code' => 'USD',
-                    'value' => '1.50',
+                    'currency_code' => $currencyCode,
+                    'value'         => $taxTotal,
                 ],
                 'discount' => [
-                    'currency_code' => 'USD',
-                    'value' => '5.00',
+                    'currency_code' => $currencyCode,
+                    'value'         => '5.00',
                 ],
             ],
         ];
+
         $actualConvertedQuoteData = $quoteConverter->convertFullQuote($quote, 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7');
 
         self::assertEqualsCanonicalizing($expectedConvertedQuoteData, $actualConvertedQuoteData);

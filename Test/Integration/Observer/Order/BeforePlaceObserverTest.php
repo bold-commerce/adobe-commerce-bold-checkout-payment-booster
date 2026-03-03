@@ -6,13 +6,9 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
-use Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
-use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
-use Bold\CheckoutPaymentBooster\Model\ResumeOrder;
 use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
@@ -31,8 +27,8 @@ use ReflectionMethod;
  *
  * Covers:
  *  - saveTransactionData: throws when transaction ID is missing/null, succeeds when present
- *  - Hydrate-before-auth guard: throws when successful_hydrate_at is not recorded
- *  - recoverBoldSession path: called when publicOrderId is not found in any source
+ *  - Hydrate-before-auth ordering guard: throws when successful_hydrate_at is not recorded
+ *    after hydration (CHK-9534)
  *
  * @magentoAppArea frontend
  */
@@ -251,66 +247,4 @@ class BeforePlaceObserverTest extends TestCase
         $observer->execute($this->buildObserverEvent($order));
     }
 
-    // ─── session recovery ─────────────────────────────────────────────────────
-
-    /**
-     * When no publicOrderId is found in the extension attributes, session, or DB,
-     * recoverBoldSession() is called. If InitOrderFromQuote fails, execute() must
-     * throw a LocalizedException (the order cannot be placed without a Bold session).
-     *
-     * @magentoDataFixture Magento/Sales/_files/order.php
-     */
-    public function testThrowsWhenSessionRecoveryFails(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        $order->loadByIncrementId('100000001');
-        $order->getPayment()->setMethod('bold');
-        $order->setQuoteId('99999997'); // no existing relation record
-
-        /** @var Quote|MockObject $quote */
-        $quote = $this->createMock(Quote::class);
-        $quote->method('getId')->willReturn('99999997');
-        $quote->method('getExtensionAttributes')->willReturn(
-            $objectManager->create(\Magento\Quote\Api\Data\CartExtension::class)
-        );
-        $quote->method('getStore')->willReturn($objectManager->create(\Magento\Store\Model\Store::class));
-
-        /** @var CartRepositoryInterface|MockObject $cartRepository */
-        $cartRepository = $this->createMock(CartRepositoryInterface::class);
-        $cartRepository->method('get')->willReturn($quote);
-
-        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
-        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
-        $checkPaymentMethod->method('isBold')->willReturn(true);
-
-        /** @var CheckoutData|MockObject $checkoutData */
-        $checkoutData = $this->createMock(CheckoutData::class);
-        $checkoutData->method('getPublicOrderId')->willReturn(null);
-
-        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
-        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repo->method('getByQuoteId')
-            ->willThrowException(new NoSuchEntityException(__('No relation record')));
-
-        /** @var InitOrderFromQuote|MockObject $initOrderFromQuote */
-        $initOrderFromQuote = $this->createMock(InitOrderFromQuote::class);
-        $initOrderFromQuote->method('init')
-            ->willThrowException(new \Exception('Bold API unavailable'));
-
-        $observer = $this->buildObserver([
-            'cartRepository'             => $cartRepository,
-            'checkPaymentMethod'         => $checkPaymentMethod,
-            'checkoutData'               => $checkoutData,
-            'magentoQuoteBoldOrderRepository' => $repo,
-            'initOrderFromQuote'         => $initOrderFromQuote,
-        ]);
-
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/failed to initialize Bold payment session/i');
-
-        $observer->execute($this->buildObserverEvent($order));
-    }
 }

@@ -183,7 +183,7 @@
                 <group id="delayed_capture_config" translate="label" sortOrder="100" showInDefault="0" showInWebsite="1" showInStore="0">
                     <label>Delayed Capture Configuration</label>
                     <field id="is_delayed_capture_enabled" translate="label" type="select" sortOrder="90" showInWebsite="1">
-                        <label>Are you using delayed capture in BAC?</label>
+                        <label>Are you using delayed capture in Bold Account Center?</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                         <config_path>checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_delayed_capture_enabled</config_path>
                         <comment><![CDATA[Are you using delayed capture for Bold Checkout (set in Bold Account Center)?]]></comment>

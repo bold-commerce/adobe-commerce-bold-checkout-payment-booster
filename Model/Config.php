@@ -51,6 +51,15 @@ class Config
 
     private const PATH_GATEWAY_LINE_ITEM_TITLE = 'checkout/bold_checkout_payment_booster_advanced/line_item_title';
 
+    private const PATH_IS_DELAYED_CAPTURE_ENABLED =
+        'checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_delayed_capture_enabled';
+    private const PATH_IS_DELAYED_CAPTURE_CANCEL_ORDER =
+        'checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_cancel_order';
+    private const PATH_IS_DELAYED_CAPTURE_CHANGE_ORDER_STATUS =
+        'checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_change_order_status';
+    private const PATH_IS_DELAYED_CAPTURE_CANCEL_ORDER_NEW_STATUS =
+        'checkout/bold_checkout_payment_booster_advanced/delayed_capture_config_is_failed_capture_new_order_status';
+
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
      */
@@ -181,6 +190,7 @@ class Config
      * Save Bold shop id to config.
      *
      * @param int $websiteId
+     * @param string|null $shopId
      * @return void
      */
     public function setShopId(int $websiteId, ?string $shopId): void
@@ -487,5 +497,64 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         ) ?? 'Rounding';
+    }
+
+    /**
+     * Check if delayed capture is enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isDelayedCaptureEnabled(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_IS_DELAYED_CAPTURE_ENABLED,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Check if delayed capture cancel order is enabled.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isDelayedCaptureCancelOrder(int $websiteId): bool
+    {
+        return $this->isDelayedCaptureEnabled($websiteId) &&
+            $this->scopeConfig->isSetFlag(
+                self::PATH_IS_DELAYED_CAPTURE_CANCEL_ORDER,
+                ScopeInterface::SCOPE_WEBSITES,
+                $websiteId
+            );
+    }
+
+    /**
+     * Check if delayed capture cancel order is enabled.
+     */
+    public function isDelayedCaptureChangeOrderStatus(int $websiteId): bool
+    {
+        return $this->isDelayedCaptureEnabled($websiteId) &&
+            $this->scopeConfig->isSetFlag(
+                self::PATH_IS_DELAYED_CAPTURE_CHANGE_ORDER_STATUS,
+                ScopeInterface::SCOPE_WEBSITES,
+                $websiteId
+            );
+    }
+
+    /**
+     * Check if delayed capture cancel order is enabled.
+     *
+     * @param int $websiteId
+     * @return string
+     */
+    public function isDelayedCaptureNewOrderStatus(int $websiteId): string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_IS_DELAYED_CAPTURE_CANCEL_ORDER_NEW_STATUS,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
     }
 }

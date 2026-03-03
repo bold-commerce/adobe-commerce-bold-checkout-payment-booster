@@ -135,6 +135,45 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[ Use fallback observers. ]]></comment>
                 </field>
+                <!-- BEGIN: Price formatting Yes/No toggle -->
+                <field id="use_gateway_price_formatting" translate="label" type="select" sortOrder="56" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Apply price formatting for payment gateway</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[
+Enable this setting to apply price formatting rules when sending item prices to the payment gateway.
+
+If disabled, the module will keep the current (legacy) behavior and send prices exactly as before.
+
+Enable this only if you experience rounding or validation issues (for example with PayPal).
+                    ]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
+                </field>
+                <!-- END: Price formatting Yes/No toggle -->
+                <field id="gateway_price_format" translate="label" type="select" sortOrder="57" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Price Format for Payment Gateway</label>
+                    <source_model>Bold\CheckoutPaymentBooster\Model\Config\Source\GatewayPriceFormat</source_model>
+                    <comment><![CDATA[
+Select how item prices should be formatted when sent to the payment gateway.
+<ul>
+<li><b>Legacy:</b> Use the original price as in Magento. No changes were made.</li>
+<li><b>Exclude Tax:</b> Remove tax from item prices before sending. This will add a product line item with the difference.</li>
+<li><b>Include Tax:</b> Send prices including tax. This will remove product taxes from the tax_amount total.</li>
+</ul>
+                    ]]></comment>
+                    <depends>
+                        <field id="use_gateway_price_formatting">1</field>
+                    </depends>
+                </field>
+                <field id="line_item_title" translate="label" type="text" sortOrder="57" showInWebsite="1">
+                    <label>Line Item Title</label>
+                    <comment><![CDATA[Title for the new line item.]]></comment>
+                    <depends>
+                        <field id="gateway_price_format">exclude_tax</field>
+                    </depends>
+                </field>
+
                 <group id="digital_wallets_quote_cleanup" translate="label" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Digital Wallets Quote Cleanup</label>
                     <field id="enabled" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">

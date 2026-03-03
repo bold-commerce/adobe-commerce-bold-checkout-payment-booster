@@ -43,6 +43,14 @@ class Config
     private const PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE =
         'checkout/bold_checkout_payment_booster/add_tax_amount_frontend_balance';
 
+    private const PATH_USE_GATEWAY_PRICE_FORMATTING =
+        'checkout/bold_checkout_payment_booster_advanced/use_gateway_price_formatting';
+
+    private const PATH_GATEWAY_PRICE_FORMAT =
+        'checkout/bold_checkout_payment_booster_advanced/gateway_price_format';
+
+    private const PATH_GATEWAY_LINE_ITEM_TITLE = 'checkout/bold_checkout_payment_booster_advanced/line_item_title';
+
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
      */
@@ -434,5 +442,50 @@ class Config
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );
+    }
+
+    /**
+     * Check if price gateway formatting should be used.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isGatewayPriceFormattingEnabled(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_USE_GATEWAY_PRICE_FORMATTING,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Retrieve price gateway format configuration value.
+     *
+     * @param int $websiteId
+     * @return string
+     */
+    public function getGatewayPriceFormat(int $websiteId): string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_GATEWAY_PRICE_FORMAT,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Retrieve the price format line item title.
+     *
+     * @param int $websiteId
+     * @return string
+     */
+    public function getPriceFormatLineItemTitle(int $websiteId): string
+    {
+        return $this->scopeConfig->getValue(
+            self::PATH_GATEWAY_LINE_ITEM_TITLE,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        ) ?? 'Rounding';
     }
 }

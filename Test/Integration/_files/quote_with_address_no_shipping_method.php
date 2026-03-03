@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * Fixture: a quote that has a complete shipping address (city + country populated so
  * QuoteConverter::convertShippingInformation() can find shipping rates) but has NO
@@ -14,6 +11,8 @@ declare(strict_types=1);
  * Base quote: Magento/Checkout/_files/quote_with_address_saved.php
  *   reserved_order_id = 'test_order_1'
  */
+
+declare(strict_types=1);
 
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;

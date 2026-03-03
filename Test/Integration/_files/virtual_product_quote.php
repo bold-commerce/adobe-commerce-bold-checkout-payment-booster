@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * Fixture: a quote whose only item is a virtual product.
  *
@@ -17,6 +14,8 @@ declare(strict_types=1);
  * Uses a Magento core virtual product (SKU 'virtual-product') and a customer.
  *   reserved_order_id = 'virtual_test_order_1'
  */
+
+declare(strict_types=1);
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Quote\Api\CartRepositoryInterface;

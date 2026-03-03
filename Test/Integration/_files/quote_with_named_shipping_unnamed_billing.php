@@ -1,7 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * Fixture: a quote that reproduces Johnny's billing-address scenario.
  *
@@ -29,6 +26,8 @@ declare(strict_types=1);
  * Base quote: Magento/Checkout/_files/quote_with_address_saved.php
  *   reserved_order_id = 'test_order_1'
  */
+
+declare(strict_types=1);
 
 use Magento\Framework\Registry;
 use Magento\Quote\Model\Quote\Address\Rate;

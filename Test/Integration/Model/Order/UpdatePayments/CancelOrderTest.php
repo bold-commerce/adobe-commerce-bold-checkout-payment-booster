@@ -212,9 +212,18 @@ class CancelOrderTest extends TestCase
         $order->loadByIncrementId('100000001');
 
         $extensionData = $this->createMock(OrderExtensionData::class);
-        // Flag must be set to false after the exception
+        // Flag must be set to false after the exception.
+        // withConsecutive() was removed in PHPUnit 10; use a callback with an inline counter instead.
+        $callCount = 0;
         $extensionData->expects(self::exactly(2))->method('setIsCancelInProgress')
-            ->withConsecutive([true], [false]);
+            ->willReturnCallback(static function (bool $value) use (&$callCount): void {
+                if ($callCount === 0) {
+                    self::assertTrue($value, 'First call: setIsCancelInProgress must be called with true');
+                } else {
+                    self::assertFalse($value, 'Second call: setIsCancelInProgress must be called with false');
+                }
+                $callCount++;
+            });
 
         /** @var OrderExtensionDataRepository|MockObject $extensionDataRepo */
         $extensionDataRepo = $this->createMock(OrderExtensionDataRepository::class);

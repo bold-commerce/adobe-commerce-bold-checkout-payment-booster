@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\TransactionComment;
 use Bold\CheckoutPaymentBooster\Model\ResumeOrder;
 use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
 use Magento\Framework\Event;
@@ -96,10 +97,12 @@ class BeforePlaceObserverTest extends TestCase
      */
     public function testSaveTransactionDataSetsTransactionIdWhenPresent(): void
     {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var BeforePlaceObserver $observer */
-        $observer = $objectManager->create(BeforePlaceObserver::class);
+        // Mock transactionComment so OrderRepository::save() is never called on the mock Order.
+        // PHP 8 raises an Error (not Exception) when getItems() is called on null, which escapes
+        // the catch (\Exception) block inside TransactionComment::addComment().
+        $observer = $this->buildObserver([
+            'transactionComment' => $this->createMock(TransactionComment::class),
+        ]);
 
         /** @var Payment|MockObject $payment */
         $payment = $this->createMock(Payment::class);

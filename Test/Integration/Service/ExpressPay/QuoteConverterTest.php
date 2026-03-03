@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Config\Source\GatewayPriceFormat;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;

@@ -179,8 +179,13 @@ jobs:
             composer require --no-update "sebastian/comparator:^4.0"
           fi
 
-          composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts --no-update
+          # HTTPS URL works with the GitHub OAuth token configured above.
+          # git@github.com (SSH) would require a separate deploy key secret.
+          composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs https://github.com/bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
+          # github.head_ref = PR source branch  (e.g. release/CHK-9537)
+          # github.ref_name = branch name on push / workflow_dispatch
+          # github.base_ref = PR TARGET branch  ← do NOT use this; it installs from main, not the PR branch
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref || github.ref_name }} --no-scripts --no-update
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 

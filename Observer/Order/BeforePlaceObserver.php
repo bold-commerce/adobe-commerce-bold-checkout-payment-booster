@@ -6,7 +6,6 @@ namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
-use Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
@@ -21,6 +20,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
 use Psr\Log\LoggerInterface;
 
@@ -169,7 +169,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @return void
      * @throws LocalizedException
      */
-    private function saveTransactionData(OrderInterface $order, array $transactionData)
+    private function saveTransactionData(Order $order, array $transactionData)
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {

@@ -174,11 +174,6 @@ jobs:
               --no-update
           fi
 
-          if [ "${{ matrix.magento-version }}" = "2.4.6-p10" ]; then
-            echo "Relax sebastian/comparator for 2.4.6-p10: <=4.0.6 conflicts with PHPUnit 9.6.33+ which needs ^4.0.10"
-            composer require --no-update "sebastian/comparator:^4.0"
-          fi
-
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
           composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts --no-update
           composer install --prefer-dist --no-progress --no-suggest
@@ -205,7 +200,4 @@ jobs:
       - name: run the test
         working-directory: integration-pipeline-test
         run: |
-          vendor/bin/phpunit \
-            -c $(pwd)/dev/tests/integration/phpunit.xml \
-            --testdox \
-            $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

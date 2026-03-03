@@ -2,59 +2,87 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\Registry;
-use Magento\Quote\Model\Quote\Address\Rate;
-use Magento\Quote\Model\Quote\Item;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
 use Magento\TestFramework\Workaround\Override\Fixture\Resolver;
 
+// Tax rule + sales rule fixtures
 Resolver::getInstance()->requireDataFixture('Magento/ConfigurableProduct/_files/tax_rule.php');
 Resolver::getInstance()->requireDataFixture('Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php');
-Resolver::getInstance()->requireDataFixture('Magento/Checkout/_files/quote_with_address_saved.php');
+
+// Base simple product fixture (SKU: simple)
+Resolver::getInstance()->requireDataFixture('Magento/Catalog/_files/product_simple.php');
 
 $objectManager = Bootstrap::getObjectManager();
+
+/** @var StoreManagerInterface $storeManager */
+$storeManager = $objectManager->get(StoreManagerInterface::class);
+$storeId = (int)$storeManager->getStore()->getId();
+
+/** @var ProductRepositoryInterface $productRepository */
+$productRepository = $objectManager->get(ProductRepositoryInterface::class);
+
+/** @var Rule $taxRule */
+$taxRule = $objectManager->get(\Magento\Framework\Registry::class)
+    ->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
+
+try {
+    $product = $productRepository->get('simple', false, $storeId, true);
+} catch (NoSuchEntityException $e) {
+    throw new \RuntimeException('Required fixture product with SKU "simple" was not found.', 0, $e);
+}
+
+// Apply tax class to product BEFORE adding it to the quote (avoid saving products from quote items)
+$product->setTaxClassId((int)$taxRule->getProductTaxClassIds()[0]);
+$productRepository->save($product);
+
 /** @var QuoteFactory $quoteFactory */
 $quoteFactory = $objectManager->get(QuoteFactory::class);
 /** @var QuoteResource $quoteResource */
 $quoteResource = $objectManager->get(QuoteResource::class);
-$quote = $quoteFactory->create();
 
-$quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
+$quote = $quoteFactory->create();
+$quote->setStoreId($storeId);
+$quote->setIsActive(true);
+$quote->setReservedOrderId('test_order_1');
+
+// Add product
+$quote->addProduct($product, 1);
+
+// Addresses (minimal required fields for totals + shipping)
+$addressData = [
+    'firstname' => 'John',
+    'lastname' => 'Doe',
+    'street' => '123 Test St',
+    'city' => 'Los Angeles',
+    'region' => 'California',
+    'region_id' => 12, // CA
+    'postcode' => '90001',
+    'country_id' => 'US',
+    'telephone' => '5555555555',
+];
 
 $shippingAddress = $quote->getShippingAddress();
+$shippingAddress->addData($addressData);
+$shippingAddress->setCollectShippingRates(true);
+$shippingAddress->setShippingMethod('flatrate_flatrate');
+$shippingAddress->setShippingDescription('Flat Rate - Fixed');
 
-$shippingAddress->setShippingMethod('flatrate_flatrate')
-    ->setShippingDescription('Flat Rate - Fixed')
-    ->save();
+$billingAddress = $quote->getBillingAddress();
+$billingAddress->addData($addressData);
 
-$rate = $objectManager->get(Rate::class);
+// Set a deterministic shipping amount for the test
+$shippingAddress->setBaseShippingAmount(5.00);
+$shippingAddress->setShippingAmount(5.00);
 
-$rate->setPrice(5.00)
-    ->setAddressId($shippingAddress->getId())
-    ->save();
-
-$shippingAddress->setBaseShippingAmount($rate->getPrice());
-$shippingAddress->setShippingAmount($rate->getPrice());
-
-$rate->delete();
-
-$registry = $objectManager->get(Registry::class);
-/** @var Rule $taxRule */
-$taxRule = $registry->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
-/** @var Item[] $quoteItems */
-$quoteItems = $quote->getAllItems();
-
-array_walk(
-    $quoteItems,
-    static function (Item $item) use ($taxRule): void {
-        $item->getProduct()
-            ->setTaxClassId($taxRule->getProductTaxClassIds()[0])
-            ->save();
-    }
-);
-
+// Apply coupon
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
-$quote->save();
+
+// Collect totals and persist
+$quote->collectTotals();
+$quoteResource->save($quote);

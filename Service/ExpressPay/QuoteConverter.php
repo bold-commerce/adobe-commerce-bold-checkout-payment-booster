@@ -117,12 +117,21 @@ class QuoteConverter
 
         /** @var \Magento\Customer\Api\Data\CustomerInterface $customer */
         $customer = $quote->getCustomer(); //
+        $websiteId = $quote->getStore()->getWebsiteId();
+
+        // Adding config check if is to use shipping address as fallback
+        $firstName = $billingAddress->getFirstname() ??
+            $this->config->isUseShippingNameAsFallback((int) $websiteId)
+            ? $shippingAddress->getFirstname() : 'noname';
+        $lastName = $billingAddress->getLastname() ??
+            $this->config->isUseShippingNameAsFallback((int) $websiteId)
+            ? $shippingAddress->getLastname() : 'nolastname';
 
         $convertedQuote = [
             'order_data' => [
                 'customer' => [
-                    'first_name' => $billingAddress->getFirstname() ?? '',
-                    'last_name' => $billingAddress->getLastname() ?? '',
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
                     'platform_id' => $customer->getId() ? (string)$quote->getCustomerId() : null,
                 ],
             ],

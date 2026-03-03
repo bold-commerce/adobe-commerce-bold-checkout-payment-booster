@@ -42,6 +42,8 @@ class Config
     private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
     private const PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE =
         'checkout/bold_checkout_payment_booster/add_tax_amount_frontend_balance';
+    private const PATH_USE_SHIPPING_NAME_AS_FALLBACK =
+        'checkout/bold_checkout_payment_booster/use_shipping_name_as_fallback';
 
     private const PATH_USE_GATEWAY_PRICE_FORMATTING =
         'checkout/bold_checkout_payment_booster_advanced/use_gateway_price_formatting';
@@ -190,7 +192,6 @@ class Config
      * Save Bold shop id to config.
      *
      * @param int $websiteId
-     * @param string|null $shopId
      * @return void
      */
     public function setShopId(int $websiteId, ?string $shopId): void
@@ -553,6 +554,21 @@ class Config
     {
         return $this->scopeConfig->getValue(
             self::PATH_IS_DELAYED_CAPTURE_CANCEL_ORDER_NEW_STATUS,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Use shipping firstname and lastname as fallback for billing firstname and lastname.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isUseShippingNameAsFallback(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_USE_SHIPPING_NAME_AS_FALLBACK,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

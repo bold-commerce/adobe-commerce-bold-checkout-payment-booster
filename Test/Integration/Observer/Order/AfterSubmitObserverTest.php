@@ -15,6 +15,7 @@ use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -108,8 +109,12 @@ class AfterSubmitObserverTest extends TestCase
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
-        // No entity ID — transient object
-        $order->getPayment()->setMethod('bold');
+        // No entity ID — transient object.
+        // getPayment() is null on an unsaved Order, so attach a Payment explicitly.
+        /** @var Payment $payment */
+        $payment = $objectManager->create(Payment::class);
+        $payment->setMethod('bold');
+        $order->setPayment($payment);
 
         /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
         $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);

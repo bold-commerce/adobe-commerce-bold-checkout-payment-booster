@@ -4,8 +4,16 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Model\Order;
 
+<<<<<<< Updated upstream
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
+=======
+use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Order\CheckTransactions;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionData;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
+>>>>>>> Stashed changes
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as MagentoQuoteBoldOrderResourceModel;
 use Magento\Framework\Exception\LocalizedException;
@@ -84,8 +92,24 @@ class SetCompleteStateTest extends TestCase
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/payment authorization has not been recorded/i');
 
+<<<<<<< Updated upstream
         $setCompleteState->execute($order);
     }
+=======
+        // Bypass the three pre-call auth guards — they are covered by dedicated tests.
+        /** @var CheckTransactions|\PHPUnit\Framework\MockObject\MockObject $checkTransactionsMock */
+        $checkTransactionsMock = $this->createMock(CheckTransactions::class);
+        $checkTransactionsMock->method('hasRelationRecord')->willReturn(true);
+        $checkTransactionsMock->method('getAuthTransactionFromLifecycle')->willReturn(true);
+        $checkTransactionsMock->method('hasAuthTransaction')->willReturn(true);
+
+        /** @var SetCompleteState $service */
+        $service = $objectManager->create(SetCompleteState::class, [
+            'client'            => $clientMock,
+            'checkTransactions' => $checkTransactionsMock,
+        ]);
+        $service->execute($order);
+>>>>>>> Stashed changes
 
     /**
      * When bold_auth_full_at IS set but NO Magento AUTH transaction exists,

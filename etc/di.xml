@@ -116,11 +116,6 @@
             <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
         </arguments>
     </type>
-    <type name="Bold\CheckoutPaymentBooster\Plugin\Checkout\Controller\Onepage\SuccessPlugin">
-        <arguments>
-            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
-        </arguments>
-    </type>
     <type name="Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Deactivator">
         <arguments>
             <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>

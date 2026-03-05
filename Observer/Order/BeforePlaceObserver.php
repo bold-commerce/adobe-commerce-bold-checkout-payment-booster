@@ -106,6 +106,7 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $order = $observer->getEvent()->getOrder();
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            $this->logger->info('Order is not a Bold order');
             return;
         }
         $quoteId = $order->getQuoteId();

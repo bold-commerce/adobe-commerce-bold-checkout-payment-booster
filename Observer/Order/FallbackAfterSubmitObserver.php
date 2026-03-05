@@ -76,11 +76,13 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
     {
         $order = $observer->getEvent()->getOrder();
         $websiteId = (int) $order->getStore()->getWebsiteId();
-        if ($this->config->useFallbackObserver($websiteId)) try {
-            parent::execute($observer);
-        } catch (NoSuchEntityException $e) {
-        } catch (LocalizedException $e) {
-            $this->logger->critical($e);
+        if ($this->config->useFallbackObserver($websiteId)) {
+            try {
+                parent::execute($observer);
+            } catch (NoSuchEntityException $e) {
+            } catch (LocalizedException $e) {
+                $this->logger->critical($e);
+            }
         }
     }
 }

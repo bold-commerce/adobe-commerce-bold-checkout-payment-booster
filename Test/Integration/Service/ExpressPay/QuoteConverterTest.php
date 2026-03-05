@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 
+use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
@@ -351,5 +352,99 @@ class QuoteConverterTest extends TestCase
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
         self::assertEmpty($quoteConverter->convertCustomer($quote));
+    }
+
+    /**
+     * When the billing address has no name AND the shipping-name fallback is enabled,
+     * convertCustomer() must return the shipping address firstname/lastname.
+     *
+     * This also verifies that the operator-precedence fix is in place:
+     * $billing ?? ($fallback ? $shipping : 'noname') — NOT ($billing ?? $fallback) ? $shipping : 'noname'
+     */
+    public function testConvertCustomerUsesShippingNameWhenBillingNameNullAndFallbackEnabled(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        $quote->getBillingAddress()->setId(1); // pass the early-return guard
+        $quote->getBillingAddress()->setFirstname(null);
+        $quote->getBillingAddress()->setLastname(null);
+        $quote->getShippingAddress()->setFirstname('Jane');
+        $quote->getShippingAddress()->setLastname('Doe');
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isUseShippingNameAsFallback')->willReturn(true);
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertCustomer($quote);
+
+        self::assertSame('Jane', $result['order_data']['customer']['first_name']);
+        self::assertSame('Doe', $result['order_data']['customer']['last_name']);
+    }
+
+    /**
+     * When the billing address has no name AND the shipping-name fallback is disabled,
+     * convertCustomer() must use the 'noname'/'nolastname' sentinel values.
+     */
+    public function testConvertCustomerUsesDefaultSentinelWhenBillingNameNullAndFallbackDisabled(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        $quote->getBillingAddress()->setId(1);
+        $quote->getBillingAddress()->setFirstname(null);
+        $quote->getBillingAddress()->setLastname(null);
+        $quote->getShippingAddress()->setFirstname('Jane');
+        $quote->getShippingAddress()->setLastname('Doe');
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isUseShippingNameAsFallback')->willReturn(false);
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertCustomer($quote);
+
+        self::assertSame('noname', $result['order_data']['customer']['first_name']);
+        self::assertSame('nolastname', $result['order_data']['customer']['last_name']);
+    }
+
+    /**
+     * When the billing address has a name, convertCustomer() must use it even when
+     * the shipping-name fallback config is enabled. This proves the ?? / ?: precedence
+     * fix: the billing name must short-circuit the entire fallback expression.
+     */
+    public function testConvertCustomerUsesBillingNameWhenPresentRegardlessOfFallbackConfig(): void
+    {
+        /** @var ObjectManagerInterface $objectManager */
+        $objectManager = Bootstrap::getObjectManager();
+
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        $quote->getBillingAddress()->setId(1);
+        $quote->getBillingAddress()->setFirstname('BillingFirst');
+        $quote->getBillingAddress()->setLastname('BillingLast');
+        $quote->getShippingAddress()->setFirstname('ShippingFirst');
+        $quote->getShippingAddress()->setLastname('ShippingLast');
+
+        /** @var Config|\PHPUnit\Framework\MockObject\MockObject $config */
+        $config = $this->createMock(Config::class);
+        $config->method('isUseShippingNameAsFallback')->willReturn(true); // fallback ON
+
+        /** @var QuoteConverter $quoteConverter */
+        $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
+
+        $result = $quoteConverter->convertCustomer($quote);
+
+        self::assertSame('BillingFirst', $result['order_data']['customer']['first_name']);
+        self::assertSame('BillingLast', $result['order_data']['customer']['last_name']);
     }
 }

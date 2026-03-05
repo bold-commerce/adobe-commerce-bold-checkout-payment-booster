@@ -47,6 +47,7 @@ define(
             const availableWalletTypes = ['apple', 'google'];
             const isWalletPayment = availableWalletTypes.includes(paymentData.payment_type);
             const isSpiContainer = paymentApprovalData.containerId === 'SPI' ||  paymentApprovalData.containerId === 'wallet-payments';
+            const shippingStrategy = isSpiContainer ? 'fixed' : (paymentApprovalData?.shipping_strategy ?? 'dynamic');
 
             const paymentMethodData = {
                 method: window.checkoutConfig?.bold?.paymentBooster?.payment?.method ?? 'bold',
@@ -86,7 +87,7 @@ define(
                 const gatewayId = paymentApprovalData?.gateway_id;
                 if (orderId && gatewayId) {
                     try {
-                        await updateWalletPayOrderAction(orderId, gatewayId);
+                        await updateWalletPayOrderAction(orderId, gatewayId, shippingStrategy);
                     } catch (error) {
                         console.error('Could not perform final sync of wallet pay order.', error);
                         return;

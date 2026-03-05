@@ -107,10 +107,10 @@ class Create implements CreateInterface
             }
         }
 
-        // Adding config check if is to use shipping address as fallback
-        $firstName = $quote->getBillingAddress()->getFirstname() ??
-            $this->config->isUseShippingNameAsFallback((int) $quote->getStore()->getWebsiteId()) ?
-            $quote->getShippingAddress()->getFirstname() : 'noname';
+        $firstName = $quote->getBillingAddress()->getFirstname()
+            ?? ($this->config->isUseShippingNameAsFallback((int) $quote->getStore()->getWebsiteId())
+                ? $quote->getShippingAddress()->getFirstname()
+                : 'noname');
 
         $hasBillingData = $firstName && $quote->getBillingAddress()->getStreet();
 

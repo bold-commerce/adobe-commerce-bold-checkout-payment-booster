@@ -120,13 +120,14 @@ class QuoteConverter
         $customer = $quote->getCustomer(); //
         $websiteId = $quote->getStore()->getWebsiteId();
 
-        // Adding config check if is to use shipping address as fallback
-        $firstName = $billingAddress->getFirstname() ??
-            $this->config->isUseShippingNameAsFallback((int) $websiteId)
-            ? $shippingAddress->getFirstname() : 'noname';
-        $lastName = $billingAddress->getLastname() ??
-            $this->config->isUseShippingNameAsFallback((int) $websiteId)
-            ? $shippingAddress->getLastname() : 'nolastname';
+        $firstName = $billingAddress->getFirstname()
+            ?? ($this->config->isUseShippingNameAsFallback((int) $websiteId)
+                ? $shippingAddress->getFirstname()
+                : 'noname');
+        $lastName = $billingAddress->getLastname()
+            ?? ($this->config->isUseShippingNameAsFallback((int) $websiteId)
+                ? $shippingAddress->getLastname()
+                : 'nolastname');
 
         $convertedQuote = [
             'order_data' => [

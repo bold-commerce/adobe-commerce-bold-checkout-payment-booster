@@ -15,7 +15,7 @@ define(
          * @param {number} paymentGatewayId
          * @return {Promise}
          */
-        return async function (orderId, paymentGatewayId) {
+        return async function (orderId, paymentGatewayId, shipping_strategy ) {
             // todo: should be put instead of post method.
             return platformClient.post(
                 'rest/V1/express_pay/order/update',
@@ -23,7 +23,9 @@ define(
                     quoteMaskId: window.checkoutConfig.quoteData.entity_id,
                     gatewayId: paymentGatewayId,
                     paypalOrderId: orderId,
+                    shippingStrategy: shipping_strategy || 'dynamic',
                 }
             );
         };
-    });
+    }
+);

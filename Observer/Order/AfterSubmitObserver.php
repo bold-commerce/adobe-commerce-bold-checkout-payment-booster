@@ -23,12 +23,6 @@ use Psr\Log\LoggerInterface;
 class AfterSubmitObserver implements ObserverInterface
 {
     /**
-     * Counts how many times execute() has been entered during this PHP process.
-     * Shared across AfterSubmitObserver and FallbackAfterSubmitObserver (which extends this class)
-     * so the number reflects the true total across all observer registrations.
-     */
-    private static int $triggerCount = 0;
-    /**
      * @var CheckoutData
      */
     private $checkoutData;
@@ -102,80 +96,35 @@ class AfterSubmitObserver implements ObserverInterface
      */
     public function execute(Observer $observer): void
     {
-        $triggerNumber = ++self::$triggerCount;
         $order = $observer->getEvent()->getOrder();
-
-        $this->logger->info(sprintf(
-            '[Bold][AfterSubmitObserver] Triggered #%d. class=%s event=%s orderId=%s quoteId=%s method=%s',
-            $triggerNumber,
-            static::class,
-            $observer->getEvent()->getName(),
-            $order ? $order->getEntityId() : 'null',
-            $order ? $order->getQuoteId() : 'null',
-            ($order && $order->getPayment()) ? $order->getPayment()->getMethod() : 'null'
-        ));
-
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
-            $this->logger->info('[Bold][AfterSubmitObserver] Skipped: order is not a Bold order.');
             return;
         }
 
         $orderId = $order->getEntityId();
-
-        if (!$orderId) {
-            $this->logger->info('[Bold][AfterSubmitObserver] Skipped: order has no entity ID yet.');
+        // Skip if Magento order does Not have an ID yet
+        // or skip if the Bold Order Quote Relation has already a successful State call timestamp
+        if (!$orderId || $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order)) {
             return;
         }
 
-        $alreadyProcessed = $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order);
-        if ($alreadyProcessed) {
-            $this->logger->info(sprintf(
-                '[Bold][AfterSubmitObserver] Skipped: order %s (quote %s) already has a successful_state_at timestamp — likely processed by an earlier observer invocation.',
-                $orderId,
-                $order->getQuoteId()
-            ));
-            return;
+        $publicOrderId = $this->checkoutData->getPublicOrderId();
+
+        if ($publicOrderId !== null) {
+            $this->checkoutData->resetCheckoutData();
         }
-
-        $publicOrderIdFromSession = $this->checkoutData->getPublicOrderId();
-
-        $this->logger->info(sprintf(
-            '[Bold][AfterSubmitObserver] publicOrderId from session: %s (order %s, quote %s)',
-            $publicOrderIdFromSession ?? 'null — session is empty or was already reset',
-            $orderId,
-            $order->getQuoteId()
-        ));
-
-        $publicOrderId = $publicOrderIdFromSession;
 
         if (!$publicOrderId) {
-            $this->logger->info(sprintf(
-                '[Bold][AfterSubmitObserver] Session was empty — falling back to bold_booster_magento_quote_bold_order table for order %s (quote %s).',
-                $orderId,
-                $order->getQuoteId()
-            ));
+            // If missing Public order id, try to get from the Bold Order Quote relation
             $publicOrderId = $this->magentoQuoteBoldOrderRepository->getPublicOrderIdFromOrder($order);
-            $this->logger->info(sprintf(
-                '[Bold][AfterSubmitObserver] publicOrderId from DB fallback: %s',
-                $publicOrderId ?? 'null — no relation record found'
-            ));
-        }
-
-        if (!$publicOrderId) {
-            $this->logger->critical(sprintf(
-                '[Bold][AfterSubmitObserver] publicOrderId is null for order %s (quote %s). '
-                . 'Both session and DB fallback returned nothing. '
-                . 'Bold order may be unlinked or the session was never initialised. '
-                . 'SetCompleteState will be skipped. Check BeforePlaceObserver and InitializeBoldOrderObserver logs.',
-                $orderId,
-                $order->getQuoteId()
-            ));
-            return;
         }
 
         $orderExtensionData = $this->orderExtensionDataFactory->create();
         $orderExtensionData->setOrderId((int) $orderId);
-        $orderExtensionData->setPublicId($publicOrderId);
+
+        if ($publicOrderId !== null) {
+            $orderExtensionData->setPublicId($publicOrderId);
+        }
 
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);
@@ -183,12 +132,15 @@ class AfterSubmitObserver implements ObserverInterface
             $this->logger->critical($e);
             return;
         }
+<<<<<<< Updated upstream
+        $this->setCompleteState->execute($order);
+=======
 
         // SetCompleteState::execute() now throws LocalizedException when authorization has not
         // been recorded (auth-before-setState ordering guard). The order is already committed to
         // the database at this point, so we must not let the exception propagate — it would
         // cause a 500 response after a successful order save. Log at critical so the team is
-        // alerted; the SuccessPlugin will handle the customer-facing redirect if needed.
+        // alerted.
         try {
             $this->setCompleteState->execute($order);
         } catch (LocalizedException $e) {
@@ -205,5 +157,6 @@ class AfterSubmitObserver implements ObserverInterface
                 $orderId
             ));
         }
+>>>>>>> Stashed changes
     }
 }

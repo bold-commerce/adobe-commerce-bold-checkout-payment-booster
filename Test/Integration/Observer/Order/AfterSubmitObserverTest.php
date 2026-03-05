@@ -1,77 +1,68 @@
 <?php
 
-/**
- * Negative-scenario tests for AfterSubmitObserver.
- *
- * AfterSubmitObserver fires on sales_order_place_after. Its responsibilities are:
- *  1. Skip non-Bold or already-processed orders (idempotency).
- *  2. Resolve the Bold public_order_id from session or DB fallback.
- *  3. Persist an OrderExtensionData row (orderId → publicOrderId).
- *  4. Call SetCompleteState to signal Bold that the Magento order is complete.
- *
- * The scenarios below cover the negative paths that are most likely to surface in
- * production: session cleared between steps, already-processed idempotency guard,
- * non-Bold payment method, and the "call state without being authorized" problem where
- * neither the session nor the DB relation can supply a public_order_id.
- */
-
 declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
-use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
-use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
-use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Payment;
 use Magento\TestFramework\Helper\Bootstrap;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 
 /**
+ * Integration tests for AfterSubmitObserver.
+ *
+ * Covers all branching paths:
+ *  - Skip for non-Bold orders
+ *  - Skip when order has no entity ID
+ *  - Skip when order was already processed
+ *  - Critical log + early return when publicOrderId cannot be resolved
+ *  - LocalizedException from SetCompleteState is caught (not rethrown)
+ *  - resetCheckoutData() is called only when publicOrderId came from the session
+ *  - resetCheckoutData() is NOT called when publicOrderId came only from the DB fallback
+ *
  * @magentoAppArea frontend
  */
 class AfterSubmitObserverTest extends TestCase
 {
-    // ── helpers ──────────────────────────────────────────────────────────────
+    // ─── helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Build an AfterSubmitObserver instance, replacing individual dependencies with mocks
-     * when supplied in $overrides.
+     * Build an AfterSubmitObserver with selected dependencies replaced by mocks.
+     * Any argument not supplied keeps its real DI-resolved instance.
      *
      * @param array<string, mixed> $overrides
      */
     private function buildObserver(array $overrides = []): AfterSubmitObserver
     {
         $objectManager = Bootstrap::getObjectManager();
+
         return $objectManager->create(AfterSubmitObserver::class, $overrides);
     }
 
     /**
-     * Build an Observer event wrapper carrying the given order.
+     * Build a minimal Magento event Observer that carries the given order.
      */
-    private function makeObserverEvent(?Order $order): Observer
+    private function buildObserverEvent(?Order $order): Observer
     {
         $event = new Event(['order' => $order]);
-        $observerWrapper = new Observer();
-        $observerWrapper->setEvent($event);
-        return $observerWrapper;
+        $eventObserver = new Observer();
+        $eventObserver->setEvent($event);
+        return $eventObserver;
     }
 
-    // ── tests ─────────────────────────────────────────────────────────────────
-
     /**
-     * When the order's payment method is not Bold (e.g. "checkmo"), the observer must
-     * return immediately without touching any Bold service.
+     * When the order is not a Bold order, execute() must return without
+     * touching any Bold-specific services.
      *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
      */
     public function testSkipsNonBoldOrders(): void
     {
@@ -80,32 +71,32 @@ class AfterSubmitObserverTest extends TestCase
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
         $order->loadByIncrementId('100000001');
-        // Fixture sets method to 'checkmo' — not a Bold method.
+        $order->getPayment()->setMethod('checkmo'); // non-Bold method
 
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-        $setCompleteStateMock->expects(self::never())->method('execute');
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->expects(self::never())->method('execute');
 
-        $observer = $this->buildObserver(['setCompleteState' => $setCompleteStateMock]);
-        $observer->execute($this->makeObserverEvent($order));
+        $observer = $this->buildObserver(['setCompleteState' => $setCompleteState]);
+        $observer->execute($this->buildObserverEvent($order));
     }
 
     /**
-     * When no order is attached to the event (null), the observer must return immediately.
-     * This guards against misconfigured event dispatches.
+     * When the order object is null the observer must not throw.
      */
     public function testSkipsWhenOrderIsNull(): void
     {
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-        $setCompleteStateMock->expects(self::never())->method('execute');
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->expects(self::never())->method('execute');
 
-        $observer = $this->buildObserver(['setCompleteState' => $setCompleteStateMock]);
-        $observer->execute($this->makeObserverEvent(null));
+        $observer = $this->buildObserver(['setCompleteState' => $setCompleteState]);
+
+        // Must not throw
+        $observer->execute($this->buildObserverEvent(null));
     }
 
     /**
-     * When the order has not been assigned a Magento entity ID (it was never persisted,
-     * which can happen if the order placement rolled back), the observer must return
-     * immediately — there is nothing to link a Bold order to.
+     * When the order has no entity ID (not yet persisted) the observer must skip.
      */
     public function testSkipsWhenOrderHasNoEntityId(): void
     {
@@ -113,27 +104,32 @@ class AfterSubmitObserverTest extends TestCase
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
+        // No entity ID — transient object
+        $order->getPayment()->setMethod('bold');
 
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-        // No entity ID set — order was never saved.
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
 
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-        $setCompleteStateMock->expects(self::never())->method('execute');
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->expects(self::never())->method('execute');
 
-        $observer = $this->buildObserver(['setCompleteState' => $setCompleteStateMock]);
-        $observer->execute($this->makeObserverEvent($order));
+        $observer = $this->buildObserver([
+            'checkPaymentMethod' => $checkPaymentMethod,
+            'setCompleteState'   => $setCompleteState,
+        ]);
+
+        $observer->execute($this->buildObserverEvent($order));
     }
 
     /**
-     * Idempotency guard: if the Bold order relation already has a successful_state_at
-     * timestamp (isBoldOrderProcessed returns true), the observer must skip the order.
-     * This prevents double-processing when the observer fires more than once (e.g. admin
-     * retry flows).
+     * When isBoldOrderProcessed() returns true the observer must skip silently —
+     * this prevents SetCompleteState from being called a second time when
+     * both AfterSubmitObserver and FallbackAfterSubmitObserver are triggered.
      *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
      */
     public function testSkipsAlreadyProcessedOrders(): void
     {
@@ -142,204 +138,262 @@ class AfterSubmitObserverTest extends TestCase
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
         $order->loadByIncrementId('100000001');
+        $order->getPayment()->setMethod('bold');
 
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
 
-        // Stub the repository to report the order as already processed.
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('isBoldOrderProcessed')->willReturn(true);
+        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
+        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
+        $repo->method('isBoldOrderProcessed')->willReturn(true);
 
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->expects(self::never())->method('execute');
+
+        $observer = $this->buildObserver([
+            'checkPaymentMethod'             => $checkPaymentMethod,
+            'magentoQuoteBoldOrderRepository' => $repo,
+            'setCompleteState'               => $setCompleteState,
+        ]);
+
+        $observer->execute($this->buildObserverEvent($order));
+    }
+
+    /**
+     * When both the session AND the DB fallback return null for publicOrderId,
+     * the observer must log a critical message and return early WITHOUT throwing
+     * (the order is already committed — we must not cause a 500 response).
+     *
+<<<<<<< Updated upstream
+     * @magentoDataFixture Magento/Sales/_files/order.php
+=======
+     * When neither the CheckoutData session nor the DB relation can supply a
+     * public_order_id, the observer logs a critical message and returns early.
+     * SetCompleteState is never called, so no exception propagates to the caller.
+     *
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
+     * @magentoDbIsolation enabled
+>>>>>>> Stashed changes
+     */
+    public function testLogsAndSkipsWhenPublicOrderIdCannotBeResolved(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+
+        /** @var Order $order */
+        $order = $objectManager->create(Order::class);
+        $order->loadByIncrementId('100000001');
+        $order->getPayment()->setMethod('bold');
+
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
+
+        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
+        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
+        $repo->method('isBoldOrderProcessed')->willReturn(false);
+        $repo->method('getPublicOrderIdFromOrder')->willReturn(null); // DB also empty
+
+        /** @var CheckoutData|MockObject $checkoutData */
+        $checkoutData = $this->createMock(CheckoutData::class);
+        $checkoutData->method('getPublicOrderId')->willReturn(null);  // session empty
+
+        /** @var LoggerInterface|MockObject $logger */
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('critical');    // must log critical
+
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->expects(self::never())->method('execute');
+
+<<<<<<< Updated upstream
+        $observer = $this->buildObserver([
+            'checkPaymentMethod'             => $checkPaymentMethod,
+            'magentoQuoteBoldOrderRepository' => $repo,
+            'checkoutData'                   => $checkoutData,
+            'logger'                         => $logger,
+            'setCompleteState'               => $setCompleteState,
+        ]);
+
+        // Must NOT throw even though publicOrderId is unresolvable
+        $observer->execute($this->buildObserverEvent($order));
+=======
         $setCompleteStateMock = $this->createMock(SetCompleteState::class);
         $setCompleteStateMock->expects(self::never())->method('execute');
 
         $observer = $this->buildObserver([
-            'setCompleteState'                 => $setCompleteStateMock,
-            'magentoQuoteBoldOrderRepository'  => $repositoryMock,
-        ]);
-        $observer->execute($this->makeObserverEvent($order));
-    }
-
-    /**
-     * "Call state without being authorized" — missing public_order_id scenario.
-     *
-     * When neither the CheckoutData session nor the DB relation can supply a
-     * public_order_id, the observer still creates an OrderExtensionData row (skeleton)
-     * and proceeds to call SetCompleteState.  SetCompleteState will then throw because
-     * GetOrderPublicIdByOrderId finds the skeleton row but sees a null public_id.
-     *
-     * The observer does NOT swallow this exception — it propagates to the caller, which
-     * in the real flow is the Magento event system (the exception is logged externally).
-     *
-     * This test verifies that the observer does not silently swallow the error, so that
-     * a missing public_order_id surfaces as an auditable failure rather than a silent no-op.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
-     * @magentoDbIsolation enabled
-     */
-    public function testLogsAndSkipsWhenPublicOrderIdCannotBeResolvedFromSetCompleteState(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        $order->loadByIncrementId('100000001');
-
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-
-        // Session has no public_order_id.
-        $checkoutDataMock = $this->createMock(CheckoutData::class);
-        $checkoutDataMock->method('getPublicOrderId')->willReturn(null);
-
-        // DB relation also returns null for this order's quote.
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('isBoldOrderProcessed')->willReturn(false);
-        $repositoryMock->method('getPublicOrderIdFromOrder')->willReturn(null);
-
-        // SetCompleteState must throw because the extension-data row has no public_id.
-        $observer = $this->buildObserver([
-            'checkoutData'                    => $checkoutDataMock,
-            'magentoQuoteBoldOrderRepository' => $repositoryMock,
-        ]);
-
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/order public id is not set/i');
-
-        $observer->execute($this->makeObserverEvent($order));
-    }
-
-    /**
-     * When the public_order_id was read from the CheckoutData session, the session MUST
-     * be reset immediately after reading so that a subsequent request (e.g. order-success
-     * page load) does not reuse the same public_order_id.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
-     * @magentoDbIsolation enabled
-     */
-    public function testResetsSessionAfterReadingPublicOrderIdFromSession(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        $order->loadByIncrementId('100000001');
-
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-
-        // Session has a public_order_id.
-        $checkoutDataMock = $this->createMock(CheckoutData::class);
-        $checkoutDataMock->method('getPublicOrderId')
-            ->willReturn('c3d4e5f6-a7b8-9012-cdef-123456789012');
-        // resetCheckoutData() MUST be called exactly once.
-        $checkoutDataMock->expects(self::once())->method('resetCheckoutData');
-
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('isBoldOrderProcessed')->willReturn(false);
-
-        // Use a mock SetCompleteState that swallows the call (we are not testing the API here).
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-
-        $observer = $this->buildObserver([
             'checkoutData'                    => $checkoutDataMock,
             'magentoQuoteBoldOrderRepository' => $repositoryMock,
             'setCompleteState'                => $setCompleteStateMock,
         ]);
 
         $observer->execute($this->makeObserverEvent($order));
+        $this->addToAssertionCount(1); // completed without exception
+>>>>>>> Stashed changes
     }
 
     /**
-     * When the public_order_id comes from the DB relation (not from the session),
-     * resetCheckoutData() must NOT be called — clearing the session in this case would
-     * remove context that other parts of the checkout still need.
+     * When SetCompleteState::execute() throws a LocalizedException (auth-before-setState guard),
+     * the observer must catch it, log it as critical, and NOT rethrow it —
+     * the order is already committed and a 500 response must be avoided.
      *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
-     * @magentoDbIsolation enabled
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
      */
-    public function testDoesNotResetSessionWhenPublicOrderIdComesFromDb(): void
+    public function testCatchesLocalizedExceptionFromSetCompleteState(): void
     {
         $objectManager = Bootstrap::getObjectManager();
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
         $order->loadByIncrementId('100000001');
+        $order->getPayment()->setMethod('bold');
 
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
 
-        // Session returns null → triggers the DB fallback path.
-        $checkoutDataMock = $this->createMock(CheckoutData::class);
-        $checkoutDataMock->method('getPublicOrderId')->willReturn(null);
-        // resetCheckoutData() must NEVER be called when the session had nothing.
-        $checkoutDataMock->expects(self::never())->method('resetCheckoutData');
+        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
+        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
+        $repo->method('isBoldOrderProcessed')->willReturn(false);
+        $repo->method('getPublicOrderIdFromOrder')->willReturn('test-public-order-id');
 
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('isBoldOrderProcessed')->willReturn(false);
-        $repositoryMock->method('getPublicOrderIdFromOrder')
-            ->willReturn('d4e5f6a7-b8c9-0123-def0-234567890123');
+        /** @var CheckoutData|MockObject $checkoutData */
+        $checkoutData = $this->createMock(CheckoutData::class);
+        $checkoutData->method('getPublicOrderId')->willReturn(null); // from DB, not session
 
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
+        /** @var OrderExtensionDataResource|MockObject $extensionDataResource */
+        $extensionDataResource = $this->createMock(OrderExtensionDataResource::class);
+
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+        $setCompleteState->method('execute')
+            ->willThrowException(new LocalizedException(__('Auth not recorded')));
+
+        /** @var LoggerInterface|MockObject $logger */
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::atLeastOnce())->method('critical'); // must log the caught exception
 
         $observer = $this->buildObserver([
-            'checkoutData'                    => $checkoutDataMock,
-            'magentoQuoteBoldOrderRepository' => $repositoryMock,
-            'setCompleteState'                => $setCompleteStateMock,
+            'checkPaymentMethod'             => $checkPaymentMethod,
+            'magentoQuoteBoldOrderRepository' => $repo,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
+            'logger'                         => $logger,
         ]);
 
-        $observer->execute($this->makeObserverEvent($order));
+        // Must NOT throw — exception is caught internally
+        $observer->execute($this->buildObserverEvent($order));
     }
 
     /**
+     * When publicOrderId comes from the checkout session, resetCheckoutData() MUST be called
+     * after all work completes so the session is cleaned up.
+     *
+     * @magentoDataFixture Magento/Sales/_files/order.php
+     */
+    public function testResetsSessionWhenPublicOrderIdCameFromSession(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+
+        /** @var Order $order */
+        $order = $objectManager->create(Order::class);
+        $order->loadByIncrementId('100000001');
+        $order->getPayment()->setMethod('bold');
+
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
+
+        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
+        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
+        $repo->method('isBoldOrderProcessed')->willReturn(false);
+
+        /** @var CheckoutData|MockObject $checkoutData */
+        $checkoutData = $this->createMock(CheckoutData::class);
+        $checkoutData->method('getPublicOrderId')->willReturn('session-public-order-id');
+        $checkoutData->expects(self::once())->method('resetCheckoutData'); // must be called
+
+        /** @var OrderExtensionDataResource|MockObject $extensionDataResource */
+        $extensionDataResource = $this->createMock(OrderExtensionDataResource::class);
+
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
+
+        $observer = $this->buildObserver([
+            'checkPaymentMethod'             => $checkPaymentMethod,
+            'magentoQuoteBoldOrderRepository' => $repo,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
+        ]);
+
+        $observer->execute($this->buildObserverEvent($order));
+    }
+
+    /**
+<<<<<<< Updated upstream
+     * When publicOrderId comes ONLY from the DB fallback (session was already cleared),
+     * resetCheckoutData() must NOT be called — calling it would be a no-op at best and
+     * could clear a fresh session that a concurrent request started.
+=======
      * When SetCompleteState throws a LocalizedException (e.g. Bold API is unavailable),
-     * the observer must propagate the exception — swallowing it would hide the failure
-     * and leave the Bold order in an incomplete state with no audit trail.
+     * the observer must catch it and log it at critical level rather than propagating.
+     * The Magento order is already committed at this point, so re-throwing would produce
+     * a 500 error for a customer who has successfully paid.
+>>>>>>> Stashed changes
      *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
-     * @magentoDbIsolation enabled
+     * @magentoDataFixture Magento/Sales/_files/order.php
      */
-    public function testPropagatesExceptionFromSetCompleteState(): void
+<<<<<<< Updated upstream
+    public function testDoesNotResetSessionWhenPublicOrderIdCameOnlyFromDb(): void
+=======
+    public function testCatchesAndLogsExceptionFromSetCompleteState(): void
+>>>>>>> Stashed changes
     {
         $objectManager = Bootstrap::getObjectManager();
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
         $order->loadByIncrementId('100000001');
+        $order->getPayment()->setMethod('bold');
 
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
+        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
+        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
+        $checkPaymentMethod->method('isBold')->willReturn(true);
 
-        $checkoutDataMock = $this->createMock(CheckoutData::class);
-        $checkoutDataMock->method('getPublicOrderId')
-            ->willReturn('e5f6a7b8-c9d0-1234-ef01-345678901234');
+        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
+        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
+        $repo->method('isBoldOrderProcessed')->willReturn(false);
+        $repo->method('getPublicOrderIdFromOrder')->willReturn('db-public-order-id');
 
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('isBoldOrderProcessed')->willReturn(false);
+        /** @var CheckoutData|MockObject $checkoutData */
+        $checkoutData = $this->createMock(CheckoutData::class);
+        $checkoutData->method('getPublicOrderId')->willReturn(null); // session is empty
+        $checkoutData->expects(self::never())->method('resetCheckoutData'); // must NOT be called
 
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-        $setCompleteStateMock->method('execute')
-            ->willThrowException(new LocalizedException(__('Bold API unavailable')));
+        /** @var OrderExtensionDataResource|MockObject $extensionDataResource */
+        $extensionDataResource = $this->createMock(OrderExtensionDataResource::class);
+
+        /** @var SetCompleteState|MockObject $setCompleteState */
+        $setCompleteState = $this->createMock(SetCompleteState::class);
 
         $observer = $this->buildObserver([
-            'checkoutData'                    => $checkoutDataMock,
-            'magentoQuoteBoldOrderRepository' => $repositoryMock,
-            'setCompleteState'                => $setCompleteStateMock,
+            'checkPaymentMethod'             => $checkPaymentMethod,
+            'magentoQuoteBoldOrderRepository' => $repo,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
         ]);
 
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/bold api unavailable/i');
-
+<<<<<<< Updated upstream
+        $observer->execute($this->buildObserverEvent($order));
+=======
+        // Must NOT throw — the exception is caught and logged so the customer is not affected.
         $observer->execute($this->makeObserverEvent($order));
+        $this->addToAssertionCount(1); // completed without propagating the exception
+>>>>>>> Stashed changes
     }
 }

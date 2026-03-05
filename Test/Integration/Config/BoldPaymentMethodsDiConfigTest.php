@@ -8,7 +8,6 @@ use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver;
 use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
-use Bold\CheckoutPaymentBooster\Plugin\Checkout\Controller\Onepage\SuccessPlugin;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -17,7 +16,7 @@ use ReflectionProperty;
 /**
  * GAP 1 guard: verify the boldPaymentMethods DI argument is complete.
  *
- * BeforePlaceObserver (and SuccessPlugin) rely on CheckPaymentMethod::isBold() to decide whether
+     * BeforePlaceObserver relies on CheckPaymentMethod::isBold() to decide whether
  * to authorize a Bold payment. isBold() checks the order's payment method code against the
  * boldPaymentMethods array injected via DI.
  *
@@ -172,7 +171,6 @@ class BoldPaymentMethodsDiConfigTest extends TestCase
         return [
             'AfterSubmitObserver'  => [AfterSubmitObserver::class],
             'BeforePlaceObserver'  => [BeforePlaceObserver::class],
-            'SuccessPlugin'        => [SuccessPlugin::class],
         ];
     }
 }

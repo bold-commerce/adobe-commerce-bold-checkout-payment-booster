@@ -107,6 +107,18 @@ class Create implements CreateInterface
             }
         }
 
+        if (!$quote->getIsActive()) {
+            throw new LocalizedException(
+                __('Cannot create a wallet_pay order: the quote is no longer active.')
+            );
+        }
+
+        if (!$quote->hasItems()) {
+            throw new LocalizedException(
+                __('Cannot create a wallet_pay order: the cart is empty.')
+            );
+        }
+
         $firstName = $quote->getBillingAddress()->getFirstname()
             ?? ($this->config->isUseShippingNameAsFallback((int) $quote->getStore()->getWebsiteId())
                 ? $quote->getShippingAddress()->getFirstname()

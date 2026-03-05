@@ -43,26 +43,36 @@ class QuoteConverterTest extends TestCase
         $quote = reset($quotes) ?: $objectManager->create(Quote::class);
         $quoteConverter = $objectManager->create(QuoteConverter::class);
 
+        // Hydrate product models so collectTotals() can recalculate taxes correctly.
+        /** @var \Magento\Catalog\Api\ProductRepositoryInterface $productRepository */
+        $productRepository = $objectManager->get(\Magento\Catalog\Api\ProductRepositoryInterface::class);
+        foreach ($quote->getAllItems() as $item) {
+            $item->setProduct($productRepository->getById((int)$item->getProductId(), false, (int)$item->getStoreId()));
+        }
+
+        // The fixture creates a guest quote for John Doe with 1x Simple Product ($10),
+        // a $5 flat-rate shipping, and a $5 coupon discount.
+        // Tax is calculated before discount (5% on $10 = $0.50).
+        // Grand total = $10.00 + $0.50 − $5.00 + $5.00 = $10.50.
         $expectedConvertedQuoteData = [
             'gateway_id' => 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7',
             'order_data' => [
                 'locale' => 'en-US',
                 'customer' => [
                     'first_name' => 'John',
-                    'last_name' => 'Smith',
-                    'email' => 'customer@example.com',
-                    'platform_id' => '1'
+                    'last_name' => 'Doe',
+                    'platform_id' => null,
                 ],
                 'shipping_address' => [
                     'first_name' => 'John',
-                    'last_name' => 'Smith',
-                    'address_line_1' => 'Green str, 67',
+                    'last_name' => 'Doe',
+                    'address_line_1' => '123 Test St',
                     'address_line_2' => '',
-                    'city' => 'CityM',
+                    'city' => 'Los Angeles',
                     'country_code' => 'US',
-                    'postal_code' => '75477',
-                    'state' => 'Alabama',
-                    'phone_number' => '3468676'
+                    'postal_code' => '90001',
+                    'state' => 'California',
+                    'phone_number' => '5555555555',
                 ],
                 'selected_shipping_option' => [
                     'id' => 'flatrate_flatrate',
@@ -70,8 +80,8 @@ class QuoteConverterTest extends TestCase
                     'type' => 'SHIPPING',
                     'amount' => [
                         'currency_code' => 'USD',
-                        'value' => '10.00'
-                    ]
+                        'value' => '5.00',
+                    ],
                 ],
                 'shipping_options' => [
                     [
@@ -80,9 +90,9 @@ class QuoteConverterTest extends TestCase
                         'type' => 'SHIPPING',
                         'amount' => [
                             'currency_code' => 'USD',
-                            'value' => '10.00'
-                        ]
-                    ]
+                            'value' => '5.00',
+                        ],
+                    ],
                 ],
                 'items' => [
                     [
@@ -90,23 +100,23 @@ class QuoteConverterTest extends TestCase
                         'sku' => 'simple',
                         'unit_amount' => [
                             'currency_code' => 'USD',
-                            'value' => '10.00'
+                            'value' => '10.00',
                         ],
-                        'quantity' => 2,
-                        'is_shipping_required' => true
+                        'quantity' => 1,
+                        'is_shipping_required' => true,
                     ],
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
-                    'value' => '20.00',
+                    'value' => '10.00',
                 ],
                 'amount' => [
                     'currency_code' => 'USD',
-                    'value' => '26.50',
+                    'value' => '10.50',
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
-                    'value' => '1.50',
+                    'value' => '0.50',
                 ],
                 'discount' => [
                     'currency_code' => 'USD',

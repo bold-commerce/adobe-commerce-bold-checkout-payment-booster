@@ -107,8 +107,11 @@ class AfterSubmitObserverTest extends TestCase
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
-        // No entity ID — transient object
-        $order->getPayment()->setMethod('bold');
+        // No entity ID — transient object. Must set a Payment explicitly because a
+        // freshly-created Order has no payment and getPayment() returns null.
+        $payment = $objectManager->create(\Magento\Sales\Model\Order\Payment::class);
+        $payment->setMethod('bold');
+        $order->setPayment($payment);
 
         /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
         $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);

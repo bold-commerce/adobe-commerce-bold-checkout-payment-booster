@@ -13,6 +13,9 @@ use PHPUnit\Framework\TestCase;
 
 use function count;
 
+/**
+ * @magentoAppIsolation enabled
+ */
 class TotalsRetrieverTest extends TestCase
 {
     use ArraySubsetAsserts;

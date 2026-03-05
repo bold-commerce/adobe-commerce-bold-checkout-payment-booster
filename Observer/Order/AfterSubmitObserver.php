@@ -132,9 +132,6 @@ class AfterSubmitObserver implements ObserverInterface
             $this->logger->critical($e);
             return;
         }
-<<<<<<< Updated upstream
-        $this->setCompleteState->execute($order);
-=======
 
         // SetCompleteState::execute() now throws LocalizedException when authorization has not
         // been recorded (auth-before-setState ordering guard). The order is already committed to
@@ -157,6 +154,5 @@ class AfterSubmitObserver implements ObserverInterface
                 $orderId
             ));
         }
->>>>>>> Stashed changes
     }
 }

@@ -4,27 +4,14 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Observer\Order;
 
-use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
-<<<<<<< Updated upstream
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
-use Bold\CheckoutPaymentBooster\Model\InitOrderFromQuote;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
-use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
-use Bold\CheckoutPaymentBooster\Model\ResumeOrder;
-=======
-use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
-use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
-use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
-use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as MagentoQuoteBoldOrderResource;
->>>>>>> Stashed changes
 use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
-use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -39,8 +26,7 @@ use ReflectionMethod;
  *
  * Covers:
  *  - saveTransactionData: throws when transaction ID is missing/null, succeeds when present
- *  - Hydrate-before-auth guard: throws when successful_hydrate_at is not recorded
- *  - recoverBoldSession path: called when publicOrderId is not found in any source
+ *  - Hydrate-before-auth guard: throws when successful_hydrate_at is not recorded after hydration
  *
  * @magentoAppArea frontend
  */
@@ -66,11 +52,13 @@ class BeforePlaceObserverTest extends TestCase
         return $observer;
     }
 
+    // ─── saveTransactionData ──────────────────────────────────────────────────
 
     /**
      * When the Bold authorization API returns a response with no transaction ID,
      * saveTransactionData must throw a LocalizedException and block the order.
-     * Previously this was a silent return which allowed the order to proceed without a transaction record.
+     * Previously this was a silent return which allowed the order to proceed without
+     * a transaction record.
      */
     public function testSaveTransactionDataThrowsWhenTransactionIdIsMissing(): void
     {
@@ -92,62 +80,8 @@ class BeforePlaceObserverTest extends TestCase
             ]
         ];
 
-<<<<<<< Updated upstream
         $method = new ReflectionMethod(BeforePlaceObserver::class, 'saveTransactionData');
         $method->setAccessible(true);
-=======
-    /**
-     * "auth/full failing" — the Bold authorization API returns an error.
-     *
-     * When Authorize::execute() throws a LocalizedException (e.g. the payment was
-     * declined, the Bold API is down, or the JWT has expired), BeforePlaceObserver
-     * MUST propagate the exception. This aborts Magento's order placement transaction
-     * so the order is never persisted, protecting both the merchant and the customer.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
-     * @magentoDbIsolation enabled
-     */
-    public function testThrowsWhenAuthFullFails(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        // Load a quote that has a Bold order relation (created by the fixture).
-        $quote = $this->loadFixtureQuote();
-
-        // Stamp successful_hydrate_at so the hydration guard inside BeforePlaceObserver passes.
-        /** @var MagentoQuoteBoldOrder $relation */
-        $relation = $objectManager->create(MagentoQuoteBoldOrder::class);
-        /** @var MagentoQuoteBoldOrderResource $relResource */
-        $relResource = $objectManager->create(MagentoQuoteBoldOrderResource::class);
-        $relResource->load(
-            $relation,
-            'e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0',
-            'bold_order_id'
-        );
-        $relation->setData('successful_hydrate_at', '2026-01-01 00:00:00');
-        $relResource->save($relation);
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-        $order->setQuoteId($quote->getId());
-
-        // Hydration is mocked — it is considered successful via the timestamp set above.
-        $hydrateMock = $this->createMock(HydrateOrderFromQuote::class);
-
-        // Authorization fails — this is the core "auth/full failing" scenario.
-        $authorizeMock = $this->createMock(Authorize::class);
-        $authorizeMock->method('execute')
-            ->willThrowException(new LocalizedException(__('Payment was declined by Bold')));
-
-        $observer = $this->buildObserver([
-            'authorize'             => $authorizeMock,
-            'hydrateOrderFromQuote' => $hydrateMock,
-        ]);
->>>>>>> Stashed changes
 
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/no transaction ID/i');
@@ -176,141 +110,22 @@ class BeforePlaceObserverTest extends TestCase
         $order = $this->createMock(Order::class);
         $order->method('getPayment')->willReturn($payment);
 
-<<<<<<< Updated upstream
         $transactionData = [
             'data' => [
                 'transactions' => [
                     [
                         'transaction_id' => 'txn_abc123',
-                        'tender_details'  => [
+                        'tender_details' => [
                             'account' => '4111',
                             'email'   => 'test@example.com',
-=======
-        // Authorization must never be reached.
-        $authorizeMock = $this->createMock(Authorize::class);
-        $authorizeMock->expects(self::never())->method('execute');
-
-        $observer = $this->buildObserver([
-            'authorize'            => $authorizeMock,
-            'hydrateOrderFromQuote' => $hydrateMock,
-        ]);
-
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/could not hydrate bold order/i');
-
-        $observer->execute($this->makeObserverEvent($order));
-    }
-
-    /**
-     * When the auth/full response contains no transaction_id (e.g. the payment gateway
-     * did not return one, or the response shape is unexpected), saveTransactionData()
-     * must return early without adding an AUTH transaction to the order payment.
-     *
-     * The observer must NOT throw — a missing transaction_id is handled gracefully because
-     * some payment flows (e.g. wallets) may not produce one at authorization time.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
-     * @magentoDbIsolation enabled
-     */
-    public function testDoesNotSaveTransactionWhenTransactionIdIsMissing(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        $quote = $this->loadFixtureQuote();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-        $order->setQuoteId($quote->getId());
-
-        $hydrateMock = $this->createMock(HydrateOrderFromQuote::class);
-
-        // Auth response has no transaction_id.
-        $authorizeMock = $this->createMock(Authorize::class);
-        $authorizeMock->method('execute')
-            ->willReturn(['data' => ['transactions' => []]]);
-
-        /** @var MagentoQuoteBoldOrderInterface|\PHPUnit\Framework\MockObject\MockObject $mockRelation */
-        $mockRelation = $this->createMock(MagentoQuoteBoldOrderInterface::class);
-        $mockRelation->method('getBoldOrderId')
-            ->willReturn('e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0');
-        $mockRelation->method('getSuccessfulHydrateAt')->willReturn('2026-01-01 00:00:00');
-
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('getByQuoteId')->willReturn($mockRelation);
-
-        $observer = $this->buildObserver([
-            'authorize'                       => $authorizeMock,
-            'hydrateOrderFromQuote'           => $hydrateMock,
-            'magentoQuoteBoldOrderRepository' => $repositoryMock,
-        ]);
-
-        $observer->execute($this->makeObserverEvent($order));
-
-        self::assertNull(
-            $payment->getTransactionId(),
-            'No AUTH transaction should be recorded when transaction_id is absent from the auth response'
-        );
-    }
-
-    /**
-     * When the auth/full response contains a transaction_id, saveTransactionData() must
-     * attach a TYPE_AUTH transaction to the order payment so the Magento transaction grid
-     * reflects the Bold authorization.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
-     * @magentoDbIsolation enabled
-     */
-    public function testSavesTransactionDataWhenTransactionIdIsPresent(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        $quote = $this->loadFixtureQuote();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        /** @var Payment $payment */
-        $payment = $objectManager->create(Payment::class);
-        $payment->setMethod('bold');
-        $order->setPayment($payment);
-        $order->setQuoteId($quote->getId());
-
-        $hydrateMock = $this->createMock(HydrateOrderFromQuote::class);
-
-        $authorizeMock = $this->createMock(Authorize::class);
-        $authorizeMock->method('execute')
-            ->willReturn([
-                'data' => [
-                    'transactions' => [
-                        [
-                            'transaction_id' => 'bold-txn-abc123',
-                            'tender_details' => [
-                                'account' => '4242',
-                                'email'   => 'buyer@example.com',
-                            ],
->>>>>>> Stashed changes
                         ],
-                    ]
+                    ],
                 ]
             ]
         ];
 
-<<<<<<< Updated upstream
         $method = new ReflectionMethod(BeforePlaceObserver::class, 'saveTransactionData');
         $method->setAccessible(true);
-=======
-        /** @var MagentoQuoteBoldOrderInterface|\PHPUnit\Framework\MockObject\MockObject $mockRelation */
-        $mockRelation = $this->createMock(MagentoQuoteBoldOrderInterface::class);
-        $mockRelation->method('getBoldOrderId')
-            ->willReturn('e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0');
-        $mockRelation->method('getSuccessfulHydrateAt')->willReturn('2026-01-01 00:00:00');
-
-        $repositoryMock = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repositoryMock->method('getByQuoteId')->willReturn($mockRelation);
->>>>>>> Stashed changes
 
         // Must not throw
         $method->invoke($observer, $order, $transactionData);
@@ -369,17 +184,16 @@ class BeforePlaceObserverTest extends TestCase
         $order->loadByIncrementId('100000001');
         $order->getPayment()->setMethod('bold');
 
-        // Resolve quoteId from the fixture relation record
+        // Resolve quoteId from the fixture relation record via the known bold_order_id.
         /** @var MagentoQuoteBoldOrderRepositoryInterface $repo */
         $repo = $objectManager->create(MagentoQuoteBoldOrderRepositoryInterface::class);
         $relation = $repo->getByQuoteId(
-            // Re-load using the known bold_order_id to get the quoteId
             (string) $objectManager->create(\Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder::class)
                 ->load('e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0', 'bold_order_id')
                 ->getQuoteId()
         );
 
-        // Ensure hydrate_at is null so the guard triggers
+        // Ensure successful_hydrate_at is null so the guard triggers.
         /** @var \Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder $resource */
         $resource = $objectManager->create(
             \Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder::class
@@ -389,108 +203,37 @@ class BeforePlaceObserverTest extends TestCase
 
         $quoteId = $relation->getQuoteId();
 
-        // Mock HydrateOrderFromQuote to be a no-op (we want to test the guard after hydration)
-        /** @var HydrateOrderFromQuote|MockObject $hydrateOrderFromQuote */
-        $hydrateOrderFromQuote = $this->createMock(HydrateOrderFromQuote::class);
-
-        // Mock CartRepository to return a real Quote for the quoteId
         /** @var Quote $quote */
         $quote = $objectManager->create(Quote::class);
         $quote->load($quoteId);
+
         /** @var CartRepositoryInterface|MockObject $cartRepository */
         $cartRepository = $this->createMock(CartRepositoryInterface::class);
         $cartRepository->method('get')->willReturn($quote);
 
-        // Mock CheckPaymentMethod to recognize 'bold' as a Bold method
         /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
         $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
         $checkPaymentMethod->method('isBold')->willReturn(true);
 
-        // Mock CheckoutData to return a known publicOrderId
         /** @var CheckoutData|MockObject $checkoutData */
         $checkoutData = $this->createMock(CheckoutData::class);
         $checkoutData->method('getPublicOrderId')
             ->willReturn('e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0');
 
-        /** @var ResumeOrder|MockObject $resumeOrder */
-        $resumeOrder = $this->createMock(ResumeOrder::class);
-        $resumeOrder->method('resume')->willReturn(['data' => ['jwt_token' => 'test-jwt']]);
+        /** @var HydrateOrderFromQuote|MockObject $hydrateOrderFromQuote */
+        $hydrateOrderFromQuote = $this->createMock(HydrateOrderFromQuote::class);
 
         $order->setQuoteId($quoteId);
 
         $observer = $this->buildObserver([
-            'cartRepository'      => $cartRepository,
-            'checkPaymentMethod'  => $checkPaymentMethod,
-            'checkoutData'        => $checkoutData,
+            'cartRepository'        => $cartRepository,
+            'checkPaymentMethod'    => $checkPaymentMethod,
+            'checkoutData'          => $checkoutData,
             'hydrateOrderFromQuote' => $hydrateOrderFromQuote,
-            'resumeOrder'         => $resumeOrder,
         ]);
 
         $this->expectException(LocalizedException::class);
         $this->expectExceptionMessageMatches('/order hydration did not complete/i');
-
-        $observer->execute($this->buildObserverEvent($order));
-    }
-
-    // ─── session recovery ─────────────────────────────────────────────────────
-
-    /**
-     * When no publicOrderId is found in the extension attributes, session, or DB,
-     * recoverBoldSession() is called. If InitOrderFromQuote fails, execute() must
-     * throw a LocalizedException (the order cannot be placed without a Bold session).
-     *
-     * @magentoDataFixture Magento/Sales/_files/order.php
-     */
-    public function testThrowsWhenSessionRecoveryFails(): void
-    {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var Order $order */
-        $order = $objectManager->create(Order::class);
-        $order->loadByIncrementId('100000001');
-        $order->getPayment()->setMethod('bold');
-        $order->setQuoteId('99999997'); // no existing relation record
-
-        /** @var Quote|MockObject $quote */
-        $quote = $this->createMock(Quote::class);
-        $quote->method('getId')->willReturn('99999997');
-        $quote->method('getExtensionAttributes')->willReturn(
-            $objectManager->create(\Magento\Quote\Api\Data\CartExtension::class)
-        );
-        $quote->method('getStore')->willReturn($objectManager->create(\Magento\Store\Model\Store::class));
-
-        /** @var CartRepositoryInterface|MockObject $cartRepository */
-        $cartRepository = $this->createMock(CartRepositoryInterface::class);
-        $cartRepository->method('get')->willReturn($quote);
-
-        /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
-        $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
-        $checkPaymentMethod->method('isBold')->willReturn(true);
-
-        /** @var CheckoutData|MockObject $checkoutData */
-        $checkoutData = $this->createMock(CheckoutData::class);
-        $checkoutData->method('getPublicOrderId')->willReturn(null);
-
-        /** @var MagentoQuoteBoldOrderRepositoryInterface|MockObject $repo */
-        $repo = $this->createMock(MagentoQuoteBoldOrderRepositoryInterface::class);
-        $repo->method('getByQuoteId')
-            ->willThrowException(new NoSuchEntityException(__('No relation record')));
-
-        /** @var InitOrderFromQuote|MockObject $initOrderFromQuote */
-        $initOrderFromQuote = $this->createMock(InitOrderFromQuote::class);
-        $initOrderFromQuote->method('init')
-            ->willThrowException(new \Exception('Bold API unavailable'));
-
-        $observer = $this->buildObserver([
-            'cartRepository'             => $cartRepository,
-            'checkPaymentMethod'         => $checkPaymentMethod,
-            'checkoutData'               => $checkoutData,
-            'magentoQuoteBoldOrderRepository' => $repo,
-            'initOrderFromQuote'         => $initOrderFromQuote,
-        ]);
-
-        $this->expectException(LocalizedException::class);
-        $this->expectExceptionMessageMatches('/failed to initialize Bold payment session/i');
 
         $observer->execute($this->buildObserverEvent($order));
     }

@@ -6,7 +6,9 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
+use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
@@ -15,6 +17,7 @@ use Magento\Sales\Model\Order;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 
 /**
  * Integration tests for AfterSubmitObserver.
@@ -153,9 +156,9 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState->expects(self::never())->method('execute');
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'             => $checkPaymentMethod,
+            'checkPaymentMethod'              => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'setCompleteState'               => $setCompleteState,
+            'setCompleteState'                => $setCompleteState,
         ]);
 
         $observer->execute($this->buildObserverEvent($order));
@@ -166,16 +169,7 @@ class AfterSubmitObserverTest extends TestCase
      * the observer must log a critical message and return early WITHOUT throwing
      * (the order is already committed — we must not cause a 500 response).
      *
-<<<<<<< Updated upstream
      * @magentoDataFixture Magento/Sales/_files/order.php
-=======
-     * When neither the CheckoutData session nor the DB relation can supply a
-     * public_order_id, the observer logs a critical message and returns early.
-     * SetCompleteState is never called, so no exception propagates to the caller.
-     *
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/order_simple.php
-     * @magentoDbIsolation enabled
->>>>>>> Stashed changes
      */
     public function testLogsAndSkipsWhenPublicOrderIdCannotBeResolved(): void
     {
@@ -207,30 +201,16 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState = $this->createMock(SetCompleteState::class);
         $setCompleteState->expects(self::never())->method('execute');
 
-<<<<<<< Updated upstream
         $observer = $this->buildObserver([
-            'checkPaymentMethod'             => $checkPaymentMethod,
+            'checkPaymentMethod'              => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                   => $checkoutData,
-            'logger'                         => $logger,
-            'setCompleteState'               => $setCompleteState,
+            'checkoutData'                    => $checkoutData,
+            'logger'                          => $logger,
+            'setCompleteState'                => $setCompleteState,
         ]);
 
         // Must NOT throw even though publicOrderId is unresolvable
         $observer->execute($this->buildObserverEvent($order));
-=======
-        $setCompleteStateMock = $this->createMock(SetCompleteState::class);
-        $setCompleteStateMock->expects(self::never())->method('execute');
-
-        $observer = $this->buildObserver([
-            'checkoutData'                    => $checkoutDataMock,
-            'magentoQuoteBoldOrderRepository' => $repositoryMock,
-            'setCompleteState'                => $setCompleteStateMock,
-        ]);
-
-        $observer->execute($this->makeObserverEvent($order));
-        $this->addToAssertionCount(1); // completed without exception
->>>>>>> Stashed changes
     }
 
     /**
@@ -276,12 +256,12 @@ class AfterSubmitObserverTest extends TestCase
         $logger->expects(self::atLeastOnce())->method('critical'); // must log the caught exception
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'             => $checkPaymentMethod,
+            'checkPaymentMethod'              => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                   => $checkoutData,
-            'orderExtensionDataResource'     => $extensionDataResource,
-            'setCompleteState'               => $setCompleteState,
-            'logger'                         => $logger,
+            'checkoutData'                    => $checkoutData,
+            'orderExtensionDataResource'      => $extensionDataResource,
+            'setCompleteState'                => $setCompleteState,
+            'logger'                          => $logger,
         ]);
 
         // Must NOT throw — exception is caught internally
@@ -323,35 +303,24 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState = $this->createMock(SetCompleteState::class);
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'             => $checkPaymentMethod,
+            'checkPaymentMethod'              => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                   => $checkoutData,
-            'orderExtensionDataResource'     => $extensionDataResource,
-            'setCompleteState'               => $setCompleteState,
+            'checkoutData'                    => $checkoutData,
+            'orderExtensionDataResource'      => $extensionDataResource,
+            'setCompleteState'                => $setCompleteState,
         ]);
 
         $observer->execute($this->buildObserverEvent($order));
     }
 
     /**
-<<<<<<< Updated upstream
      * When publicOrderId comes ONLY from the DB fallback (session was already cleared),
      * resetCheckoutData() must NOT be called — calling it would be a no-op at best and
      * could clear a fresh session that a concurrent request started.
-=======
-     * When SetCompleteState throws a LocalizedException (e.g. Bold API is unavailable),
-     * the observer must catch it and log it at critical level rather than propagating.
-     * The Magento order is already committed at this point, so re-throwing would produce
-     * a 500 error for a customer who has successfully paid.
->>>>>>> Stashed changes
      *
      * @magentoDataFixture Magento/Sales/_files/order.php
      */
-<<<<<<< Updated upstream
     public function testDoesNotResetSessionWhenPublicOrderIdCameOnlyFromDb(): void
-=======
-    public function testCatchesAndLogsExceptionFromSetCompleteState(): void
->>>>>>> Stashed changes
     {
         $objectManager = Bootstrap::getObjectManager();
 
@@ -381,19 +350,13 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState = $this->createMock(SetCompleteState::class);
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'             => $checkPaymentMethod,
+            'checkPaymentMethod'              => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                   => $checkoutData,
-            'orderExtensionDataResource'     => $extensionDataResource,
-            'setCompleteState'               => $setCompleteState,
+            'checkoutData'                    => $checkoutData,
+            'orderExtensionDataResource'      => $extensionDataResource,
+            'setCompleteState'                => $setCompleteState,
         ]);
 
-<<<<<<< Updated upstream
         $observer->execute($this->buildObserverEvent($order));
-=======
-        // Must NOT throw — the exception is caught and logged so the customer is not affected.
-        $observer->execute($this->makeObserverEvent($order));
-        $this->addToAssertionCount(1); // completed without propagating the exception
->>>>>>> Stashed changes
     }
 }

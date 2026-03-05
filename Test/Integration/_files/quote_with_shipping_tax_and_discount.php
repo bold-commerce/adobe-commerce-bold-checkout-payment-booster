@@ -27,9 +27,23 @@ $storeId = (int)$storeManager->getStore()->getId();
 /** @var ProductRepositoryInterface $productRepository */
 $productRepository = $objectManager->get(ProductRepositoryInterface::class);
 
-/** @var Rule $taxRule */
+// Resolve the tax rule: registry key is not set in every Magento version / CI environment,
+// so fall back to loading the first rule from the DB, then to the standard "Taxable Goods"
+// tax class (id=2) if no rule exists at all.
+/** @var Rule|null $taxRule */
 $taxRule = $objectManager->get(\Magento\Framework\Registry::class)
     ->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
+
+if ($taxRule === null) {
+    /** @var \Magento\Tax\Model\ResourceModel\Calculation\Rule\Collection $ruleCollection */
+    $ruleCollection = $objectManager->create(
+        \Magento\Tax\Model\ResourceModel\Calculation\Rule\Collection::class
+    );
+    $taxRule = $ruleCollection->getFirstItem();
+}
+
+$productTaxClassIds = $taxRule ? $taxRule->getProductTaxClassIds() : null;
+$productTaxClassId  = (!empty($productTaxClassIds)) ? (int) $productTaxClassIds[0] : 2;
 
 try {
     $product = $productRepository->get('simple', false, $storeId, true);
@@ -38,7 +52,7 @@ try {
 }
 
 // Apply tax class to product BEFORE adding it to the quote (avoid saving products from quote items)
-$product->setTaxClassId((int)$taxRule->getProductTaxClassIds()[0]);
+$product->setTaxClassId($productTaxClassId);
 $productRepository->save($product);
 
 /** @var QuoteFactory $quoteFactory */

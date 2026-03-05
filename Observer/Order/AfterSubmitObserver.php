@@ -132,6 +132,27 @@ class AfterSubmitObserver implements ObserverInterface
             $this->logger->critical($e);
             return;
         }
-        $this->setCompleteState->execute($order);
+
+        // SetCompleteState::execute() now throws LocalizedException when authorization has not
+        // been recorded (auth-before-setState ordering guard). The order is already committed to
+        // the database at this point, so we must not let the exception propagate — it would
+        // cause a 500 response after a successful order save. Log at critical so the team is
+        // alerted.
+        try {
+            $this->setCompleteState->execute($order);
+        } catch (LocalizedException $e) {
+            $this->logger->critical($e);
+        }
+
+        // Reset session data only after all work is complete. Clearing the session early would
+        // prevent retry paths (e.g. FallbackAfterSubmitObserver) from finding the publicOrderId
+        // in the session if any of the steps above failed.
+        if ($publicOrderIdFromSession !== null) {
+            $this->checkoutData->resetCheckoutData();
+            $this->logger->info(sprintf(
+                '[Bold][AfterSubmitObserver] resetCheckoutData() called for order %s. Session cleared.',
+                $orderId
+            ));
+        }
     }
 }

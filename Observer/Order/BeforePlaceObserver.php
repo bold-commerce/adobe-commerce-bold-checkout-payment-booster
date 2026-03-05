@@ -168,17 +168,15 @@ class BeforePlaceObserver implements ObserverInterface
      *     }
      * } $transactionData
      * @return void
-     * @throws LocalizedException
      */
     private function saveTransactionData(Order $order, array $transactionData)
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {
-            $this->logger->debug('Bold payment authorization succeeded but returned no transaction ID.
-            The order cannot be placed.');
-            throw new LocalizedException(
-                __('Bold payment authorization succeeded but returned no transaction ID. The order cannot be placed.')
+            $this->logger->debug(
+                'Bold payment authorization succeeded but returned no transaction ID. Skipping transaction save.'
             );
+            return;
         }
 
         /** @var OrderPaymentInterface&Payment $orderPayment */

@@ -13,15 +13,13 @@ use PHPUnit\Framework\TestCase;
 
 use function count;
 
-/**
- * @magentoAppIsolation enabled
- */
 class TotalsRetrieverTest extends TestCase
 {
     use ArraySubsetAsserts;
 
     /**
      * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
+     * @magentoAppIsolation enabled
      */
     public function testRetrievesQuoteItemTotalsSuccessfully(): void
     {

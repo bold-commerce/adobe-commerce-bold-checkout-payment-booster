@@ -148,7 +148,6 @@ class BeforePlaceObserver implements ObserverInterface
                 )
             );
         }
-
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId, (string) $quoteId);
         $this->saveTransactionData($order, $transactionData);
     }

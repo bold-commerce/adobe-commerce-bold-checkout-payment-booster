@@ -7,12 +7,11 @@ use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\TestFramework\Helper\Bootstrap;
 
 /**
- * Applies coupon CART_FIXED_DISCOUNT_5 and switches the quote currency to EUR.
+ * Applies coupon CART_FIXED_DISCOUNT_5 to the quote created by
+ * Magento/Checkout/_files/quote_with_address.php (reserved_order_id = 'test_order_1').
  *
- * Declare Magento/ConfigurableProduct/_files/tax_rule.php,
- * Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php, and
- * Magento/Checkout/_files/quote_with_address.php as @magentoDataFixture prerequisites.
- * Configure currency allow-list via @magentoConfigFixture before this fixture.
+ * Declare Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+ * and Magento/Checkout/_files/quote_with_address.php as @magentoDataFixture prerequisites.
  */
 $objectManager = Bootstrap::getObjectManager();
 
@@ -23,12 +22,5 @@ $quoteResource = $objectManager->get(QuoteResource::class);
 
 $quote = $quoteFactory->create();
 $quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
-
-$store = $quote->getStore();
-$store->unsetData('current_currency');
-$store->setCurrentCurrencyCode('EUR');
-
-$quote->setBaseCurrencyCode('USD');
-$quote->setQuoteCurrencyCode('EUR');
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
-$quote->save();
+$quoteResource->save($quote);

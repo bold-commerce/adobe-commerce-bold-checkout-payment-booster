@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface; 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -16,6 +16,9 @@ use Magento\TestFramework\Helper\Bootstrap;
 // on the test method. Do NOT use requireDataFixture() here.
 
 $objectManager = Bootstrap::getObjectManager();
+
+/** @var \Magento\Catalog\Api\ProductCustomOptionRepositoryInterface $optionRepository */
+$optionRepository = $objectManager->get(\Magento\Catalog\Api\ProductCustomOptionRepositoryInterface::class);
 
 /** @var StoreManagerInterface $storeManager */
 $storeManager = $objectManager->get(StoreManagerInterface::class);
@@ -47,26 +50,23 @@ $productRepository->save($product);
 $guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
 $maskedId = $guestCartManagement->createEmptyCart();
 
-// 2) Persist reserved_order_id so CreateTest::getQuote() can find this quote and resolve its mask.
+// 2) Load the same quote instance created by the guest API and keep working on it.
 /** @var \Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface $maskedToQuoteId */
 $maskedToQuoteId = $objectManager->get(\Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface::class);
 $quoteId = (int)$maskedToQuoteId->execute($maskedId);
 /** @var CartRepositoryInterface $cartRepository */
 $cartRepository = $objectManager->get(CartRepositoryInterface::class);
-$quote = $cartRepository->get($quoteId);
-$quote->setReservedOrderId('test_order_1');
-$cartRepository->save($quote);
-
-// 3) Load by reserved_order_id with QuoteResource (exact add_simple_product pattern) then add item.
-/** @var QuoteFactory $quoteFactory */
-$quoteFactory = $objectManager->get(QuoteFactory::class);
-/** @var QuoteResource $quoteResource */
-$quoteResource = $objectManager->get(QuoteResource::class);
-$quote = $quoteFactory->create();
-$quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
+$quote = $cartRepository->getActive($quoteId);
 if (!$quote->getId()) {
-    throw new \RuntimeException('Quote with reserved_order_id test_order_1 was not found.');
+    throw new \RuntimeException('Active quote for the generated masked cart was not found.');
 }
+
+$quote->setReservedOrderId('test_order_1');
+$quote->setStoreId($storeId);
+$quote->setIsActive(true);
+$quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+$quote->setCustomerIsGuest(true);
+$quote->setCustomerEmail('john.doe@example.com');
 
 $addressData = [
     'firstname'  => 'John',
@@ -86,8 +86,66 @@ $quote->getShippingAddress()->setShippingDescription('Flat Rate - Fixed');
 $quote->getShippingAddress()->setBaseShippingAmount(5.00);
 $quote->getShippingAddress()->setShippingAmount(5.00);
 $quote->getBillingAddress()->addData($addressData);
+$quote->setInventoryProcessed(false);
+$quote->getShippingAddress()->setCollectShippingRates(true);
+$quote->getShippingAddress()->collectShippingRates();
 
-$quote->addProduct($product, 1);
+// Build buy request with required custom options (product_simple.php has required text, date_time, drop_down, radio).
+$requestData = ['qty' => 1, 'options' => []];
+foreach ($optionRepository->getList($product->getSku()) as $option) {
+    if (!$option->getIsRequire()) {
+        continue;
+    }
+    $optionId = $option->getOptionId();
+    switch ($option->getType()) {
+        case 'field':
+            $requestData['options'][$optionId] = 'test';
+            break;
+        case 'date_time':
+            $requestData['options'][$optionId] = [
+                'year' => (int)date('Y'),
+                'month' => (int)date('n'),
+                'day' => (int)date('j'),
+                'hour' => (int)date('G'),
+                'minute' => (int)date('i'),
+            ];
+            break;
+        case 'drop_down':
+        case 'radio':
+            $values = $option->getValues();
+            if ($values !== null && $values !== []) {
+                $firstValue = reset($values);
+                if ($firstValue !== false) {
+                    $requestData['options'][$optionId] = $firstValue->getOptionTypeId();
+                }
+            }
+            break;
+        default:
+            $requestData['options'][$optionId] = '1';
+    }
+}
+$request = new \Magento\Framework\DataObject($requestData);
+$result = $quote->addProduct($product, $request);
+if (is_string($result)) {
+    throw new \RuntimeException('Failed adding product to quote: ' . $result);
+}
+// Persist items explicitly so they are in quote_item before cartRepository->save() (CI-safe).
+/** @var QuoteItemResource $quoteItemResource */
+$quoteItemResource = $objectManager->get(QuoteItemResource::class);
+foreach ($quote->getAllItems() as $item) {
+    if ($item->getQuoteId() === null) {
+        $item->setQuoteId((int)$quote->getId());
+    }
+    $quoteItemResource->save($item);
+}
+
+$quote->setItemsCount((int)count($quote->getAllVisibleItems()));
+$quote->setItemsQty((float)array_sum(array_map(static fn($item) => (float)$item->getQty(), $quote->getAllVisibleItems())));
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 $quote->collectTotals();
 $cartRepository->save($quote);
+
+$quote = $cartRepository->get($quoteId);
+if (!(int)$quote->getItemsCount() || !count($quote->getAllVisibleItems())) {
+    throw new \RuntimeException('Fixture quote was saved without visible items.');
+}

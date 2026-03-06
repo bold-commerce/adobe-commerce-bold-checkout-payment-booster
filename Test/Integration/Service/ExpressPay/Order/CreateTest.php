@@ -13,7 +13,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -49,6 +48,11 @@ class CreateTest extends TestCase
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $quote = $this->getQuote();
+        self::assertNotNull($quote->getId(), 'Fixture quote ID should exist.');
+        self::assertGreaterThan(0, (int)$quote->getItemsCount(), 'Fixture quote should have items_count > 0.');
+        self::assertNotEmpty($quote->getAllVisibleItems(), 'Fixture quote should have visible items.');
 
         $boldApiResultMock->method('getBody')
             ->willReturn(
@@ -352,6 +356,8 @@ class CreateTest extends TestCase
         $quote->setIsActive(true);
         $objectManager->create(CartRepositoryInterface::class)->save($quote);
 
+        self::assertSame(0, (int)$quote->getItemsCount(), 'Quote items_count should be 0 after removing all items.');
+
         // Reset cached quote so getQuote() reloads it
         $this->quote = null;
 
@@ -388,8 +394,14 @@ class CreateTest extends TestCase
         /** @var Quote[] $quotes */
         $quotes = $cartRepository->getList($searchCriteria)
             ->getItems();
-        /** @var Quote $quote */
-        $quote = reset($quotes) ?: $objectManager->create(CartInterface::class);
+        /** @var Quote|false $quote */
+        $quote = reset($quotes);
+
+        if (!$quote instanceof Quote) {
+            self::fail('Fixture quote with reserved_order_id "test_order_1" was not found.');
+        }
+
+        $quote = $cartRepository->get((int)$quote->getId());
 
         return $this->quote = $quote;
     }

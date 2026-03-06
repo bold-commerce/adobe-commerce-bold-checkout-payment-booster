@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\QuoteIdMaskFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
-use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
+use Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -27,8 +25,7 @@ $storeId = (int)$storeManager->getStore()->getId();
 /** @var ProductRepositoryInterface $productRepository */
 $productRepository = $objectManager->get(ProductRepositoryInterface::class);
 
-// Load the tax rule directly from the DB instead of relying on the Registry,
-// which may be empty if app isolation cleared it between test classes.
+// Load the tax rule directly from the DB instead of relying on the Registry.
 /** @var Rule $taxRule */
 $taxRule = $objectManager->create(Rule::class)->load('Test Rule', 'code');
 if (!$taxRule->getId()) {
@@ -48,19 +45,20 @@ try {
 $product->setTaxClassId((int)$taxRule->getProductTaxClassIds()[0]);
 $productRepository->save($product);
 
-/** @var QuoteFactory $quoteFactory */
-$quoteFactory = $objectManager->get(QuoteFactory::class);
-/** @var QuoteResource $quoteResource */
-$quoteResource = $objectManager->get(QuoteResource::class);
+// Create quote and mask via guest cart API so quote has a real ID and mask from the start.
+/** @var GuestCartManagementInterface $guestCartManagement */
+$guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
+$maskedId = $guestCartManagement->createEmptyCart();
 
-// --- Step 1: Persist the bare quote first so it receives a real entity_id. ---
-// Item::setQuote() stamps each item with $quote->getId() at the moment addProduct()
-// is called. If the quote has no ID yet (entity_id = null) the item is written to
-// quote_item with quote_id = null and never appears in subsequent loads.
-// Saving the header row first guarantees every item created below gets the real ID.
-$quote = $quoteFactory->create();
-$quote->setStoreId($storeId);
-$quote->setIsActive(true);
+/** @var MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId */
+$maskedQuoteIdToQuoteId = $objectManager->get(MaskedQuoteIdToQuoteIdInterface::class);
+$quoteId = (int)$maskedQuoteIdToQuoteId->execute($maskedId);
+
+/** @var CartRepositoryInterface $cartRepository */
+$cartRepository = $objectManager->get(CartRepositoryInterface::class);
+$quote = $cartRepository->get($quoteId);
+
+// Required so CreateTest::getQuote() can find this quote by reserved_order_id.
 $quote->setReservedOrderId('test_order_1');
 
 // Addresses (minimal required fields for totals + shipping rates)
@@ -87,28 +85,8 @@ $shippingAddress->setShippingAmount(5.00);
 $billingAddress = $quote->getBillingAddress();
 $billingAddress->addData($addressData);
 
-// Save the quote header now — $quote->getId() is set to the real entity_id after this.
-$quoteResource->save($quote);
-
-// --- Step 2: Add item and coupon now that the quote has a real entity_id. ---
-// Item::setQuote($quote) → setQuoteId($quote->getId()) now stamps the correct ID.
 $quote->addProduct($product, 1);
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 
-// --- Step 3: Collect totals and persist via CartRepository so SaveHandler persists items. ---
 $quote->collectTotals();
-/** @var CartRepositoryInterface $cartRepository */
-$cartRepository = $objectManager->get(CartRepositoryInterface::class);
 $cartRepository->save($quote);
-
-// --- Step 4: Create a quote_id_mask record so tests can resolve the mask. ---
-// Without this, QuoteIdToMaskedQuoteId::execute() throws NoSuchEntityException,
-// causing test helpers that return '' which makes Create/Update use the checkout
-// session (an empty, inactive quote) instead of this fixture quote.
-/** @var QuoteIdMaskFactory $quoteIdMaskFactory */
-$quoteIdMaskFactory = $objectManager->get(QuoteIdMaskFactory::class);
-$quoteIdMask = $quoteIdMaskFactory->create();
-$quoteIdMask->setQuoteId($quote->getId());
-/** @var QuoteIdMaskResource $quoteIdMaskResource */
-$quoteIdMaskResource = $objectManager->get(QuoteIdMaskResource::class);
-$quoteIdMaskResource->save($quoteIdMask);

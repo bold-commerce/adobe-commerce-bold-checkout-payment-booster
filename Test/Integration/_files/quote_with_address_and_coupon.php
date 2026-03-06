@@ -1,11 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
-use Magento\TestFramework\Helper\Bootstrap;
-
 /**
  * Applies coupon CART_FIXED_DISCOUNT_5 to the quote created by
  * Magento/Checkout/_files/quote_with_address.php (reserved_order_id = 'test_order_1').
@@ -13,6 +6,13 @@ use Magento\TestFramework\Helper\Bootstrap;
  * Declare Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
  * and Magento/Checkout/_files/quote_with_address.php as @magentoDataFixture prerequisites.
  */
+
+declare(strict_types=1);
+
+use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\TestFramework\Helper\Bootstrap;
+
 $objectManager = Bootstrap::getObjectManager();
 
 /** @var QuoteFactory $quoteFactory */

@@ -15,6 +15,8 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Model\QuoteRepository;
+use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
@@ -319,6 +321,9 @@ class CreateTest extends TestCase
         $quote->setIsActive(false);
         $objectManager->create(CartRepositoryInterface::class)->save($quote);
 
+        // Clear repository cache so Create::execute() loads the quote fresh from DB
+        $objectManager->get(QuoteRepository::class)->_resetState();
+
         /** @var Create $service */
         $service = $objectManager->create(Create::class);
 
@@ -348,17 +353,23 @@ class CreateTest extends TestCase
     {
         $objectManager = Bootstrap::getObjectManager();
 
-        // Remove all items from the quote
+        // Remove all items from the quote and persist to DB (removeItem() only marks deleted;
+        // SaveHandler does not delete rows, so we delete items via resource and save quote)
         $quote = $this->getQuote();
+        $quoteId = (int) $quote->getId();
+        /** @var QuoteItemResource $quoteItemResource */
+        $quoteItemResource = $objectManager->create(QuoteItemResource::class);
         foreach ($quote->getAllItems() as $item) {
-            $quote->removeItem($item->getItemId());
+            $quoteItemResource->delete($item);
         }
-        $quote->setIsActive(true);
+        $quote->setItems([]);
+        $quote->setItemsCount(0);
+        $quote->setItemsQty(0);
         $objectManager->create(CartRepositoryInterface::class)->save($quote);
 
-        self::assertSame(0, (int)$quote->getItemsCount(), 'Quote items_count should be 0 after removing all items.');
+        // Clear repository cache so Create::execute() loads the quote fresh from DB
+        $objectManager->get(QuoteRepository::class)->_resetState();
 
-        // Reset cached quote so getQuote() reloads it
         $this->quote = null;
 
         /** @var Create $service */

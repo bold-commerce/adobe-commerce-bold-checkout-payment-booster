@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Api\ProductRepositoryInterface; 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\GuestCartManagementInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -16,9 +16,6 @@ use Magento\TestFramework\Helper\Bootstrap;
 // on the test method. Do NOT use requireDataFixture() here.
 
 $objectManager = Bootstrap::getObjectManager();
-
-/** @var \Magento\Catalog\Api\ProductCustomOptionRepositoryInterface $optionRepository */
-$optionRepository = $objectManager->get(\Magento\Catalog\Api\ProductCustomOptionRepositoryInterface::class);
 
 /** @var StoreManagerInterface $storeManager */
 $storeManager = $objectManager->get(StoreManagerInterface::class);
@@ -42,6 +39,10 @@ try {
     throw new \RuntimeException('Required fixture product with SKU "simple" was not found.', 0, $e);
 }
 
+$product->setCustomOptions([]);
+$product->setOptions([]);
+$product->setHasOptions(false);
+$product->setRequiredOptions(false);
 $product->setTaxClassId((int)$taxRule->getProductTaxClassIds()[0]);
 $productRepository->save($product);
 
@@ -90,41 +91,7 @@ $quote->setInventoryProcessed(false);
 $quote->getShippingAddress()->setCollectShippingRates(true);
 $quote->getShippingAddress()->collectShippingRates();
 
-// Build buy request with required custom options (product_simple.php has required text, date_time, drop_down, radio).
-$requestData = ['qty' => 1, 'options' => []];
-foreach ($optionRepository->getList($product->getSku()) as $option) {
-    if (!$option->getIsRequire()) {
-        continue;
-    }
-    $optionId = $option->getOptionId();
-    switch ($option->getType()) {
-        case 'field':
-            $requestData['options'][$optionId] = 'test';
-            break;
-        case 'date_time':
-            $requestData['options'][$optionId] = [
-                'year' => (int)date('Y'),
-                'month' => (int)date('n'),
-                'day' => (int)date('j'),
-                'hour' => (int)date('G'),
-                'minute' => (int)date('i'),
-            ];
-            break;
-        case 'drop_down':
-        case 'radio':
-            $values = $option->getValues();
-            if ($values !== null && $values !== []) {
-                $firstValue = reset($values);
-                if ($firstValue !== false) {
-                    $requestData['options'][$optionId] = $firstValue->getOptionTypeId();
-                }
-            }
-            break;
-        default:
-            $requestData['options'][$optionId] = '1';
-    }
-}
-$request = new \Magento\Framework\DataObject($requestData);
+$request = new \Magento\Framework\DataObject(['qty' => 1]);
 $result = $quote->addProduct($product, $request);
 if (is_string($result)) {
     throw new \RuntimeException('Failed adding product to quote: ' . $result);

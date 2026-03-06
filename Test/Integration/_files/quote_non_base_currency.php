@@ -1,11 +1,4 @@
 <?php
-
-declare(strict_types=1);
-
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
-use Magento\TestFramework\Helper\Bootstrap;
-
 /**
  * Applies coupon CART_FIXED_DISCOUNT_5 and switches the quote currency to EUR.
  *
@@ -14,6 +7,13 @@ use Magento\TestFramework\Helper\Bootstrap;
  * Magento/Checkout/_files/quote_with_address.php as @magentoDataFixture prerequisites.
  * Configure currency allow-list via @magentoConfigFixture before this fixture.
  */
+
+declare(strict_types=1);
+
+use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\TestFramework\Helper\Bootstrap;
+
 $objectManager = Bootstrap::getObjectManager();
 
 /** @var QuoteFactory $quoteFactory */

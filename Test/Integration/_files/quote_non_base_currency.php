@@ -1,12 +1,4 @@
 <?php
-/**
- * Applies coupon CART_FIXED_DISCOUNT_5 and switches the quote currency to EUR.
- *
- * Declare Magento/ConfigurableProduct/_files/tax_rule.php,
- * Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php, and
- * Magento/Checkout/_files/quote_with_address.php as @magentoDataFixture prerequisites.
- * Configure currency allow-list via @magentoConfigFixture before this fixture.
- */
 
 declare(strict_types=1);
 

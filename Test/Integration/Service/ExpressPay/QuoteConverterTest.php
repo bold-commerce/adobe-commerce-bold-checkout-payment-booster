@@ -29,7 +29,7 @@ class QuoteConverterTest extends TestCase
     /**
      * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
-     * @magentoDataFixture Magento/Checkout/_files/quote_with_address.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_address_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_address_and_coupon.php
      * @magentoDbIsolation enabled
      */
@@ -219,7 +219,7 @@ class QuoteConverterTest extends TestCase
      * @magentoConfigFixture current_store currency/options/allow USD,EUR
      * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
-     * @magentoDataFixture Magento/Checkout/_files/quote_with_address.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_address_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_non_base_currency.php
      */
     public function testConvertFullQuoteConvertsNonBaseCurrencyQuote(): void

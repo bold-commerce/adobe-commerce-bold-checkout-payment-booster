@@ -217,6 +217,9 @@ class QuoteConverterTest extends TestCase
      * @magentoConfigFixture current_store currency/options/base USD
      * @magentoConfigFixture current_store currency/options/default USD
      * @magentoConfigFixture current_store currency/options/allow USD,EUR
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_non_base_currency.php
      */
     public function testConvertFullQuoteConvertsNonBaseCurrencyQuote(): void
@@ -230,6 +233,7 @@ class QuoteConverterTest extends TestCase
         $searchResult = $objectManager->create(CartRepositoryInterface::class)
             ->getList($searchCriteria)
             ->getItems();
+        self::assertNotEmpty($searchResult, 'Fixture quote with reserved_order_id "test_order_1" was not found.');
         /** @var Quote $quote */
         $quote = reset($searchResult);
         /** @var QuoteConverter $quoteConverter */

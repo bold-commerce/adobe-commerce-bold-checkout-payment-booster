@@ -29,6 +29,9 @@ class CreateTest extends TestCase
     private $quote;
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @throws LocalizedException
      */
@@ -123,6 +126,9 @@ class CreateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallThrowsException(): void
@@ -156,6 +162,9 @@ class CreateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallReturnsIncorrectStatus(): void
@@ -197,6 +206,9 @@ class CreateTest extends TestCase
 
     /**
      * @dataProvider apiErrorsDataProvider
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
      */
@@ -289,6 +301,9 @@ class CreateTest extends TestCase
      *
      * This prevents wallet_pay requests for stale quotes that would fail on Bold's side.
      *
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsWhenQuoteIsInactive(): void
@@ -320,6 +335,9 @@ class CreateTest extends TestCase
      * When the cart is empty (all items removed), Create::execute() must throw
      * a LocalizedException before calling the Bold API.
      *
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsWhenCartIsEmpty(): void

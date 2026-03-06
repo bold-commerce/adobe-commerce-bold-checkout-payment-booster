@@ -9,14 +9,11 @@ use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\TestFramework\Workaround\Override\Fixture\Resolver;
 
-// Tax rule + sales rule fixtures
-Resolver::getInstance()->requireDataFixture('Magento/ConfigurableProduct/_files/tax_rule.php');
-Resolver::getInstance()->requireDataFixture('Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php');
-
-// Base simple product fixture (SKU: simple)
-Resolver::getInstance()->requireDataFixture('Magento/Catalog/_files/product_simple.php');
+// Sub-fixtures (tax_rule.php, cart_rule, product_simple) are declared as @magentoDataFixture
+// annotations on the test method. Do NOT use requireDataFixture() here — the Resolver's
+// "already loaded" cache can become out of sync with the Registry after @magentoAppIsolation
+// resets the app, causing the registry entry to be null.
 
 $objectManager = Bootstrap::getObjectManager();
 
@@ -27,9 +24,16 @@ $storeId = (int)$storeManager->getStore()->getId();
 /** @var ProductRepositoryInterface $productRepository */
 $productRepository = $objectManager->get(ProductRepositoryInterface::class);
 
+// Load the tax rule directly from the DB instead of relying on the Registry,
+// which may be empty if app isolation cleared it between test classes.
 /** @var Rule $taxRule */
-$taxRule = $objectManager->get(\Magento\Framework\Registry::class)
-    ->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
+$taxRule = $objectManager->create(Rule::class)->load('Test Rule', 'code');
+if (!$taxRule->getId()) {
+    throw new \RuntimeException(
+        'Tax rule "Test Rule" was not found. Ensure Magento/ConfigurableProduct/_files/tax_rule.php '
+        . 'is declared as a @magentoDataFixture before this fixture.'
+    );
+}
 
 try {
     $product = $productRepository->get('simple', false, $storeId, true);

@@ -19,7 +19,6 @@ class TotalsRetrieverTest extends TestCase
 
     /**
      * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
-     * @magentoAppIsolation enabled
      */
     public function testRetrievesQuoteItemTotalsSuccessfully(): void
     {

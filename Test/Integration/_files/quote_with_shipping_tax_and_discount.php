@@ -5,7 +5,9 @@ declare(strict_types=1);
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\QuoteFactory;
+use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\Quote\Model\ResourceModel\Quote\QuoteIdMask as QuoteIdMaskResource;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -90,3 +92,15 @@ $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 // Collect totals and persist
 $quote->collectTotals();
 $quoteResource->save($quote);
+
+// Create a quote_id_mask record so tests can resolve the mask ID to this quote.
+// Without this, QuoteIdToMaskedQuoteId::execute() throws NoSuchEntityException,
+// causing test helpers that call getQuoteMaskId() to fall back to an empty mask,
+// which makes Create/Update services use the checkout session instead of this quote.
+/** @var QuoteIdMaskFactory $quoteIdMaskFactory */
+$quoteIdMaskFactory = $objectManager->get(QuoteIdMaskFactory::class);
+$quoteIdMask = $quoteIdMaskFactory->create();
+$quoteIdMask->setQuoteId($quote->getId());
+/** @var QuoteIdMaskResource $quoteIdMaskResource */
+$quoteIdMaskResource = $objectManager->get(QuoteIdMaskResource::class);
+$quoteIdMaskResource->save($quoteIdMask);

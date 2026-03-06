@@ -53,7 +53,7 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com',
+                    'email' => 'aaa@aaa.com',
                     'platform_id' => '1'
                 ],
                 'shipping_address' => [
@@ -246,7 +246,7 @@ class QuoteConverterTest extends TestCase
                 'customer' => [
                     'first_name' => 'John',
                     'last_name' => 'Smith',
-                    'email' => 'customer@example.com',
+                    'email' => 'aaa@aaa.com',
                     'platform_id' => '1'
                 ],
                 'shipping_address' => [

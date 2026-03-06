@@ -30,5 +30,9 @@ $store->setCurrentCurrencyCode('EUR');
 
 $quote->setBaseCurrencyCode('USD');
 $quote->setQuoteCurrencyCode('EUR');
+// Set the USD→EUR rate used to convert base amounts to quote currency amounts.
+// Expected test values (1.06, 3.53, 7.07, 14.14, 18.74) are all base × 0.707.
+$quote->setBaseToQuoteRate(0.707);
+$quote->setStoreToBaseRate(1.0);
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 $quote->save();

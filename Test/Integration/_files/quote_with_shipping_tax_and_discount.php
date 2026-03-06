@@ -93,6 +93,15 @@ $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 $quote->collectTotals();
 $quoteResource->save($quote);
 
+// When items are added to a quote that has no ID yet, Item::setQuote() stamps
+// each item with quote_id = null (because $quote->getId() returns null at that
+// point). The relation composite then saves those items with quote_id = null.
+// Fix: update each item's quote_id now that the quote row exists in the DB.
+foreach ($quote->getAllItems() as $item) {
+    $item->setQuoteId($quote->getId());
+    $item->save();
+}
+
 // Create a quote_id_mask record so tests can resolve the mask ID to this quote.
 // Without this, QuoteIdToMaskedQuoteId::execute() throws NoSuchEntityException,
 // causing test helpers that call getQuoteMaskId() to fall back to an empty mask,

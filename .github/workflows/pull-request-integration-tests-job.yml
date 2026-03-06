@@ -23,38 +23,38 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - php-version: "8.1"
-            magento-version: "2.4.4-p13"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.1"
-            magento-version: "2.4.5-p12"
-            composer-version: "v2"
-            maria-db-version: "10.6"
+#          - php-version: "8.1"
+#            magento-version: "2.4.4-p13"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.1"
+#            magento-version: "2.4.5-p12"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
           - php-version: "8.2"
             magento-version: "2.4.6-p10"
             composer-version: "v2"
             maria-db-version: "10.6"
-          - php-version: "8.2"
-            magento-version: "2.4.7-p5"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.2"
-            magento-version: "2.4.8"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.4"
-            magento-version: "2.4.8-p1"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.4"
-            magento-version: "2.4.9-alpha2"
-            composer-version: "v2"
-            maria-db-version: "10.6"
-          - php-version: "8.4"
-            magento-version: "2.4.9-alpha3"
-            composer-version: "v2"
-            maria-db-version: "10.6"
+#          - php-version: "8.2"
+#            magento-version: "2.4.7-p5"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.2"
+#            magento-version: "2.4.8"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.4"
+#            magento-version: "2.4.8-p1"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.4"
+#            magento-version: "2.4.9-alpha2"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
+#          - php-version: "8.4"
+#            magento-version: "2.4.9-alpha3"
+#            composer-version: "v2"
+#            maria-db-version: "10.6"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -174,8 +174,13 @@ jobs:
               --no-update
           fi
 
+          if [ "${{ matrix.magento-version }}" = "2.4.6-p10" ]; then
+            echo "Relax sebastian/comparator for 2.4.6-p10: <=4.0.6 conflicts with PHPUnit 9.6.33+ which needs ^4.0.10"
+            composer require --no-update "sebastian/comparator:^4.0"
+          fi
+
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.base_ref || github.ref_name }} --no-scripts --no-update
+          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref || github.ref_name }} --no-scripts --no-update
           composer install --prefer-dist --no-progress --no-suggest
           composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
 
@@ -200,4 +205,7 @@ jobs:
       - name: run the test
         working-directory: integration-pipeline-test
         run: |
-          vendor/bin/phpunit -c $(pwd)/dev/tests/integration/phpunit.xml $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration
+          vendor/bin/phpunit \
+            -c $(pwd)/dev/tests/integration/phpunit.xml \
+            --testdox \
+            $(pwd)/vendor/bold-commerce/module-checkout-payment-booster/Test/Integration

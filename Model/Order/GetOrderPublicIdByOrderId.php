@@ -36,10 +36,11 @@ class GetOrderPublicIdByOrderId
     public function execute(int $orderId): string
     {
         $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId($orderId);
-        if (!$orderExtensionData) {
+        $publicId = $orderExtensionData ? $orderExtensionData->getPublicId() : null;
+        if (!$publicId) {
             throw new LocalizedException(__('Order public id is not set.'));
         }
 
-        return $orderExtensionData->getPublicId();
+        return $publicId;
     }
 }

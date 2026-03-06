@@ -2,59 +2,117 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\Registry;
-use Magento\Quote\Model\Quote\Address\Rate;
-use Magento\Quote\Model\Quote\Item;
-use Magento\Quote\Model\QuoteFactory;
-use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\GuestCartManagementInterface;
+use Magento\Quote\Api\CartRepositoryInterface;
+use Magento\Quote\Api\CartManagementInterface;
+use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
+use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
-use Magento\TestFramework\Workaround\Override\Fixture\Resolver;
 
-Resolver::getInstance()->requireDataFixture('Magento/ConfigurableProduct/_files/tax_rule.php');
-Resolver::getInstance()->requireDataFixture('Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php');
-Resolver::getInstance()->requireDataFixture('Magento/Checkout/_files/quote_with_address_saved.php');
+// Sub-fixtures (tax_rule.php, cart_rule, product_simple) are declared as @magentoDataFixture
+// on the test method. Do NOT use requireDataFixture() here.
 
 $objectManager = Bootstrap::getObjectManager();
-/** @var QuoteFactory $quoteFactory */
-$quoteFactory = $objectManager->get(QuoteFactory::class);
-/** @var QuoteResource $quoteResource */
-$quoteResource = $objectManager->get(QuoteResource::class);
-$quote = $quoteFactory->create();
 
-$quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
+/** @var StoreManagerInterface $storeManager */
+$storeManager = $objectManager->get(StoreManagerInterface::class);
+$storeId = (int)$storeManager->getStore()->getId();
 
-$shippingAddress = $quote->getShippingAddress();
+/** @var ProductRepositoryInterface $productRepository */
+$productRepository = $objectManager->get(ProductRepositoryInterface::class);
 
-$shippingAddress->setShippingMethod('flatrate_flatrate')
-    ->setShippingDescription('Flat Rate - Fixed')
-    ->save();
-
-$rate = $objectManager->get(Rate::class);
-
-$rate->setPrice(5.00)
-    ->setAddressId($shippingAddress->getId())
-    ->save();
-
-$shippingAddress->setBaseShippingAmount($rate->getPrice());
-$shippingAddress->setShippingAmount($rate->getPrice());
-
-$rate->delete();
-
-$registry = $objectManager->get(Registry::class);
 /** @var Rule $taxRule */
-$taxRule = $registry->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
-/** @var Item[] $quoteItems */
-$quoteItems = $quote->getAllItems();
+$taxRule = $objectManager->create(Rule::class)->load('Test Rule', 'code');
+if (!$taxRule->getId()) {
+    throw new \RuntimeException(
+        'Tax rule "Test Rule" was not found. Ensure Magento/ConfigurableProduct/_files/tax_rule.php '
+        . 'is declared as a @magentoDataFixture before this fixture.'
+    );
+}
 
-array_walk(
-    $quoteItems,
-    static function (Item $item) use ($taxRule): void {
-        $item->getProduct()
-            ->setTaxClassId($taxRule->getProductTaxClassIds()[0])
-            ->save();
+try {
+    $product = $productRepository->get('simple', false, $storeId, true);
+} catch (NoSuchEntityException $e) {
+    throw new \RuntimeException('Required fixture product with SKU "simple" was not found.', 0, $e);
+}
+
+$product->setCustomOptions([]);
+$product->setOptions([]);
+$product->setHasOptions(false);
+$product->setRequiredOptions(false);
+$product->setTaxClassId((int)$taxRule->getProductTaxClassIds()[0]);
+$productRepository->save($product);
+
+// 1) Create quote + mask via guest API (same as create_empty_cart.php).
+/** @var GuestCartManagementInterface $guestCartManagement */
+$guestCartManagement = $objectManager->get(GuestCartManagementInterface::class);
+$maskedId = $guestCartManagement->createEmptyCart();
+
+// 2) Load the same quote instance created by the guest API and keep working on it.
+/** @var \Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface $maskedToQuoteId */
+$maskedToQuoteId = $objectManager->get(\Magento\Quote\Model\MaskedQuoteIdToQuoteIdInterface::class);
+$quoteId = (int)$maskedToQuoteId->execute($maskedId);
+/** @var CartRepositoryInterface $cartRepository */
+$cartRepository = $objectManager->get(CartRepositoryInterface::class);
+$quote = $cartRepository->getActive($quoteId);
+if (!$quote->getId()) {
+    throw new \RuntimeException('Active quote for the generated masked cart was not found.');
+}
+
+$quote->setReservedOrderId('test_order_1');
+$quote->setStoreId($storeId);
+$quote->setIsActive(true);
+$quote->setCheckoutMethod(CartManagementInterface::METHOD_GUEST);
+$quote->setCustomerIsGuest(true);
+$quote->setCustomerEmail('john.doe@example.com');
+
+$addressData = [
+    'firstname'  => 'John',
+    'lastname'   => 'Doe',
+    'street'     => '123 Test St',
+    'city'       => 'Los Angeles',
+    'region'     => 'California',
+    'region_id'  => 12,
+    'postcode'   => '90001',
+    'country_id' => 'US',
+    'telephone'  => '5555555555',
+];
+$quote->getShippingAddress()->addData($addressData);
+$quote->getShippingAddress()->setCollectShippingRates(true);
+$quote->getShippingAddress()->setShippingMethod('flatrate_flatrate');
+$quote->getShippingAddress()->setShippingDescription('Flat Rate - Fixed');
+$quote->getShippingAddress()->setBaseShippingAmount(5.00);
+$quote->getShippingAddress()->setShippingAmount(5.00);
+$quote->getBillingAddress()->addData($addressData);
+$quote->setInventoryProcessed(false);
+$quote->getShippingAddress()->setCollectShippingRates(true);
+$quote->getShippingAddress()->collectShippingRates();
+
+$request = new \Magento\Framework\DataObject(['qty' => 1]);
+$result = $quote->addProduct($product, $request);
+if (is_string($result)) {
+    throw new \RuntimeException('Failed adding product to quote: ' . $result);
+}
+// Persist items explicitly so they are in quote_item before cartRepository->save() (CI-safe).
+/** @var QuoteItemResource $quoteItemResource */
+$quoteItemResource = $objectManager->get(QuoteItemResource::class);
+foreach ($quote->getAllItems() as $item) {
+    if ($item->getQuoteId() === null) {
+        $item->setQuoteId((int)$quote->getId());
     }
-);
+    $quoteItemResource->save($item);
+}
 
+$quote->setItemsCount((int)count($quote->getAllVisibleItems()));
+$quote->setItemsQty((float)array_sum(array_map(static fn($item) => (float)$item->getQty(), $quote->getAllVisibleItems())));
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
-$quote->save();
+$quote->collectTotals();
+$cartRepository->save($quote);
+
+$quote = $cartRepository->get($quoteId);
+if (!(int)$quote->getItemsCount() || !count($quote->getAllVisibleItems())) {
+    throw new \RuntimeException('Fixture quote was saved without visible items.');
+}

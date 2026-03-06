@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
@@ -94,9 +95,11 @@ $quoteResource->save($quote);
 $quote->addProduct($product, 1);
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
 
-// --- Step 3: Collect totals and persist (saves quote + items via Relation composite). ---
+// --- Step 3: Collect totals and persist via CartRepository so SaveHandler persists items. ---
 $quote->collectTotals();
-$quoteResource->save($quote);
+/** @var CartRepositoryInterface $cartRepository */
+$cartRepository = $objectManager->get(CartRepositoryInterface::class);
+$cartRepository->save($quote);
 
 // --- Step 4: Create a quote_id_mask record so tests can resolve the mask. ---
 // Without this, QuoteIdToMaskedQuoteId::execute() throws NoSuchEntityException,

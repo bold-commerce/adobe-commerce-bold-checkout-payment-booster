@@ -57,4 +57,16 @@ $quote->setStoreId(1)
     ->setReservedOrderId('test_order_1')
     ->setCustomerEmail('aaa@aaa.com')
     ->addProduct($product, 2);
+
+// Collect shipping rates so the address has rates (converter needs getShippingRatesCollection() to be non-empty).
+$quote->getShippingAddress()->setCollectShippingRates(true);
+$quote->collectTotals();
+$quote->getShippingAddress()
+    ->setShippingMethod('flatrate_flatrate')
+    ->setShippingDescription('Flat Rate - Fixed')
+    ->setShippingAmount(10)
+    ->setBaseShippingAmount(10);
+$quote->collectTotals();
+// Override shipping amount to match test expectation (10.00 USD); flatrate default may be different.
+$quote->getShippingAddress()->setShippingAmount(10)->setBaseShippingAmount(10);
 $quote->save();

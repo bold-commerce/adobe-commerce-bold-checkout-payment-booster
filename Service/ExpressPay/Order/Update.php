@@ -73,7 +73,7 @@ class Update implements UpdateInterface
         $this->checkoutSession = $checkoutSession;
     }
 
-    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy = null): void
+    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy): void
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {

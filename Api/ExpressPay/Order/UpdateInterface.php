@@ -14,5 +14,5 @@ interface UpdateInterface
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy = null): void;
+    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy): void;
 }

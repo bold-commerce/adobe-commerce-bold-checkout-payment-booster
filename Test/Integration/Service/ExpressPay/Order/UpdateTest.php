@@ -33,6 +33,9 @@ class UpdateTest extends TestCase
     private $quote;
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @throws LocalizedException
      */
@@ -130,6 +133,9 @@ class UpdateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testIgnoresExceptionThrownWhenGettingExpressPayOrder(): void
@@ -173,6 +179,9 @@ class UpdateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallThrowsException(): void
@@ -227,6 +236,9 @@ class UpdateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallReturnsIncorrectStatus(): void
@@ -289,6 +301,9 @@ class UpdateTest extends TestCase
 
     /**
      * @dataProvider apiErrorsDataProvider
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
      */

@@ -10,8 +10,9 @@ interface UpdateInterface
      * @param string|int $quoteMaskId
      * @param string $gatewayId
      * @param string $paypalOrderId
+     * @param string|null $shippingStrategy
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function execute($quoteMaskId, $gatewayId, $paypalOrderId): void;
+    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy = null): void;
 }

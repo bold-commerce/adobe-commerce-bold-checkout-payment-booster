@@ -106,6 +106,9 @@ class GetTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallReturnsIncorrectStatus(): void

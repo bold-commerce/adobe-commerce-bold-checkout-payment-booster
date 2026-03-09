@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\TransactionComment;
 use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;

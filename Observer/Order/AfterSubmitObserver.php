@@ -102,22 +102,54 @@ class AfterSubmitObserver implements ObserverInterface
         }
 
         $orderId = $order->getEntityId();
+        // Skip if Magento order does Not have an ID yet
+        // or skip if the Bold Order Quote Relation has already a successful State call timestamp
         if (!$orderId || $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order)) {
             return;
         }
 
-        // Capture the session value first so we know whether to clear it after all work completes.
+        // Used for fallback observer in case is enabled
+        $alreadyProcessed = $this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order);
+        // @phpstan-ignore if.alwaysFalse
+        if ($alreadyProcessed) {
+            $this->logger->info(sprintf(
+                '[Bold][AfterSubmitObserver] Skipped: order %s (quote %s) already has a successful_state_at timestamp — likely processed by an earlier observer invocation.',
+                $orderId,
+                $order->getQuoteId()
+            ));
+            return;
+        }
+
         $publicOrderIdFromSession = $this->checkoutData->getPublicOrderId();
+
+        $this->logger->info(sprintf(
+            '[Bold][AfterSubmitObserver] publicOrderId from session: %s (order %s, quote %s)',
+            $publicOrderIdFromSession ?? 'null — session is empty or was already reset',
+            $orderId,
+            $order->getQuoteId()
+        ));
+
         $publicOrderId = $publicOrderIdFromSession;
 
         if (!$publicOrderId) {
+            $this->logger->info(sprintf(
+                '[Bold][AfterSubmitObserver] Session was empty — falling back to bold_booster_magento_quote_bold_order table for order %s (quote %s).',
+                $orderId,
+                $order->getQuoteId()
+            ));
             $publicOrderId = $this->magentoQuoteBoldOrderRepository->getPublicOrderIdFromOrder($order);
+            $this->logger->info(sprintf(
+                '[Bold][AfterSubmitObserver] publicOrderId from DB fallback: %s',
+                $publicOrderId ?? 'null — no relation record found'
+            ));
         }
 
         if (!$publicOrderId) {
             $this->logger->critical(sprintf(
                 '[Bold][AfterSubmitObserver] publicOrderId is null for order %s (quote %s). '
-                . 'Both session and DB fallback returned nothing. SetCompleteState will be skipped.',
+                . 'Both session and DB fallback returned nothing. '
+                . 'Bold order may be unlinked or the session was never initialised. '
+                . 'SetCompleteState will be skipped. Check BeforePlaceObserver and InitializeBoldOrderObserver logs.',
                 $orderId,
                 $order->getQuoteId()
             ));
@@ -135,19 +167,26 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
 
-        // SetCompleteState::execute() throws LocalizedException when authorization has not been
-        // recorded. The order is already committed, so we must not let the exception propagate —
-        // it would cause a 500 response after a successful order save.
+        // SetCompleteState::execute() now throws LocalizedException when authorization has not
+        // been recorded (auth-before-setState ordering guard). The order is already committed to
+        // the database at this point, so we must not let the exception propagate — it would
+        // cause a 500 response after a successful order save. Log at critical so the team is
+        // alerted; the SuccessPlugin will handle the customer-facing redirect if needed.
         try {
             $this->setCompleteState->execute($order);
         } catch (LocalizedException $e) {
             $this->logger->critical($e);
         }
 
-        // Reset the session only after all work is complete and only if the publicOrderId
-        // actually came from the session (not the DB fallback).
+        // Reset session data only after all work is complete. Clearing the session early would
+        // prevent retry paths (e.g. FallbackAfterSubmitObserver) from finding the publicOrderId
+        // in the session if any of the steps above failed.
         if ($publicOrderIdFromSession !== null) {
             $this->checkoutData->resetCheckoutData();
+            $this->logger->info(sprintf(
+                '[Bold][AfterSubmitObserver] resetCheckoutData() called for order %s. Session cleared.',
+                $orderId
+            ));
         }
     }
 }

@@ -34,7 +34,6 @@ class CreateTest extends TestCase
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
      * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
-     * @throws LocalizedException
      */
     public function testCreatesExpressPayOrderSuccessfully(): void
     {
@@ -322,7 +321,10 @@ class CreateTest extends TestCase
         $objectManager->create(CartRepositoryInterface::class)->save($quote);
 
         // Clear repository cache so Create::execute() loads the quote fresh from DB
-        $objectManager->get(QuoteRepository::class)->_resetState();
+        $quoteRepository = $objectManager->get(QuoteRepository::class);
+        if (method_exists($quoteRepository, '_resetState')) {
+            $quoteRepository->_resetState();
+        }
 
         /** @var Create $service */
         $service = $objectManager->create(Create::class);
@@ -368,7 +370,10 @@ class CreateTest extends TestCase
         $objectManager->create(CartRepositoryInterface::class)->save($quote);
 
         // Clear repository cache so Create::execute() loads the quote fresh from DB
-        $objectManager->get(QuoteRepository::class)->_resetState();
+        $quoteRepository = $objectManager->get(QuoteRepository::class);
+        if (method_exists($quoteRepository, '_resetState')) {
+            $quoteRepository->_resetState();
+        }
 
         $this->quote = null;
 
@@ -398,7 +403,7 @@ class CreateTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder = $objectManager->create(SearchCriteriaBuilder::class);
-        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_1')
+        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_with_shipping_tax_discount')
             ->create();
         /** @var CartRepositoryInterface $cartRepository */
         $cartRepository = $objectManager->create(CartRepositoryInterface::class);
@@ -409,7 +414,7 @@ class CreateTest extends TestCase
         $quote = reset($quotes);
 
         if (!$quote instanceof Quote) {
-            self::fail('Fixture quote with reserved_order_id "test_order_1" was not found.');
+            self::fail('Fixture quote with reserved_order_id "test_order_with_shipping_tax_discount" was not found.');
         }
 
         $quote = $cartRepository->get((int)$quote->getId());

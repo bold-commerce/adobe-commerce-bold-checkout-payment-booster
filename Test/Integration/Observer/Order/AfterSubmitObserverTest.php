@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Observer\Order;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Bold\CheckoutPaymentBooster\Observer\Order\AfterSubmitObserver;
@@ -14,6 +15,7 @@ use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Payment;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -107,9 +109,10 @@ class AfterSubmitObserverTest extends TestCase
 
         /** @var Order $order */
         $order = $objectManager->create(Order::class);
-        // No entity ID — transient object. Must set a Payment explicitly because a
-        // freshly-created Order has no payment and getPayment() returns null.
-        $payment = $objectManager->create(\Magento\Sales\Model\Order\Payment::class);
+        // No entity ID — transient object.
+        // getPayment() is null on an unsaved Order, so attach a Payment explicitly.
+        /** @var Payment $payment */
+        $payment = $objectManager->create(Payment::class);
         $payment->setMethod('bold');
         $order->setPayment($payment);
 
@@ -159,9 +162,9 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState->expects(self::never())->method('execute');
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'              => $checkPaymentMethod,
+            'checkPaymentMethod'             => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'setCompleteState'                => $setCompleteState,
+            'setCompleteState'               => $setCompleteState,
         ]);
 
         $observer->execute($this->buildObserverEvent($order));
@@ -205,11 +208,11 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState->expects(self::never())->method('execute');
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'              => $checkPaymentMethod,
+            'checkPaymentMethod'             => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                    => $checkoutData,
-            'logger'                          => $logger,
-            'setCompleteState'                => $setCompleteState,
+            'checkoutData'                   => $checkoutData,
+            'logger'                         => $logger,
+            'setCompleteState'               => $setCompleteState,
         ]);
 
         // Must NOT throw even though publicOrderId is unresolvable
@@ -259,12 +262,12 @@ class AfterSubmitObserverTest extends TestCase
         $logger->expects(self::atLeastOnce())->method('critical'); // must log the caught exception
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'              => $checkPaymentMethod,
+            'checkPaymentMethod'             => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                    => $checkoutData,
-            'orderExtensionDataResource'      => $extensionDataResource,
-            'setCompleteState'                => $setCompleteState,
-            'logger'                          => $logger,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
+            'logger'                         => $logger,
         ]);
 
         // Must NOT throw — exception is caught internally
@@ -306,11 +309,11 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState = $this->createMock(SetCompleteState::class);
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'              => $checkPaymentMethod,
+            'checkPaymentMethod'             => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                    => $checkoutData,
-            'orderExtensionDataResource'      => $extensionDataResource,
-            'setCompleteState'                => $setCompleteState,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
         ]);
 
         $observer->execute($this->buildObserverEvent($order));
@@ -353,11 +356,11 @@ class AfterSubmitObserverTest extends TestCase
         $setCompleteState = $this->createMock(SetCompleteState::class);
 
         $observer = $this->buildObserver([
-            'checkPaymentMethod'              => $checkPaymentMethod,
+            'checkPaymentMethod'             => $checkPaymentMethod,
             'magentoQuoteBoldOrderRepository' => $repo,
-            'checkoutData'                    => $checkoutData,
-            'orderExtensionDataResource'      => $extensionDataResource,
-            'setCompleteState'                => $setCompleteState,
+            'checkoutData'                   => $checkoutData,
+            'orderExtensionDataResource'     => $extensionDataResource,
+            'setCompleteState'               => $setCompleteState,
         ]);
 
         $observer->execute($this->buildObserverEvent($order));

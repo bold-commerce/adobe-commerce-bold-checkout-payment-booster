@@ -12,6 +12,7 @@ use Bold\CheckoutPaymentBooster\Observer\Order\BeforePlaceObserver;
 use Magento\Framework\Event;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -95,10 +96,12 @@ class BeforePlaceObserverTest extends TestCase
      */
     public function testSaveTransactionDataSetsTransactionIdWhenPresent(): void
     {
-        $objectManager = Bootstrap::getObjectManager();
-
-        /** @var BeforePlaceObserver $observer */
-        $observer = $objectManager->create(BeforePlaceObserver::class);
+        // Mock transactionComment so OrderRepository::save() is never called on the mock Order.
+        // PHP 8 raises an Error (not Exception) when getItems() is called on null, which escapes
+        // the catch (\Exception) block inside TransactionComment::addComment().
+        $observer = $this->buildObserver([
+            'transactionComment' => $this->createMock(TransactionComment::class),
+        ]);
 
         /** @var Payment|MockObject $payment */
         $payment = $this->createMock(Payment::class);
@@ -115,11 +118,11 @@ class BeforePlaceObserverTest extends TestCase
                 'transactions' => [
                     [
                         'transaction_id' => 'txn_abc123',
-                        'tender_details' => [
+                        'tender_details'  => [
                             'account' => '4111',
                             'email'   => 'test@example.com',
                         ],
-                    ],
+                    ]
                 ]
             ]
         ];
@@ -203,6 +206,11 @@ class BeforePlaceObserverTest extends TestCase
 
         $quoteId = $relation->getQuoteId();
 
+        // Mock HydrateOrderFromQuote to be a no-op (we want to test the guard after hydration)
+        /** @var HydrateOrderFromQuote|MockObject $hydrateOrderFromQuote */
+        $hydrateOrderFromQuote = $this->createMock(HydrateOrderFromQuote::class);
+
+        // Mock CartRepository to return a real Quote for the quoteId
         /** @var Quote $quote */
         $quote = $objectManager->create(Quote::class);
         $quote->load($quoteId);
@@ -211,10 +219,12 @@ class BeforePlaceObserverTest extends TestCase
         $cartRepository = $this->createMock(CartRepositoryInterface::class);
         $cartRepository->method('get')->willReturn($quote);
 
+        // Mock CheckPaymentMethod to recognize 'bold' as a Bold method
         /** @var CheckPaymentMethod|MockObject $checkPaymentMethod */
         $checkPaymentMethod = $this->createMock(CheckPaymentMethod::class);
         $checkPaymentMethod->method('isBold')->willReturn(true);
 
+        // Mock CheckoutData to return a known publicOrderId
         /** @var CheckoutData|MockObject $checkoutData */
         $checkoutData = $this->createMock(CheckoutData::class);
         $checkoutData->method('getPublicOrderId')
@@ -237,4 +247,5 @@ class BeforePlaceObserverTest extends TestCase
 
         $observer->execute($this->buildObserverEvent($order));
     }
+
 }

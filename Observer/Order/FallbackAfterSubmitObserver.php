@@ -73,6 +73,9 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
     public function execute(Observer $observer): void
     {
         $order = $observer->getEvent()->getOrder();
+        if (!$order) {
+            return;
+        }
         $websiteId = (int) $order->getStore()->getWebsiteId();
         if ($this->config->useFallbackObserver($websiteId)) {
             try {

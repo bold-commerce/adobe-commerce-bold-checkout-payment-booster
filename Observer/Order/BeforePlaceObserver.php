@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\TransactionComment;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -19,8 +20,8 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\TransactionInterface;
-use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Payment;
+use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -61,7 +62,14 @@ class BeforePlaceObserver implements ObserverInterface
     /** @var MagentoQuoteBoldOrderRepositoryInterface */
     private $magentoQuoteBoldOrderRepository;
 
-    /** @var LoggerInterface */
+    /**
+     * @var TransactionComment
+     */
+    private $transactionComment;
+
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
     /**
@@ -72,6 +80,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @param CheckPaymentMethod $checkPaymentMethod
      * @param SerializerInterface $serializer
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param TransactionComment $transactionComment
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -82,6 +91,7 @@ class BeforePlaceObserver implements ObserverInterface
         CheckPaymentMethod $checkPaymentMethod,
         SerializerInterface $serializer,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        TransactionComment $transactionComment,
         LoggerInterface $logger
     ) {
         $this->authorize = $authorize;
@@ -91,6 +101,7 @@ class BeforePlaceObserver implements ObserverInterface
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->serializer = $serializer;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->transactionComment = $transactionComment;
         $this->logger = $logger;
     }
 
@@ -148,6 +159,7 @@ class BeforePlaceObserver implements ObserverInterface
                 )
             );
         }
+
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId, (string) $quoteId);
         $this->saveTransactionData($order, $transactionData);
     }
@@ -191,6 +203,11 @@ class BeforePlaceObserver implements ObserverInterface
         $cardDetails = $transactionData['data']['transactions'][0]['tender_details'] ?? null;
         if ($cardDetails) {
             $orderPayment->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
+        }
+        try {
+            $this->transactionComment->addComment('Authorized', $order);
+        } catch (\Exception $e) {
+            $this->logger->debug($e->getMessage());
         }
     }
 }

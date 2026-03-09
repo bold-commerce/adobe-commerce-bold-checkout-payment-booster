@@ -13,9 +13,10 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
+use Magento\Quote\Model\QuoteRepository;
+use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
 use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
 
@@ -29,8 +30,10 @@ class CreateTest extends TestCase
     private $quote;
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
-     * @throws LocalizedException
      */
     public function testCreatesExpressPayOrderSuccessfully(): void
     {
@@ -46,6 +49,11 @@ class CreateTest extends TestCase
             ]
         );
         $quoteMaskId = $this->getQuoteMaskId();
+
+        $quote = $this->getQuote();
+        self::assertNotNull($quote->getId(), 'Fixture quote ID should exist.');
+        self::assertGreaterThan(0, (int)$quote->getItemsCount(), 'Fixture quote should have items_count > 0.');
+        self::assertNotEmpty($quote->getAllVisibleItems(), 'Fixture quote should have visible items.');
 
         $boldApiResultMock->method('getBody')
             ->willReturn(
@@ -123,6 +131,9 @@ class CreateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallThrowsException(): void
@@ -156,6 +167,9 @@ class CreateTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallReturnsIncorrectStatus(): void
@@ -197,6 +211,9 @@ class CreateTest extends TestCase
 
     /**
      * @dataProvider apiErrorsDataProvider
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
      */
@@ -281,6 +298,101 @@ class CreateTest extends TestCase
         ];
     }
 
+    // ─── pre-validation guards (quote active / cart not empty) ────────────────
+
+    /**
+     * When the quote is no longer active (e.g. it was deactivated after a previous order),
+     * Create::execute() must throw a LocalizedException before calling the Bold API.
+     *
+     * This prevents wallet_pay requests for stale quotes that would fail on Bold's side.
+     *
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testThrowsWhenQuoteIsInactive(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+
+        // Deactivate the quote directly
+        $quote = $this->getQuote();
+        $quote->setIsActive(false);
+        $objectManager->create(CartRepositoryInterface::class)->save($quote);
+
+        // Clear repository cache so Create::execute() loads the quote fresh from DB
+        $quoteRepository = $objectManager->get(QuoteRepository::class);
+        if (method_exists($quoteRepository, '_resetState')) {
+            $quoteRepository->_resetState();
+        }
+
+        /** @var Create $service */
+        $service = $objectManager->create(Create::class);
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessageMatches('/no longer active|cart is empty/i');
+
+        $service->execute(
+            $this->getQuoteMaskId(),
+            'ff152513-f548-11ef-b987-3a475e3f6277',
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
+            'dynamic',
+            false,
+            ''
+        );
+    }
+
+    /**
+     * When the cart is empty (all items removed), Create::execute() must throw
+     * a LocalizedException before calling the Bold API.
+     *
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testThrowsWhenCartIsEmpty(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+
+        // Remove all items from the quote and persist to DB (removeItem() only marks deleted;
+        // SaveHandler does not delete rows, so we delete items via resource and save quote)
+        $quote = $this->getQuote();
+        $quoteId = (int) $quote->getId();
+        /** @var QuoteItemResource $quoteItemResource */
+        $quoteItemResource = $objectManager->create(QuoteItemResource::class);
+        foreach ($quote->getAllItems() as $item) {
+            $quoteItemResource->delete($item);
+        }
+        $quote->setItems([]);
+        $quote->setItemsCount(0);
+        $quote->setItemsQty(0);
+        $objectManager->create(CartRepositoryInterface::class)->save($quote);
+
+        // Clear repository cache so Create::execute() loads the quote fresh from DB
+        $quoteRepository = $objectManager->get(QuoteRepository::class);
+        if (method_exists($quoteRepository, '_resetState')) {
+            $quoteRepository->_resetState();
+        }
+
+        $this->quote = null;
+
+        /** @var Create $service */
+        $service = $objectManager->create(Create::class);
+
+        $this->expectException(LocalizedException::class);
+        $this->expectExceptionMessageMatches('/no longer active|cart is empty/i');
+
+        $service->execute(
+            $this->getQuoteMaskId(),
+            'ff152513-f548-11ef-b987-3a475e3f6277',
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
+            'dynamic',
+            false,
+            ''
+        );
+    }
+
     private function getQuote(): Quote
     {
         if ($this->quote !== null) {
@@ -291,15 +403,21 @@ class CreateTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder = $objectManager->create(SearchCriteriaBuilder::class);
-        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_1')
+        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_with_shipping_tax_discount')
             ->create();
         /** @var CartRepositoryInterface $cartRepository */
         $cartRepository = $objectManager->create(CartRepositoryInterface::class);
         /** @var Quote[] $quotes */
         $quotes = $cartRepository->getList($searchCriteria)
             ->getItems();
-        /** @var Quote $quote */
-        $quote = reset($quotes) ?: $objectManager->create(CartInterface::class);
+        /** @var Quote|false $quote */
+        $quote = reset($quotes);
+
+        if (!$quote instanceof Quote) {
+            self::fail('Fixture quote with reserved_order_id "test_order_with_shipping_tax_discount" was not found.');
+        }
+
+        $quote = $cartRepository->get((int)$quote->getId());
 
         return $this->quote = $quote;
     }

@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
-use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
-use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -75,12 +73,17 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
     public function execute(Observer $observer): void
     {
         $order = $observer->getEvent()->getOrder();
+        if (!$order) {
+            return;
+        }
         $websiteId = (int) $order->getStore()->getWebsiteId();
-        if ($this->config->useFallbackObserver($websiteId)) try {
-            parent::execute($observer);
-        } catch (NoSuchEntityException $e) {
-        } catch (LocalizedException $e) {
-            $this->logger->critical($e);
+        if ($this->config->useFallbackObserver($websiteId)) {
+            try {
+                parent::execute($observer);
+            } catch (NoSuchEntityException $e) {
+            } catch (LocalizedException $e) {
+                $this->logger->critical($e);
+            }
         }
     }
 }

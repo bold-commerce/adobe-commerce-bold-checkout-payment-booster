@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Checkout\Model\Type\Onepage;
 use Magento\Framework\Registry;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Item;
@@ -22,10 +23,48 @@ $quoteResource = $objectManager->get(QuoteResource::class);
 $quote = $quoteFactory->create();
 
 $quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
-$quote->setReservedOrderId('test_order_with_shipping_tax_discount');
-$quoteResource->save($quote);
+
+// Base fixture creates a customer quote (John Smith); tests expect a guest quote (John Doe, 123 Test St).
+$quote->setCustomerId(null)
+    ->setCustomerEmail(null)
+    ->setCheckoutMethod(Onepage::METHOD_GUEST)
+    ->setCustomerIsGuest(true);
+
+$guestAddressData = [
+    'firstname' => 'John',
+    'lastname' => 'Doe',
+    'street' => '123 Test St',
+    'city' => 'Los Angeles',
+    'region' => 'California',
+    'postcode' => '90001',
+    'country_id' => 'US',
+    'telephone' => '5555555555',
+];
 
 $shippingAddress = $quote->getShippingAddress();
+$shippingAddress->setFirstname($guestAddressData['firstname'])
+    ->setLastname($guestAddressData['lastname'])
+    ->setStreet($guestAddressData['street'])
+    ->setCity($guestAddressData['city'])
+    ->setRegion($guestAddressData['region'])
+    ->setPostcode($guestAddressData['postcode'])
+    ->setCountryId($guestAddressData['country_id'])
+    ->setTelephone($guestAddressData['telephone']);
+
+$billingAddress = $quote->getBillingAddress();
+$billingAddress->setFirstname($guestAddressData['firstname'])
+    ->setLastname($guestAddressData['lastname'])
+    ->setStreet($guestAddressData['street'])
+    ->setCity($guestAddressData['city'])
+    ->setRegion($guestAddressData['region'])
+    ->setPostcode($guestAddressData['postcode'])
+    ->setCountryId($guestAddressData['country_id'])
+    ->setTelephone($guestAddressData['telephone']);
+
+// Base fixture adds product with qty 2; tests expect one item with qty 1.
+foreach ($quote->getAllItems() as $item) {
+    $item->setQty(1);
+}
 
 $shippingAddress->setShippingMethod('flatrate_flatrate')
     ->setShippingDescription('Flat Rate - Fixed')

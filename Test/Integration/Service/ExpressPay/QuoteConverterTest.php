@@ -40,10 +40,10 @@ class QuoteConverterTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         $cartRepository = $objectManager->get(CartRepositoryInterface::class);
         $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-            ->addFilter('reserved_order_id', 'test_order_with_shipping_tax_discount')
+            ->addFilter('reserved_order_id', 'test_order_1')
             ->create();
         $quotes = $cartRepository->getList($searchCriteria)->getItems();
-        self::assertNotEmpty($quotes, 'Fixture quote with reserved_order_id test_order_with_shipping_tax_discount not found');
+        self::assertNotEmpty($quotes, 'Fixture quote with reserved_order_id test_order_1 not found');
         /** @var Quote $quote */
         $quote = $cartRepository->get((int) reset($quotes)->getId());
 

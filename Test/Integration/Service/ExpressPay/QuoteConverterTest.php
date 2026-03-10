@@ -32,6 +32,7 @@ class QuoteConverterTest extends TestCase
      * all order_data sections match the quote-derived expectations. Uses key-by-key assertions
      * so the test does not depend on array key order from array_merge_recursive.
      *
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @magentoDbIsolation enabled
      */

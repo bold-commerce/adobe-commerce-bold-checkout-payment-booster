@@ -30,12 +30,14 @@ $quote->setCustomerId(null)
     ->setCheckoutMethod(Onepage::METHOD_GUEST)
     ->setCustomerIsGuest(true);
 
+// Use region_id 12 (California) so getRegion() returns "California"; base address has region_id 1 (Alabama).
 $guestAddressData = [
     'firstname' => 'John',
     'lastname' => 'Doe',
     'street' => '123 Test St',
     'city' => 'Los Angeles',
     'region' => 'California',
+    'region_id' => 12,
     'postcode' => '90001',
     'country_id' => 'US',
     'telephone' => '5555555555',
@@ -47,6 +49,7 @@ $shippingAddress->setFirstname($guestAddressData['firstname'])
     ->setStreet($guestAddressData['street'])
     ->setCity($guestAddressData['city'])
     ->setRegion($guestAddressData['region'])
+    ->setRegionId($guestAddressData['region_id'])
     ->setPostcode($guestAddressData['postcode'])
     ->setCountryId($guestAddressData['country_id'])
     ->setTelephone($guestAddressData['telephone']);
@@ -57,6 +60,7 @@ $billingAddress->setFirstname($guestAddressData['firstname'])
     ->setStreet($guestAddressData['street'])
     ->setCity($guestAddressData['city'])
     ->setRegion($guestAddressData['region'])
+    ->setRegionId($guestAddressData['region_id'])
     ->setPostcode($guestAddressData['postcode'])
     ->setCountryId($guestAddressData['country_id'])
     ->setTelephone($guestAddressData['telephone']);

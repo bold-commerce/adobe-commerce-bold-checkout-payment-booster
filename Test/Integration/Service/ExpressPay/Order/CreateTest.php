@@ -403,7 +403,7 @@ class CreateTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         /** @var SearchCriteriaBuilder $searchCriteriaBuilder */
         $searchCriteriaBuilder = $objectManager->create(SearchCriteriaBuilder::class);
-        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_with_shipping_tax_discount')
+        $searchCriteria = $searchCriteriaBuilder->addFilter('reserved_order_id', 'test_order_1')
             ->create();
         /** @var CartRepositoryInterface $cartRepository */
         $cartRepository = $objectManager->create(CartRepositoryInterface::class);
@@ -414,7 +414,7 @@ class CreateTest extends TestCase
         $quote = reset($quotes);
 
         if (!$quote instanceof Quote) {
-            self::fail('Fixture quote with reserved_order_id "test_order_with_shipping_tax_discount" was not found.');
+            self::fail('Fixture quote with reserved_order_id "test_order_1" was not found.');
         }
 
         $quote = $cartRepository->get((int)$quote->getId());

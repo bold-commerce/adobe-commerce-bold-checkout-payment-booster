@@ -32,6 +32,7 @@ class QuoteConverterTest extends TestCase
      * all order_data sections match the quote-derived expectations. Uses key-by-key assertions
      * so the test does not depend on array key order from array_merge_recursive.
      *
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @magentoDbIsolation enabled
      */
@@ -40,10 +41,10 @@ class QuoteConverterTest extends TestCase
         $objectManager = Bootstrap::getObjectManager();
         $cartRepository = $objectManager->get(CartRepositoryInterface::class);
         $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-            ->addFilter('reserved_order_id', 'test_order_with_shipping_tax_discount')
+            ->addFilter('reserved_order_id', 'test_order_1')
             ->create();
         $quotes = $cartRepository->getList($searchCriteria)->getItems();
-        self::assertNotEmpty($quotes, 'Fixture quote with reserved_order_id test_order_with_shipping_tax_discount not found');
+        self::assertNotEmpty($quotes, 'Fixture quote with reserved_order_id test_order_1 not found');
         /** @var Quote $quote */
         $quote = $cartRepository->get((int) reset($quotes)->getId());
 

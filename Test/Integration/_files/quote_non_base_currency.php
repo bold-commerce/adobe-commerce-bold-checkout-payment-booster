@@ -14,15 +14,15 @@ $quoteFactory = $objectManager->get(QuoteFactory::class);
 /** @var QuoteResource $quoteResource */
 $quoteResource = $objectManager->get(QuoteResource::class);
 $quote = $quoteFactory->create();
-// Required fixture creates quote with reserved_order_id 'test_order_with_shipping_tax_discount'
-$quoteResource->load($quote, 'test_order_with_shipping_tax_discount', 'reserved_order_id');
+// quote_with_shipping_tax_and_discount creates quote with reserved_order_id 'test_order_1'
+$quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
 if (!$quote->getId()) {
-    throw new \RuntimeException('Quote with reserved_order_id test_order_with_shipping_tax_discount not found.');
+    throw new \RuntimeException('Quote with reserved_order_id test_order_1 not found.');
 }
 $store = $quote->getStore();
 $store->unsetData('current_currency');
 $store->setCurrentCurrencyCode('EUR');
 $quote->setBaseCurrencyCode('USD');
 $quote->setQuoteCurrencyCode('EUR');
-$quote->setReservedOrderId('test_order_1'); // so test can find by test_order_1
+$quote->collectTotals();
 $quote->save();

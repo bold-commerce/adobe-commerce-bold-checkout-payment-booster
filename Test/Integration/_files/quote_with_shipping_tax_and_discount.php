@@ -52,7 +52,8 @@ $shippingAddress->setFirstname($guestAddressData['firstname'])
     ->setRegionId($guestAddressData['region_id'])
     ->setPostcode($guestAddressData['postcode'])
     ->setCountryId($guestAddressData['country_id'])
-    ->setTelephone($guestAddressData['telephone']);
+    ->setTelephone($guestAddressData['telephone'])
+    ->setCustomerAddressId(null);
 
 $billingAddress = $quote->getBillingAddress();
 $billingAddress->setFirstname($guestAddressData['firstname'])
@@ -63,7 +64,8 @@ $billingAddress->setFirstname($guestAddressData['firstname'])
     ->setRegionId($guestAddressData['region_id'])
     ->setPostcode($guestAddressData['postcode'])
     ->setCountryId($guestAddressData['country_id'])
-    ->setTelephone($guestAddressData['telephone']);
+    ->setTelephone($guestAddressData['telephone'])
+    ->setCustomerAddressId(null);
 
 // Base fixture adds product with qty 2; tests expect one item with qty 1.
 foreach ($quote->getAllItems() as $item) {
@@ -109,4 +111,5 @@ if ($taxRule && $taxRule->getId()) {
 }
 
 $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
+$quote->collectTotals();
 $quote->save();

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\DigitalWallets\MagentoQuote;
 
 use Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\TotalsRetriever;
-use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResourceModel;
 use Magento\TestFramework\Helper\Bootstrap;
@@ -15,8 +14,6 @@ use function count;
 
 class TotalsRetrieverTest extends TestCase
 {
-    use ArraySubsetAsserts;
-
     /**
      * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
      */
@@ -42,7 +39,10 @@ class TotalsRetrieverTest extends TestCase
 
         self::assertCount((int)$quote->getItemsCount(), $actualTotals['items']);
         self::assertCount(count($quote->getTotals()), $actualTotals['total_segments']);
-        self::assertArraySubset($expectedTotals, $actualTotals);
+        foreach ($expectedTotals as $key => $expectedValue) {
+            self::assertArrayHasKey($key, $actualTotals);
+            self::assertEquals($expectedValue, $actualTotals[$key], "Totals key '{$key}' mismatch.");
+        }
     }
 
     public function testThrowsExceptionForInvalidQuoteId(): void

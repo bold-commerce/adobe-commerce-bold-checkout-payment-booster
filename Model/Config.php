@@ -42,6 +42,8 @@ class Config
     private const PATH_USE_FALLBACK_OBSERVER = 'checkout/bold_checkout_payment_booster_advanced/use_fallback_observer';
     private const PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE =
         'checkout/bold_checkout_payment_booster/add_tax_amount_frontend_balance';
+    private const PATH_USE_SHIPPING_NAME_AS_FALLBACK =
+        'checkout/bold_checkout_payment_booster/use_shipping_name_as_fallback';
 
     /**
      * @var ScopeConfigInterface&\Magento\Framework\App\Config
@@ -431,6 +433,21 @@ class Config
     {
         return $this->scopeConfig->isSetFlag(
             self::PATH_ADD_TAX_AMOUNT_FRONTEND_BALANCE,
+            ScopeInterface::SCOPE_WEBSITES,
+            $websiteId
+        );
+    }
+
+    /**
+     * Use shipping firstname and lastname as fallback for billing firstname and lastname.
+     *
+     * @param int $websiteId
+     * @return bool
+     */
+    public function isUseShippingNameAsFallback(int $websiteId): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::PATH_USE_SHIPPING_NAME_AS_FALLBACK,
             ScopeInterface::SCOPE_WEBSITES,
             $websiteId
         );

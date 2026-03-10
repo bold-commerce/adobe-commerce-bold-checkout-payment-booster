@@ -73,7 +73,7 @@ class Update implements UpdateInterface
         $this->checkoutSession = $checkoutSession;
     }
 
-    public function execute($quoteMaskId, $gatewayId, $paypalOrderId): void
+    public function execute($quoteMaskId, $gatewayId, $paypalOrderId, $shippingStrategy): void
     {
         if (!is_numeric($quoteMaskId) && strlen($quoteMaskId) === 32) {
             try {
@@ -113,6 +113,11 @@ class Update implements UpdateInterface
             $expressPayOrder = $this->getExpressPayOrder->execute($paypalOrderId, $gatewayId);
         } catch (LocalizedException $localizedException) {
             $expressPayOrder = null;
+        }
+
+        //Needed to sync order in checkout
+        if ($shippingStrategy) {
+            $expressPayData['shipping_strategy'] = $shippingStrategy;
         }
 
         if ($expressPayOrder !== null) {

@@ -24,6 +24,7 @@ $quote = $quoteFactory->create();
 
 $quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
 $quote->setReservedOrderId('test_order_with_shipping_tax_discount');
+$quoteResource->save($quote);
 
 $shippingAddress = $quote->getShippingAddress();
 

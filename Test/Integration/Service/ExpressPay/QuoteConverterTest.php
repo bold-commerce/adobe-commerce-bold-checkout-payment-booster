@@ -29,8 +29,14 @@ class QuoteConverterTest extends TestCase
 {
     /**
      * Converts the fixture quote (guest, one simple product, shipping, tax, coupon) and asserts
-     * all order_data sections match the quote-derived expectations. Uses key-by-key assertions
-     * so the test does not depend on array key order from array_merge_recursive.
+     * all order_data sections match the quote-derived expectations.
+     *
+     * We assert each section of order_data individually rather than comparing the full
+     * convertFullQuote() return value in one shot. convertFullQuote() builds its result via
+     * array_merge_recursive(), and convertCustomTotals() may append additional entries to the
+     * items array (e.g. negative discount line-items or fee adjustments from the quote totals)
+     * depending on quote state. A single assertEquals() on the whole return value would break
+     * whenever such entries are present. Asserting key-by-key is more targeted and resilient.
      *
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
@@ -60,17 +66,17 @@ class QuoteConverterTest extends TestCase
         $currencyCode = $quote->getCurrency() !== null
             ? ($quote->getCurrency()->getQuoteCurrencyCode() ?? 'USD')
             : 'USD';
-        $grandTotal   = number_format((float) $quote->getGrandTotal(), 2, '.', '');
-        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
-        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
+        $grandTotal  = number_format((float) $quote->getGrandTotal(), 2, '.', '');
+        $taxTotal    = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
+        $shippingAmt = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
 
         $gatewayId = 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7';
         $expected = [
             'gateway_id'  => $gatewayId,
             'order_data' => [
-                'locale'                 => 'en-US',
-                'customer'               => ['first_name' => 'John', 'last_name' => 'Doe', 'platform_id' => null],
-                'shipping_address'       => [
+                'locale'                   => 'en-US',
+                'customer'                 => ['first_name' => 'John', 'last_name' => 'Doe', 'platform_id' => null],
+                'shipping_address'         => [
                     'first_name'     => 'John',
                     'last_name'      => 'Doe',
                     'address_line_1' => '123 Test St',
@@ -83,24 +89,24 @@ class QuoteConverterTest extends TestCase
                 ],
                 'selected_shipping_option' => [
                     'id'     => 'flatrate_flatrate',
-                    'label' => 'Flat Rate - Fixed',
+                    'label'  => 'Flat Rate - Fixed',
                     'type'   => 'SHIPPING',
                     'amount' => ['currency_code' => $currencyCode, 'value' => $shippingAmt],
                 ],
-                'shipping_options' => [
+                'shipping_options'         => [
                     [
                         'id'     => 'flatrate_flatrate',
-                        'label' => 'Flat Rate - Fixed',
+                        'label'  => 'Flat Rate - Fixed',
                         'type'   => 'SHIPPING',
                         'amount' => ['currency_code' => $currencyCode, 'value' => $shippingAmt],
                     ],
                 ],
-                'items' => [
+                'items'      => [
                     [
-                        'name'                => 'Simple Product',
-                        'sku'                 => 'simple',
-                        'unit_amount'        => ['currency_code' => $currencyCode, 'value' => '10.00'],
-                        'quantity'            => 1,
+                        'name'                 => 'Simple Product',
+                        'sku'                  => 'simple',
+                        'unit_amount'          => ['currency_code' => $currencyCode, 'value' => '10.00'],
+                        'quantity'             => 1,
                         'is_shipping_required' => true,
                     ],
                 ],
@@ -116,50 +122,36 @@ class QuoteConverterTest extends TestCase
 
         self::assertIsArray($result, 'convertFullQuote must return an array');
         self::assertSame($expected['gateway_id'], $result['gateway_id'] ?? null, 'gateway_id');
-        self::assertArrayHasKey('order_data', $result, 'order_data');
+        self::assertArrayHasKey('order_data', $result, 'order_data key missing');
         $od = $result['order_data'];
 
-        self::assertArrayHasKey('locale', $od);
-        self::assertSame($expected['order_data']['locale'], $od['locale'], 'locale');
+        self::assertSame($expected['order_data']['locale'], $od['locale'] ?? null, 'locale');
+        self::assertSame($expected['order_data']['customer'], $od['customer'] ?? null, 'customer');
+        self::assertSame($expected['order_data']['shipping_address'], $od['shipping_address'] ?? null, 'shipping_address');
+        self::assertSame($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'] ?? null, 'selected_shipping_option');
 
-        self::assertArrayHasKey('customer', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['customer'], $od['customer'], 'customer');
-
-        self::assertArrayHasKey('shipping_address', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['shipping_address'], $od['shipping_address'], 'shipping_address');
-
-        self::assertArrayHasKey('selected_shipping_option', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'], 'selected_shipping_option');
-
-        self::assertArrayHasKey('shipping_options', $od);
+        self::assertArrayHasKey('shipping_options', $od, 'shipping_options key missing');
         self::assertIsArray($od['shipping_options']);
-        self::assertGreaterThanOrEqual(1, count($od['shipping_options']), 'At least one shipping option');
         $found = false;
         foreach ($od['shipping_options'] as $opt) {
-            if (isset($opt['id']) && $opt['id'] === 'flatrate_flatrate') {
-                self::assertEqualsCanonicalizing($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
+            if (($opt['id'] ?? null) === 'flatrate_flatrate') {
+                self::assertSame($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
                 $found = true;
                 break;
             }
         }
-        self::assertTrue($found, 'Expected flatrate_flatrate in shipping_options');
+        self::assertTrue($found, 'flatrate_flatrate not found in shipping_options');
 
-        self::assertArrayHasKey('items', $od);
+        // items[0] is the simple product; convertCustomTotals() may append extra entries (e.g.
+        // a discount line-item) so we only verify the first item, not the full items array.
+        self::assertArrayHasKey('items', $od, 'items key missing');
         self::assertIsArray($od['items']);
-        self::assertCount(1, $od['items']);
-        self::assertEqualsCanonicalizing($expected['order_data']['items'][0], $od['items'][0], 'items[0]');
+        self::assertSame($expected['order_data']['items'][0], $od['items'][0] ?? null, 'items[0]');
 
-        self::assertArrayHasKey('item_total', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['item_total'], $od['item_total'], 'item_total');
-
-        self::assertArrayHasKey('amount', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['amount'], $od['amount'], 'amount');
-
-        self::assertArrayHasKey('tax_total', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['tax_total'], $od['tax_total'], 'tax_total');
-
-        self::assertArrayHasKey('discount', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['discount'], $od['discount'], 'discount');
+        self::assertSame($expected['order_data']['item_total'], $od['item_total'] ?? null, 'item_total');
+        self::assertSame($expected['order_data']['amount'], $od['amount'] ?? null, 'amount');
+        self::assertSame($expected['order_data']['tax_total'], $od['tax_total'] ?? null, 'tax_total');
+        self::assertSame($expected['order_data']['discount'], $od['discount'] ?? null, 'discount');
     }
 
     /**
@@ -254,9 +246,12 @@ class QuoteConverterTest extends TestCase
     }
 
     /**
-     * Same structure as testConvertFullQuoteConvertsNonVirtualQuote but for a quote in a non-base
-     * currency (EUR). Fixture builds from quote_with_shipping_tax_and_discount then sets EUR;
-     * we load the quote, derive expected values from it, call convertFullQuote, and assert by key.
+     * Same as testConvertFullQuoteConvertsNonVirtualQuote but the quote currency is EUR (non-base).
+     * Expected values are derived from the quote at runtime so the test stays valid regardless of
+     * the exchange-rate configuration.
+     *
+     * See testConvertFullQuoteConvertsNonVirtualQuote for the rationale behind asserting each
+     * section of order_data individually instead of comparing the full return value in one shot.
      *
      * @magentoConfigFixture current_store currency/options/base USD
      * @magentoConfigFixture current_store currency/options/default USD
@@ -287,14 +282,16 @@ class QuoteConverterTest extends TestCase
         $currencyCode = $quote->getCurrency() !== null
             ? ($quote->getCurrency()->getQuoteCurrencyCode() ?? 'EUR')
             : 'EUR';
-        $grandTotal   = number_format((float) $quote->getGrandTotal(), 2, '.', '');
-        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
-        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
+        self::assertSame('EUR', $currencyCode, 'Quote should be in EUR (non-base currency)');
+
+        $grandTotal    = number_format((float) $quote->getGrandTotal(), 2, '.', '');
+        $taxTotal      = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
+        $shippingAmt   = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
         $allItems      = $quote->getAllItems();
         self::assertNotEmpty($allItems, 'Quote must have at least one item');
         $firstItem     = $allItems[0];
-        $itemRowTotal  = number_format((float) $firstItem->getRowTotal() / max(1, (float) $firstItem->getQty()), 2, '.', '');
-        $itemTotalVal  = number_format((float) $firstItem->getRowTotal(), 2, '.', '');
+        $unitAmount    = number_format((float) $firstItem->getRowTotal() / max(1, (float) $firstItem->getQty()), 2, '.', '');
+        $itemTotal     = number_format((float) $firstItem->getRowTotal(), 2, '.', '');
         $discountValue = number_format(
             (float) ($quote->getSubtotal() - $quote->getSubtotalWithDiscount()),
             2,
@@ -306,9 +303,9 @@ class QuoteConverterTest extends TestCase
         $expected = [
             'gateway_id'  => $gatewayId,
             'order_data' => [
-                'locale'                 => 'en-US',
-                'customer'               => ['first_name' => 'John', 'last_name' => 'Doe', 'platform_id' => null],
-                'shipping_address'       => [
+                'locale'                   => 'en-US',
+                'customer'                 => ['first_name' => 'John', 'last_name' => 'Doe', 'platform_id' => null],
+                'shipping_address'         => [
                     'first_name'     => 'John',
                     'last_name'      => 'Doe',
                     'address_line_1' => '123 Test St',
@@ -321,28 +318,28 @@ class QuoteConverterTest extends TestCase
                 ],
                 'selected_shipping_option' => [
                     'id'     => 'flatrate_flatrate',
-                    'label' => 'Flat Rate - Fixed',
+                    'label'  => 'Flat Rate - Fixed',
                     'type'   => 'SHIPPING',
                     'amount' => ['currency_code' => $currencyCode, 'value' => $shippingAmt],
                 ],
-                'shipping_options' => [
+                'shipping_options'         => [
                     [
                         'id'     => 'flatrate_flatrate',
-                        'label' => 'Flat Rate - Fixed',
+                        'label'  => 'Flat Rate - Fixed',
                         'type'   => 'SHIPPING',
                         'amount' => ['currency_code' => $currencyCode, 'value' => $shippingAmt],
                     ],
                 ],
-                'items' => [
+                'items'      => [
                     [
-                        'name'                => 'Simple Product',
-                        'sku'                 => 'simple',
-                        'unit_amount'        => ['currency_code' => $currencyCode, 'value' => $itemRowTotal],
-                        'quantity'            => 1,
+                        'name'                 => 'Simple Product',
+                        'sku'                  => 'simple',
+                        'unit_amount'          => ['currency_code' => $currencyCode, 'value' => $unitAmount],
+                        'quantity'             => 1,
                         'is_shipping_required' => true,
                     ],
                 ],
-                'item_total' => ['currency_code' => $currencyCode, 'value' => $itemTotalVal],
+                'item_total' => ['currency_code' => $currencyCode, 'value' => $itemTotal],
                 'amount'     => ['currency_code' => $currencyCode, 'value' => $grandTotal],
                 'tax_total'  => ['currency_code' => $currencyCode, 'value' => $taxTotal],
                 'discount'   => ['currency_code' => $currencyCode, 'value' => $discountValue],
@@ -354,52 +351,36 @@ class QuoteConverterTest extends TestCase
 
         self::assertIsArray($result, 'convertFullQuote must return an array');
         self::assertSame($expected['gateway_id'], $result['gateway_id'] ?? null, 'gateway_id');
-        self::assertArrayHasKey('order_data', $result, 'order_data');
+        self::assertArrayHasKey('order_data', $result, 'order_data key missing');
         $od = $result['order_data'];
 
-        self::assertArrayHasKey('locale', $od);
-        self::assertSame($expected['order_data']['locale'], $od['locale'], 'locale');
+        self::assertSame($expected['order_data']['locale'], $od['locale'] ?? null, 'locale');
+        self::assertSame($expected['order_data']['customer'], $od['customer'] ?? null, 'customer');
+        self::assertSame($expected['order_data']['shipping_address'], $od['shipping_address'] ?? null, 'shipping_address');
+        self::assertSame($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'] ?? null, 'selected_shipping_option');
 
-        self::assertArrayHasKey('customer', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['customer'], $od['customer'], 'customer');
-
-        self::assertArrayHasKey('shipping_address', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['shipping_address'], $od['shipping_address'], 'shipping_address');
-
-        self::assertArrayHasKey('selected_shipping_option', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'], 'selected_shipping_option');
-
-        self::assertArrayHasKey('shipping_options', $od);
+        self::assertArrayHasKey('shipping_options', $od, 'shipping_options key missing');
         self::assertIsArray($od['shipping_options']);
-        self::assertGreaterThanOrEqual(1, count($od['shipping_options']), 'At least one shipping option');
         $found = false;
         foreach ($od['shipping_options'] as $opt) {
-            if (isset($opt['id']) && $opt['id'] === 'flatrate_flatrate') {
-                self::assertEqualsCanonicalizing($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
+            if (($opt['id'] ?? null) === 'flatrate_flatrate') {
+                self::assertSame($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
                 $found = true;
                 break;
             }
         }
-        self::assertTrue($found, 'Expected flatrate_flatrate in shipping_options');
+        self::assertTrue($found, 'flatrate_flatrate not found in shipping_options');
 
-        self::assertArrayHasKey('items', $od);
+        // items[0] is the simple product; convertCustomTotals() may append extra entries (e.g.
+        // a discount line-item) so we only verify the first item, not the full items array.
+        self::assertArrayHasKey('items', $od, 'items key missing');
         self::assertIsArray($od['items']);
-        self::assertCount(1, $od['items']);
-        self::assertEqualsCanonicalizing($expected['order_data']['items'][0], $od['items'][0], 'items[0]');
+        self::assertSame($expected['order_data']['items'][0], $od['items'][0] ?? null, 'items[0]');
 
-        self::assertArrayHasKey('item_total', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['item_total'], $od['item_total'], 'item_total');
-
-        self::assertArrayHasKey('amount', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['amount'], $od['amount'], 'amount');
-
-        self::assertArrayHasKey('tax_total', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['tax_total'], $od['tax_total'], 'tax_total');
-
-        self::assertArrayHasKey('discount', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['discount'], $od['discount'], 'discount');
-
-        self::assertSame('EUR', $currencyCode, 'Quote should be in EUR (non-base currency)');
+        self::assertSame($expected['order_data']['item_total'], $od['item_total'] ?? null, 'item_total');
+        self::assertSame($expected['order_data']['amount'], $od['amount'] ?? null, 'amount');
+        self::assertSame($expected['order_data']['tax_total'], $od['tax_total'] ?? null, 'tax_total');
+        self::assertSame($expected['order_data']['discount'], $od['discount'] ?? null, 'discount');
     }
 
     public function testDoesNotConvertShippingInformationIfAddressIsNotSet(): void

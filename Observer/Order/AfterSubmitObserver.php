@@ -134,13 +134,10 @@ class AfterSubmitObserver implements ObserverInterface
             return;
         }
 
-        //Necessary to avoid duplicate calls to Bold API - Fallback observer
-        if (!$this->magentoQuoteBoldOrderRepository->isBoldOrderProcessed($order)) {
-            try {
-                $this->setCompleteState->execute($order);
-            } catch (LocalizedException $e) {
-                $this->logger->critical($e);
-            }
+        try {
+            $this->setCompleteState->execute($order);
+        } catch (LocalizedException $e) {
+            $this->logger->critical($e);
         }
     }
 }

@@ -27,7 +27,6 @@ class Authorize
     /**
      * @param BoldClient $client
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
-     * @param TransactionComment $transactionComment
      */
     public function __construct(
         BoldClient $client,

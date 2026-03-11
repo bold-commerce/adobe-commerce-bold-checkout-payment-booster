@@ -70,6 +70,7 @@ class BeforePlaceObserver implements ObserverInterface
     /** @var LoggerInterface */
     private $logger;
 
+    /** @var TransactionComment */
     private $transactionComment;
 
     /**
@@ -81,6 +82,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @param SerializerInterface $serializer
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param LoggerInterface $logger
+     * @param TransactionComment $transactionComment
      */
     public function __construct(
         Authorize $authorize,

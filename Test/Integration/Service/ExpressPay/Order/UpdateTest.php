@@ -33,6 +33,9 @@ class UpdateTest extends TestCase
     private $quote;
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @throws LocalizedException
      */
@@ -89,7 +92,8 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             $quoteMaskId,
             'e08fac5cffd6467389ce3aac1df1eeeb',
-            '472df0908785478d8509fbfa8ef532eb'
+            '472df0908785478d8509fbfa8ef532eb',
+            'dynamic'
         );
     }
 
@@ -108,7 +112,8 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             'd3b46018dbff492d8ad339229f9a30f7',
             '97fb04bc9669476bb271985ffa1875d9',
-            'ff369b06761c46dba3e3acb4e08347fd'
+            'ff369b06761c46dba3e3acb4e08347fd',
+            'dynamic'
         );
     }
 
@@ -125,11 +130,15 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             42,
             'b76f88547476441a88c81fa0905d4505',
-            '34695237c2914d3e953d7d5d81503b4d'
+            '34695237c2914d3e953d7d5d81503b4d',
+            'dynamic'
         );
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testIgnoresExceptionThrownWhenGettingExpressPayOrder(): void
@@ -168,11 +177,15 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             $quoteMaskId,
             'e08fac5cffd6467389ce3aac1df1eeeb',
-            '472df0908785478d8509fbfa8ef532eb'
+            '472df0908785478d8509fbfa8ef532eb',
+            'dynamic'
         );
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallThrowsException(): void
@@ -222,11 +235,15 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             $quoteMaskId,
             'c8ced8a1f3584d378bd35fd039aeec98',
-            'b1db99325b9a47738a87f355ff409a75'
+            'b1db99325b9a47738a87f355ff409a75',
+            'dynamic'
         );
     }
 
     /**
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      */
     public function testThrowsExceptionIfApiCallReturnsIncorrectStatus(): void
@@ -283,12 +300,16 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             $quoteMaskId,
             '6622461eb1174b57b688277efc3ffb5b',
-            '2e03ed6f555f4b0196c7d2d4d72e0f7c'
+            '2e03ed6f555f4b0196c7d2d4d72e0f7c',
+            'dynamic'
         );
     }
 
     /**
      * @dataProvider apiErrorsDataProvider
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
      * @param array<string, array<string, array<int, array<string, string>|string>|string>> $apiErrors
      */
@@ -343,7 +364,8 @@ class UpdateTest extends TestCase
         $updateExpressPayOrderService->execute(
             $quoteMaskId,
             'cd389ccd-08a0-4651-aa33-cb7db6327b95',
-            'f36c10ca-b8e2-4187-9e15-7a3d9a6f99b4'
+            'f36c10ca-b8e2-4187-9e15-7a3d9a6f99b4',
+            'dynamic'
         );
     }
 

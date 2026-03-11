@@ -37,6 +37,7 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="debug" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger\Handler</item>
+                <item name="critical" xsi:type="object">Magento\Framework\Logger\Handler\Exception</item>
             </argument>
         </arguments>
     </virtualType>

@@ -94,6 +94,15 @@
                         <field id="is_payment_booster_enabled">1</field>
                     </depends>
                 </field>
+                <field id="use_shipping_name_as_fallback" translate="label" type="select" sortOrder="90" showInWebsite="1">
+                    <label>Use shipping name as fallback for billing name</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[This config will use shipping firstname and lastname in case the billing
+                    firstname and lastname are empty.]]></comment>
+                    <depends>
+                        <field id="is_payment_booster_enabled">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="bold_checkout_payment_booster_advanced" translate="label" sortOrder="160" showInDefault="1" showInWebsite="1">
                 <label>Bold Checkout Payment Booster Advanced Settings</label>

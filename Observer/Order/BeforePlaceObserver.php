@@ -4,21 +4,18 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Observer\Order;
 
-use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
-use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
+use Bold\CheckoutPaymentBooster\Model\Order\UpdatePayments\TransactionComment;
 use Bold\CheckoutPaymentBooster\Model\Payment\Authorize;
-use Exception;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
@@ -66,6 +63,12 @@ class BeforePlaceObserver implements ObserverInterface
     /** @var MagentoQuoteBoldOrderRepositoryInterface */
     private $magentoQuoteBoldOrderRepository;
 
+    /** @var LoggerInterface */
+    private $logger;
+
+    /** @var TransactionComment */
+    private $transactionComment;
+
     /**
      * @param Authorize $authorize
      * @param CartRepositoryInterface $cartRepository
@@ -74,6 +77,8 @@ class BeforePlaceObserver implements ObserverInterface
      * @param CheckPaymentMethod $checkPaymentMethod
      * @param SerializerInterface $serializer
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param LoggerInterface $logger
+     * @param TransactionComment $transactionComment
      */
     public function __construct(
         Authorize $authorize,
@@ -82,7 +87,9 @@ class BeforePlaceObserver implements ObserverInterface
         HydrateOrderFromQuote $hydrateOrderFromQuote,
         CheckPaymentMethod $checkPaymentMethod,
         SerializerInterface $serializer,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        LoggerInterface $logger,
+        TransactionComment $transactionComment
     ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
@@ -91,6 +98,8 @@ class BeforePlaceObserver implements ObserverInterface
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->serializer = $serializer;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->logger = $logger;
+        $this->transactionComment = $transactionComment;
     }
 
     /**
@@ -118,9 +127,9 @@ class BeforePlaceObserver implements ObserverInterface
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
-        $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
+        $transactionData = $this->authorize->execute($publicOrderId, $websiteId, $quoteId);
         $this->saveTransactionData($order, $transactionData);
-        $this->magentoQuoteBoldOrderRepository->saveAuthorizedAt((string) $quoteId);
+        $this->transactionComment->addComment('Authorized', $order);
     }
 
     /**
@@ -145,7 +154,11 @@ class BeforePlaceObserver implements ObserverInterface
     {
         $transactionId = $transactionData['data']['transactions'][0]['transaction_id'] ?? null;
         if (!$transactionId) {
-            return;
+            $this->logger->debug('Bold payment authorization succeeded but returned no transaction ID.
+            The order cannot be placed.');
+            throw new LocalizedException(
+                __('Bold payment authorization succeeded but returned no transaction ID. The order cannot be placed.')
+            );
         }
 
         /** @var OrderPaymentInterface&Payment $orderPayment */

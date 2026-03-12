@@ -98,6 +98,7 @@ class AfterSubmitObserver implements ObserverInterface
     {
         $order = $observer->getEvent()->getOrder();
         if (!$order || !$this->checkPaymentMethod->isBold($order)) {
+            $this->logger->debug('[Bold][AfterSubmitObserver] Skipped: order is not a Bold order.');
             return;
         }
 
@@ -132,6 +133,11 @@ class AfterSubmitObserver implements ObserverInterface
             $this->logger->critical($e);
             return;
         }
-        $this->setCompleteState->execute($order);
+
+        try {
+            $this->setCompleteState->execute($order);
+        } catch (LocalizedException $e) {
+            $this->logger->critical($e);
+        }
     }
 }

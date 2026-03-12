@@ -134,7 +134,6 @@ class BeforePlaceObserver implements ObserverInterface
         $transactionData = $this->authorize->execute($publicOrderId, $websiteId, $quoteId);
         $this->saveTransactionData($order, $transactionData);
         $this->transactionComment->addComment('Authorized', $order);
-        $this->magentoQuoteBoldOrderRepository->saveAuthorizedAt((string) $quoteId);
     }
 
     /**

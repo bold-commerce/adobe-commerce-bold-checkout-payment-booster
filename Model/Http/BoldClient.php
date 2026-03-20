@@ -13,6 +13,7 @@ use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PatchCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PostCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\Command\PutCommand;
 use Bold\CheckoutPaymentBooster\Model\Http\Client\UserAgent;
+use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Client to perform http request to Bold.
@@ -89,12 +90,20 @@ class BoldClient implements ClientInterface
      * @param int $websiteId
      * @param string $path
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function get(int $websiteId, string $path): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->getCommand->execute($websiteId, $path, $headers);
+        $result = $this->getCommand->execute($websiteId, $path, $headers);
+
+        $status = $result->getStatus();
+        if ($status === 0 || $status >= 400) {
+            throw new LocalizedException(__('Bold Checkout API GET request failed. Response status: ' . $status));
+        }
+
+        return $result;
     }
 
     /**
@@ -104,12 +113,20 @@ class BoldClient implements ClientInterface
      * @param string $path
      * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function post(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->postCommand->execute($websiteId, $path, $headers, $data);
+        $result = $this->postCommand->execute($websiteId, $path, $headers, $data);
+
+        $status = $result->getStatus();
+        if ($status === 0 || $status >= 400) {
+            throw new LocalizedException(__('Bold Checkout API POST request failed. Response status: ' . $status));
+        }
+
+        return $result;
     }
 
     /**
@@ -119,12 +136,20 @@ class BoldClient implements ClientInterface
      * @param string $path
      * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function put(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->putCommand->execute($websiteId, $path, $headers, $data);
+        $result = $this->putCommand->execute($websiteId, $path, $headers, $data);
+
+        $status = $result->getStatus();
+        if ($status === 0 || $status >= 400) {
+            throw new LocalizedException(__('Bold Checkout API PUT request failed. Response status: ' . $status));
+        }
+
+        return $result;
     }
 
     /**
@@ -134,12 +159,20 @@ class BoldClient implements ClientInterface
      * @param string $path
      * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function patch(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->patchCommand->execute($websiteId, $path, $headers, $data);
+        $result = $this->patchCommand->execute($websiteId, $path, $headers, $data);
+
+        $status = $result->getStatus();
+        if ($status === 0 || $status >= 400) {
+            throw new LocalizedException(__('Bold Checkout API request failed. Response status: ' . $status));
+        }
+
+        return $result;
     }
 
     /**
@@ -149,12 +182,20 @@ class BoldClient implements ClientInterface
      * @param string $path
      * @param mixed[] $data
      * @return \Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function delete(int $websiteId, string $path, array $data): ResultInterface
     {
         $path = $this->getUrl($websiteId, $path);
         $headers = $this->getHeaders($websiteId);
-        return $this->deleteCommand->execute($websiteId, $path, $headers, $data);
+        $result = $this->deleteCommand->execute($websiteId, $path, $headers, $data);
+
+        $status = $result->getStatus();
+        if ($status === 0 || $status >= 400) {
+            throw new LocalizedException(__('Bold Checkout API DELETE request failed. Response status: ' . $status));
+        }
+
+        return $result;
     }
 
     /**

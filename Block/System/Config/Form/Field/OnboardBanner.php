@@ -17,9 +17,6 @@ class OnboardBanner extends Field
     private const ONBOARD_COMPLETED_DATA_PATH =
         'https://apps.boldapps.net/onboarding_banner/adobe-commerce/payment-booster/complete';
 
-    /** @var StoreManagerInterface */
-    private $storeManager;
-
     /**
      * @var ModuleConfig
      */
@@ -36,13 +33,11 @@ class OnboardBanner extends Field
 
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager,
         ModuleConfig $moduleConfig,
         ClientInterface $client,
         RequestsLogger $logger
     ) {
         parent::__construct($context, []);
-        $this->storeManager = $storeManager;
         $this->moduleConfig = $moduleConfig;
         $this->client = $client;
         $this->logger = $logger;
@@ -61,11 +56,10 @@ class OnboardBanner extends Field
 
     /**
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getBannerData()
     {
-        $websiteId = $this->storeManager->getWebsite()->getId();
+        $websiteId = ((int) $this->getRequest()->getParam('website',0);
         $bannerDataUrl = $this->isOnboardComplete()
             ? self::ONBOARD_COMPLETED_DATA_PATH
             : self::ONBOARD_IN_PROGRESS_DATA_PATH;
@@ -82,7 +76,7 @@ class OnboardBanner extends Field
 
     public function isOnboardComplete(): bool
     {
-        $websiteId = $this->storeManager->getWebsite()->getId();
+        $websiteId = (int) $this->getRequest()->getParam('website', 0);
         return $this->moduleConfig->isPaymentBoosterEnabled($websiteId);
     }
 }

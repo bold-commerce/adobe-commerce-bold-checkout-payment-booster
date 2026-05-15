@@ -59,7 +59,7 @@ class OnboardBanner extends Field
      */
     public function getBannerData()
     {
-        $websiteId = ((int) $this->getRequest()->getParam('website',0);
+        $websiteId = (int) $this->getRequest()->getParam('website',0);
         $bannerDataUrl = $this->isOnboardComplete()
             ? self::ONBOARD_COMPLETED_DATA_PATH
             : self::ONBOARD_IN_PROGRESS_DATA_PATH;

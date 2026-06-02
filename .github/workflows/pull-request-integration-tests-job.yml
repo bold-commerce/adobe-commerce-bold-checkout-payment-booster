@@ -1,6 +1,9 @@
 name: Pull Request
 run-name: Run Integration Tests
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
   push:
@@ -92,7 +95,7 @@ jobs:
         options: --health-cmd="rabbitmq-diagnostics -q ping" --health-interval=10s --health-timeout=5s --health-retries=3
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup ${{ matrix.php-version}}
         uses: shivammathur/setup-php@v2

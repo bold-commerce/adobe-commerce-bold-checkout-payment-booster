@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Plugin\Checkout\Model;
 
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Plugin\Checkout\Model\SessionPlugin;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Assertions\AssertPluginIsConfiguredCorrectly;
 use Magento\Checkout\Model\Session;
@@ -35,7 +36,21 @@ class SessionPluginTest extends TestCase
      */
     public function testDoesNotClearSessionIfLastQuoteIsDigitalWalletsQuote(): void
     {
+        $checkoutDataMock = $this->createMock(CheckoutData::class);
+        $checkoutDataMock
+            ->expects(self::once())
+            ->method('resetCheckoutData');
+
         $objectManager = Bootstrap::getObjectManager();
+        $objectManager->configure(
+            [
+                CheckoutData::class => [
+                    'shared' => true,
+                ],
+            ]
+        );
+        $objectManager->addSharedInstance($checkoutDataMock, CheckoutData::class);
+
         /** @var Quote $regularQuote */
         $regularQuote = $objectManager->create(Quote::class);
         /** @var Quote $digitalWalletsQuote */

@@ -110,4 +110,35 @@ class CartRepositoryInterfacePluginTest extends TestCase
             $magentoQuoteBoldOrder->getBoldOrderId()
         );
     }
+
+    /**
+     * @magentoAppArea frontend
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
+     * @throws NoSuchEntityException
+     */
+    public function testDoesNotExposeClearedBoldOrderIdAfterCartRetrieval(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
+        $magentoQuoteBoldOrder = $objectManager->create(MagentoQuoteBoldOrder::class);
+        /** @var MagentoQuoteBoldOrderResourceModel $magentoQuoteBoldOrderResourceModel */
+        $magentoQuoteBoldOrderResourceModel = $objectManager->create(MagentoQuoteBoldOrderResourceModel::class);
+        /** @var MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository */
+        $magentoQuoteBoldOrderRepository = $objectManager->create(MagentoQuoteBoldOrderRepositoryInterface::class);
+        /** @var CartRepositoryInterface $cartRepository */
+        $cartRepository = $objectManager->create(CartRepositoryInterface::class);
+
+        $magentoQuoteBoldOrderResourceModel->load(
+            $magentoQuoteBoldOrder,
+            'e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0',
+            'bold_order_id'
+        );
+
+        $magentoQuoteBoldOrder->setBoldOrderId('');
+        $magentoQuoteBoldOrderRepository->save($magentoQuoteBoldOrder);
+
+        $cart = $cartRepository->get((int)$magentoQuoteBoldOrder->getQuoteId());
+
+        self::assertNull($cart->getExtensionAttributes()->getBoldOrderId());
+    }
 }

@@ -52,11 +52,12 @@ class CartRepositoryInterfacePlugin
             return $result;
         }
 
-        if ($magentoQuoteBoldOrder->getBoldOrderId() === null) {
+        $boldOrderId = $magentoQuoteBoldOrder->getBoldOrderId();
+        if ($boldOrderId === null || $boldOrderId === '') {
             return $result;
         }
 
-        $cartExtension->setBoldOrderId($magentoQuoteBoldOrder->getBoldOrderId());
+        $cartExtension->setBoldOrderId($boldOrderId);
 
         return $result;
     }

@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 use Psr\Log\LoggerInterface;
@@ -76,7 +77,15 @@ class SetCompleteState
             $this->logger->error(__('Failed to set complete state for order with id="%1"', $order->getEntityId()));
             return;
         }
-        $quoteId = $order->getQuoteId();
-        $this->magentoQuoteBoldOrderRepository->saveStateAt((string) $quoteId);
+        $quoteId = (string)$order->getQuoteId();
+        $this->magentoQuoteBoldOrderRepository->saveStateAt($quoteId);
+
+        try {
+            $relation = $this->magentoQuoteBoldOrderRepository->getByQuoteId($quoteId);
+            $relation->setBoldOrderId('');
+            $this->magentoQuoteBoldOrderRepository->save($relation);
+        } catch (NoSuchEntityException $e) {
+            // Nothing to clear; relation may not exist for this path.
+        }
     }
 }

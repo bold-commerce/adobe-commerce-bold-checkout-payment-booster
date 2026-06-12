@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Model;
 
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Eps\GetFastlaneStyles;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -46,12 +47,18 @@ class CheckoutData
     private $config;
 
     /**
+     * @var MagentoQuoteBoldOrderRepositoryInterface
+     */
+    private $magentoQuoteBoldOrderRepository;
+
+    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
      * @param ResumeOrder $resumeOrder
      * @param GetFastlaneStyles $getFastlaneStyles
      * @param Config $config
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      */
     public function __construct(
         Session $checkoutSession,
@@ -59,7 +66,8 @@ class CheckoutData
         InitOrderFromQuote $initOrderFromQuote,
         ResumeOrder $resumeOrder,
         GetFastlaneStyles $getFastlaneStyles,
-        Config $config
+        Config $config,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
@@ -67,6 +75,7 @@ class CheckoutData
         $this->resumeOrder = $resumeOrder;
         $this->getFastlaneStyles = $getFastlaneStyles;
         $this->config = $config;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
     }
 
     /**
@@ -87,9 +96,20 @@ class CheckoutData
         if (!$this->isPaymentBoosterAvailable->isAvailable()) {
             return;
         }
-        if ($this->getPublicOrderId()) {
+
+        $existingPublicOrderId = $this->getPublicOrderId();
+
+        if ($existingPublicOrderId) {
+            $quoteId = (string)$quote->getId();
+            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
+                $this->resetCheckoutData();
+                $existingPublicOrderId = null;
+            }
+        }
+
+        if ($existingPublicOrderId) {
             $orderData = $this->resumeOrder->resume(
-                $this->getPublicOrderId(),
+                $existingPublicOrderId,
                 $websiteId
             );
             if ($orderData) {

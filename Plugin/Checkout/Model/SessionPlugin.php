@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Plugin\Checkout\Model;
 
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Closure;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -18,9 +19,17 @@ class SessionPlugin
      */
     private $quoteRepository;
 
-    public function __construct(CartRepositoryInterface $quoteRepository)
-    {
+    /**
+     * @var CheckoutData
+     */
+    private $checkoutData;
+
+    public function __construct(
+        CartRepositoryInterface $quoteRepository,
+        CheckoutData $checkoutData
+    ) {
         $this->quoteRepository = $quoteRepository;
+        $this->checkoutData = $checkoutData;
     }
 
     public function aroundClearQuote(Session $subject, Closure $proceed): Session
@@ -41,6 +50,8 @@ class SessionPlugin
         if (!$lastQuote->getData('is_digital_wallets')) {
             return $proceed();
         }
+
+        $this->checkoutData->resetCheckoutData();
 
         return $subject;
     }

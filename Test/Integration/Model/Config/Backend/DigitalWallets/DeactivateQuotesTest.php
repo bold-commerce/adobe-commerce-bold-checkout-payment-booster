@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Model\Config\Backend\DigitalWallets;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Observer\Checkout\ConfigureShopObserver;
 use Magento\Config\Model\Config;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\ValueFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @magentoAppIsolation enabled
  * @magentoAppArea adminhtml
  */
-class DeactivateQuotesTest extends TestCase
+class DeactivateQuotesTest extends IntegrationTestCase
 {
     public function testValidatesConfigurationSuccessfullyBeforeSaving(): void
     {

@@ -10,6 +10,8 @@ use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get as GetExpressPayOrder;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Update;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
@@ -20,13 +22,14 @@ use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function __;
 use function reset;
 
-class UpdateTest extends TestCase
+class UpdateTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
     /**
      * @var Quote|null
      */
@@ -95,6 +98,76 @@ class UpdateTest extends TestCase
             '472df0908785478d8509fbfa8ef532eb',
             'dynamic'
         );
+    }
+
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @throws LocalizedException
+     */
+    public function testUpdatesExpressPayOrderWithNonBaseCurrencyQuote(string $displayCurrency): void
+    {
+        $capturedBody = null;
+        $objectManager = Bootstrap::getObjectManager();
+        $expressPayOrderShippingAddress = $objectManager->create(
+            AddressInterface::class,
+            [
+                'data' => [
+                    'country' => 'US',
+                    'city' => 'CityM',
+                ],
+            ]
+        );
+        $expressPayOrder = $objectManager->create(
+            OrderInterface::class,
+            [
+                'data' => [
+                    'shipping_address' => $expressPayOrderShippingAddress,
+                ],
+            ]
+        );
+        $getExpressPayOrderMock = $this->createMock(GetExpressPayOrder::class);
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        $updateExpressPayOrderService = $objectManager->create(
+            Update::class,
+            [
+                'getExpressPayOrder' => $getExpressPayOrderMock,
+                'httpClient' => $boldClientMock,
+            ]
+        );
+
+        $quote = $this->prepareQuoteWithDisplayCurrency('test_order_1', $displayCurrency, true);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+        $this->assertDisplayAndBaseGrandTotalsDiffer($quote);
+        $quoteMaskId = $this->getQuoteMaskId($quote);
+
+        $getExpressPayOrderMock->method('execute')->willReturn($expressPayOrder);
+        $boldApiResultMock->method('getErrors')->willReturn([]);
+        $boldApiResultMock->method('getStatus')->willReturn(204);
+        $boldClientMock->method('patch')
+            ->willReturnCallback(
+                static function (int $websiteId, string $url, array $body) use ($boldApiResultMock, &$capturedBody) {
+                    $capturedBody = $body;
+
+                    return $boldApiResultMock;
+                }
+            );
+
+        $updateExpressPayOrderService->execute(
+            $quoteMaskId,
+            'e08fac5cffd6467389ce3aac1df1eeeb',
+            '472df0908785478d8509fbfa8ef532eb',
+            'dynamic'
+        );
+
+        self::assertIsArray($capturedBody);
+        self::assertArrayHasKey('order_data', $capturedBody);
+        $this->assertOrderDataUsesBaseCurrency($capturedBody['order_data']);
     }
 
     public function testDoesNotUpdateExpressPayOrderIfQuoteMaskIdIsInvalid(): void
@@ -416,9 +489,9 @@ class UpdateTest extends TestCase
         ];
     }
 
-    private function getQuote(): Quote
+    private function getQuote(bool $resetState = false): Quote
     {
-        if ($this->quote !== null) {
+        if ($this->quote !== null && !$resetState) {
             return $this->quote;
         }
 
@@ -435,18 +508,24 @@ class UpdateTest extends TestCase
             ->getItems();
         /** @var Quote $quote */
         $quote = reset($quotes) ?: $objectManager->create(CartInterface::class);
+        $quote = $cartRepository->get((int) $quote->getId());
 
-        return $this->quote = $quote;
+        if (!$resetState) {
+            $this->quote = $quote;
+        }
+
+        return $quote;
     }
 
-    private function getQuoteMaskId(): string
+    private function getQuoteMaskId(?Quote $quote = null): string
     {
         /** @var ObjectManagerInterface $objectManager */
         $objectManager = Bootstrap::getObjectManager();
         /** @var QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId */
         $quoteIdToMaskedQuoteId = $objectManager->create(QuoteIdToMaskedQuoteIdInterface::class);
+        $quote = $quote ?? $this->getQuote();
         /** @var int|string|null $quoteId */
-        $quoteId = $this->getQuote()->getId();
+        $quoteId = $quote->getId();
 
         try {
             $quoteMaskId = $quoteIdToMaskedQuoteId->execute((int)$quoteId);

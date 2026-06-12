@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Cron\DigitalWallets;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Cron\DigitalWallets\DeactivateQuotes;
 use Magento\Cron\Model\ConfigInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
-class DeactivateQuotesTest extends TestCase
+class DeactivateQuotesTest extends IntegrationTestCase
 {
     public function testIsConfiguredProperly(): void
     {

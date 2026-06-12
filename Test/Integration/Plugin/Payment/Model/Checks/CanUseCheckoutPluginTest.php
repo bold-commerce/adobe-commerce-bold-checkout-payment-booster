@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Plugin\Payment\Model\Checks;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service as PaymentGatewayService;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as MagentoQuoteBoldOrderResourceModel;
@@ -16,11 +18,11 @@ use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
-class CanUseCheckoutPluginTest extends TestCase
+class CanUseCheckoutPluginTest extends IntegrationTestCase
 {
     use AssertPluginIsConfiguredCorrectly;
+    use NonBaseCurrencyQuoteTrait;
 
     private const PLUGIN_NAME = 'bold_booster_can_use_checkout_digital_wallets';
 
@@ -74,6 +76,37 @@ class CanUseCheckoutPluginTest extends TestCase
         $isApplicable = $canUseCheckout->isApplicable($paymentMethodStub, $quote);
 
         self::assertTrue($isApplicable);
+    }
+
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoAppArea frontend
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
+     * @throws NoSuchEntityException
+     */
+    public function testIsApplicableForBoldOrderWithNonBaseCurrencyQuote(string $displayCurrency): void
+    {
+        $paymentMethodStub = $this->createStub(MethodInterface::class);
+        $objectManager = Bootstrap::getObjectManager();
+        $magentoQuoteBoldOrder = $objectManager->create(MagentoQuoteBoldOrder::class);
+        $magentoQuoteBoldOrderResourceModel = $objectManager->create(MagentoQuoteBoldOrderResourceModel::class);
+        $cartRepository = $objectManager->create(CartRepositoryInterface::class);
+        $canUseCheckout = $objectManager->create(CanUseCheckout::class);
+
+        $paymentMethodStub->method('getCode')->willReturn(PaymentGatewayService::CODE);
+        $magentoQuoteBoldOrderResourceModel->load(
+            $magentoQuoteBoldOrder,
+            'e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0',
+            'bold_order_id'
+        );
+
+        $quote = $cartRepository->get((int) $magentoQuoteBoldOrder->getQuoteId());
+        $quote = $this->applyDisplayCurrencyToQuote($quote, $displayCurrency);
+        $quote = $this->persistQuote($quote);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+
+        self::assertTrue($canUseCheckout->isApplicable($paymentMethodStub, $quote));
     }
 
     /**

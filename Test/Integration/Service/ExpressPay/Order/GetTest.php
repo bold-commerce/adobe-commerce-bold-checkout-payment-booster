@@ -6,14 +6,14 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Get;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
-class GetTest extends TestCase
+class GetTest extends IntegrationTestCase
 {
     /**
      * @throws LocalizedException

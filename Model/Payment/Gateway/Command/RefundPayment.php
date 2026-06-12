@@ -64,7 +64,7 @@ class RefundPayment implements CommandInterface
         $orderExtensionData->setIsRefundInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
         try {
-            if ((float)$order->getGrandTotal() <= $amount) {
+            if ((float)$order->getBaseGrandTotal() <= $amount) {
                 $transactionId = $this->gatewayService->refundFull($order);
                 $payment->setTransactionId($transactionId)
                     ->setIsTransactionClosed(true)

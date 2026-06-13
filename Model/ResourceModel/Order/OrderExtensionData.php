@@ -15,6 +15,9 @@ class OrderExtensionData extends AbstractDb
     public const ID = 'id';
     public const ORDER_ID = 'order_id';
     public const PUBLIC_ID = 'public_id';
+    public const SUCCESSFUL_HYDRATE_AT = 'successful_hydrate_at';
+    public const SUCCESSFUL_AUTH_FULL_AT = 'successful_auth_full_at';
+    public const SUCCESSFUL_STATE_AT = 'successful_state_at';
     public const IS_CAPTURE_IN_PROGRESS = 'is_capture_in_progress';
     public const IS_REFUND_IN_PROGRESS = 'is_refund_in_progress';
     public const IS_CANCEL_IN_PROGRESS = 'is_cancel_in_progress';

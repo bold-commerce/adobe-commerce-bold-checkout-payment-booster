@@ -6,7 +6,10 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Logger\SessionReuseLogger;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -57,13 +60,31 @@ class Create implements CreateInterface
      */
     private $config;
 
+    /**
+     * @var MagentoQuoteBoldOrderRepositoryInterface
+     */
+    private $magentoQuoteBoldOrderRepository;
+
+    /**
+     * @var SessionReuseLogger
+     */
+    private $sessionReuseLogger;
+
+    /**
+     * @var CheckoutData
+     */
+    private $checkoutData;
+
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
         ClientInterface $httpClient,
         SessionManagerInterface $checkoutSession,
-        Config $config
+        Config $config,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        SessionReuseLogger $sessionReuseLogger,
+        CheckoutData $checkoutData
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
@@ -71,6 +92,9 @@ class Create implements CreateInterface
         $this->httpClient = $httpClient;
         $this->checkoutSession = $checkoutSession;
         $this->config = $config;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->sessionReuseLogger = $sessionReuseLogger;
+        $this->checkoutData = $checkoutData;
     }
 
     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
@@ -131,6 +155,43 @@ class Create implements CreateInterface
         }
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $quoteId = (string)$quote->getId();
+        $isQuoteProcessed = $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId);
+        $sessionPublicOrderId = $this->checkoutData->getPublicOrderId();
+
+        $this->sessionReuseLogger->info(
+            'wallet_pay create: request received',
+            [
+                'quote_id' => $quoteId,
+                'request_public_order_id' => $publicOrderId,
+                'session_public_order_id' => $sessionPublicOrderId,
+                'is_quote_processed' => $isQuoteProcessed,
+                'is_digital_wallets' => (bool)$quote->getData('is_digital_wallets'),
+            ]
+        );
+
+        if ($isQuoteProcessed) {
+            $this->sessionReuseLogger->warning(
+                'wallet_pay create: quote already marked processed but wallet_pay was called',
+                [
+                    'quote_id' => $quoteId,
+                    'request_public_order_id' => $publicOrderId,
+                    'session_public_order_id' => $sessionPublicOrderId,
+                ]
+            );
+        }
+
+        if ($sessionPublicOrderId !== null && $publicOrderId !== $sessionPublicOrderId) {
+            $this->sessionReuseLogger->warning(
+                'wallet_pay create: request public_order_id does not match PHP session',
+                [
+                    'quote_id' => $quoteId,
+                    'request_public_order_id' => $publicOrderId,
+                    'session_public_order_id' => $sessionPublicOrderId,
+                ]
+            );
+        }
+
         $uri = 'checkout/orders/{{shopId}}/wallet_pay';
 
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);

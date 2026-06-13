@@ -13,6 +13,12 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Api\Data\CartInterface;
 
+/**
+ * Persists and hydrates bold_order_id on quote extension attributes.
+ *
+ * Links a Magento quote to its Bold public_order_id so processed quotes can be
+ * detected and wallet session renewal logic can run in CheckoutData / SessionPlugin.
+ */
 class CartRepositoryInterfacePlugin
 {
     /**

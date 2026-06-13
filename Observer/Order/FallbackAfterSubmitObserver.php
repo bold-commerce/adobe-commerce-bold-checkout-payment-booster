@@ -11,6 +11,7 @@ use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
+use Bold\CheckoutPaymentBooster\Model\Order\SnapshotQuoteLifecycleOnOrderExtension;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Exception;
 use Magento\Framework\Event\Observer;
@@ -40,6 +41,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
      * @param OrderExtensionDataResource $orderExtensionDataResource
      * @param LoggerInterface $logger
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension
      * @param Config $config
      */
     public function __construct(
@@ -50,6 +52,7 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
         OrderExtensionDataResource $orderExtensionDataResource,
         LoggerInterface $logger,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension,
         Config $config
     ) {
         $this->config = $config;
@@ -62,7 +65,8 @@ class FallbackAfterSubmitObserver extends AfterSubmitObserver implements Observe
             $orderExtensionDataFactory,
             $orderExtensionDataResource,
             $logger,
-            $magentoQuoteBoldOrderRepository
+            $magentoQuoteBoldOrderRepository,
+            $snapshotQuoteLifecycleOnOrderExtension
         );
     }
 

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Block\Adminhtml\Order\View;
 
-use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Phrase;
 use Magento\Framework\Registry;
@@ -28,6 +29,9 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
     /** @var Config  */
     private $config;
 
+    /** @var OrderExtensionDataRepository */
+    private $orderExtensionDataRepository;
+
     /** @var string  */
     protected $_template = 'order/view/tab/bold_order_info.phtml';
 
@@ -35,6 +39,7 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
      * @param Context $context
      * @param Registry $registry
      * @param MagentoQuoteBoldOrderRepositoryInterface $repository
+     * @param OrderExtensionDataRepository $orderExtensionDataRepository
      * @param Config $config
      * @param array<string, mixed> $data
      */
@@ -42,11 +47,13 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
         Context $context,
         Registry $registry,
         MagentoQuoteBoldOrderRepositoryInterface $repository,
+        OrderExtensionDataRepository $orderExtensionDataRepository,
         Config $config,
         array $data = []
     ) {
         $this->registry   = $registry;
         $this->repository = $repository;
+        $this->orderExtensionDataRepository = $orderExtensionDataRepository;
         $this->config     = $config;
         parent::__construct($context, $data);
     }
@@ -96,19 +103,40 @@ class Info extends \Magento\Backend\Block\Template implements \Magento\Backend\B
     public function getInfo(): ?Order
     {
         $order = $this->getOrder();
-        $info  = $this->getOrderInfo();
-
-        if (!$order || !$info) {
+        if (!$order || !$order->getEntityId()) {
             return null;
         }
 
-        // Use setData to avoid needing hard setters on the order entity.
-        $order->setData('successful_auth_full_at', $info->getSuccessfulAuthFullAt() ?? '');
-        $order->setData('successful_hydrate_at', $info->getSuccessfulHydrateAt() ?? '');
-        $order->setData('successful_state_at', $info->getSuccessfulStateAt() ?? '');
-        $order->setData('public_order_id', $info->getBoldOrderId() ?? '');
+        $orderExtensionData = $this->orderExtensionDataRepository->getByOrderId((int)$order->getEntityId());
+        $quoteRelation = $this->getOrderInfo();
 
-        return $order ;
+        // public_id is persisted on the order extension row; quote bold_order_id is cleared after order_complete.
+        $order->setData(
+            'public_order_id',
+            $orderExtensionData->getPublicId()
+                ?: ($quoteRelation !== null ? $quoteRelation->getBoldOrderId() : null)
+                ?: ''
+        );
+        $order->setData(
+            'successful_hydrate_at',
+            $orderExtensionData->getSuccessfulHydrateAt()
+                ?: ($quoteRelation !== null ? $quoteRelation->getSuccessfulHydrateAt() : null)
+                ?: ''
+        );
+        $order->setData(
+            'successful_auth_full_at',
+            $orderExtensionData->getSuccessfulAuthFullAt()
+                ?: ($quoteRelation !== null ? $quoteRelation->getSuccessfulAuthFullAt() : null)
+                ?: ''
+        );
+        $order->setData(
+            'successful_state_at',
+            $orderExtensionData->getSuccessfulStateAt()
+                ?: ($quoteRelation !== null ? $quoteRelation->getSuccessfulStateAt() : null)
+                ?: ''
+        );
+
+        return $order;
     }
 
     /**

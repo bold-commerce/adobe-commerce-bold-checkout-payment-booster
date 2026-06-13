@@ -6,6 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Logger\SessionReuseLogger;
+use Bold\CheckoutPaymentBooster\Model\Order\SnapshotQuoteLifecycleOnOrderExtension;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -37,22 +39,34 @@ class SetCompleteState
     /** @var MagentoQuoteBoldOrderRepositoryInterface */
     private $magentoQuoteBoldOrderRepository;
 
+    /** @var SessionReuseLogger */
+    private $sessionReuseLogger;
+
+    /** @var SnapshotQuoteLifecycleOnOrderExtension */
+    private $snapshotQuoteLifecycleOnOrderExtension;
+
     /**
      * @param BoldClient $client
      * @param GetOrderPublicIdByOrderId $getOrderPublicId
      * @param LoggerInterface $logger
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param SessionReuseLogger $sessionReuseLogger
+     * @param SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension
      */
     public function __construct(
         BoldClient                $client,
         GetOrderPublicIdByOrderId $getOrderPublicId,
         LoggerInterface           $logger,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        SessionReuseLogger $sessionReuseLogger,
+        SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension
     ) {
         $this->client = $client;
         $this->getOrderPublicId = $getOrderPublicId;
         $this->logger = $logger;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->sessionReuseLogger = $sessionReuseLogger;
+        $this->snapshotQuoteLifecycleOnOrderExtension = $snapshotQuoteLifecycleOnOrderExtension;
     }
 
     /**
@@ -80,12 +94,28 @@ class SetCompleteState
         $quoteId = (string)$order->getQuoteId();
         $this->magentoQuoteBoldOrderRepository->saveStateAt($quoteId);
 
+        $clearedBoldOrderId = null;
+
         try {
             $relation = $this->magentoQuoteBoldOrderRepository->getByQuoteId($quoteId);
+            $clearedBoldOrderId = $relation->getBoldOrderId();
             $relation->setBoldOrderId('');
             $this->magentoQuoteBoldOrderRepository->save($relation);
         } catch (NoSuchEntityException $e) {
             // Nothing to clear; relation may not exist for this path.
         }
+
+        $this->snapshotQuoteLifecycleOnOrderExtension->applyStateSnapshot($order);
+
+        $this->sessionReuseLogger->info(
+            'order_complete: marked quote processed and cleared bold_order_id relation',
+            [
+                'magento_order_id' => $order->getEntityId(),
+                'magento_increment_id' => $order->getIncrementId(),
+                'quote_id' => $quoteId,
+                'public_order_id' => $publicOrderId,
+                'cleared_bold_order_id' => $clearedBoldOrderId,
+            ]
+        );
     }
 }

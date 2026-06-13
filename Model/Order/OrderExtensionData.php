@@ -64,6 +64,36 @@ class OrderExtensionData extends AbstractModel
         return $this->getData(OrderExtensionDataResource::PUBLIC_ID);
     }
 
+    public function setSuccessfulHydrateAt(?string $timestamp): void
+    {
+        $this->setData(OrderExtensionDataResource::SUCCESSFUL_HYDRATE_AT, $timestamp);
+    }
+
+    public function getSuccessfulHydrateAt(): ?string
+    {
+        return $this->getData(OrderExtensionDataResource::SUCCESSFUL_HYDRATE_AT);
+    }
+
+    public function setSuccessfulAuthFullAt(?string $timestamp): void
+    {
+        $this->setData(OrderExtensionDataResource::SUCCESSFUL_AUTH_FULL_AT, $timestamp);
+    }
+
+    public function getSuccessfulAuthFullAt(): ?string
+    {
+        return $this->getData(OrderExtensionDataResource::SUCCESSFUL_AUTH_FULL_AT);
+    }
+
+    public function setSuccessfulStateAt(?string $timestamp): void
+    {
+        $this->setData(OrderExtensionDataResource::SUCCESSFUL_STATE_AT, $timestamp);
+    }
+
+    public function getSuccessfulStateAt(): ?string
+    {
+        return $this->getData(OrderExtensionDataResource::SUCCESSFUL_STATE_AT);
+    }
+
     /**
      * Set is order capture currently in progress.
      *

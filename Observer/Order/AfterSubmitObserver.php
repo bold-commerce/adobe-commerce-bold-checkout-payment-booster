@@ -9,6 +9,7 @@ use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
 use Bold\CheckoutPaymentBooster\Model\Order\SetCompleteState;
+use Bold\CheckoutPaymentBooster\Model\Order\SnapshotQuoteLifecycleOnOrderExtension;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\Order\OrderExtensionData as OrderExtensionDataResource;
 use Exception;
 use Magento\Framework\Event\Observer;
@@ -55,6 +56,9 @@ class AfterSubmitObserver implements ObserverInterface
     /** @var MagentoQuoteBoldOrderRepositoryInterface */
     private $magentoQuoteBoldOrderRepository;
 
+    /** @var SnapshotQuoteLifecycleOnOrderExtension */
+    private $snapshotQuoteLifecycleOnOrderExtension;
+
     /**
      * Constructor method.
      *
@@ -66,6 +70,7 @@ class AfterSubmitObserver implements ObserverInterface
      * @param LoggerInterface $logger Logger instance for handling logs.
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository Interface for managing
      * Magento Quote Bold Order Repository.
+     * @param SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension
      * @return void
      */
     public function __construct(
@@ -75,7 +80,8 @@ class AfterSubmitObserver implements ObserverInterface
         OrderExtensionDataFactory $orderExtensionDataFactory,
         OrderExtensionDataResource $orderExtensionDataResource,
         LoggerInterface $logger,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        SnapshotQuoteLifecycleOnOrderExtension $snapshotQuoteLifecycleOnOrderExtension
     ) {
         $this->checkoutData = $checkoutData;
         $this->orderExtensionDataFactory = $orderExtensionDataFactory;
@@ -84,6 +90,7 @@ class AfterSubmitObserver implements ObserverInterface
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->logger = $logger;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->snapshotQuoteLifecycleOnOrderExtension = $snapshotQuoteLifecycleOnOrderExtension;
     }
 
     /**
@@ -111,7 +118,7 @@ class AfterSubmitObserver implements ObserverInterface
         $publicOrderId = $this->checkoutData->getPublicOrderId();
 
         if ($publicOrderId !== null) {
-            $this->checkoutData->resetCheckoutData();
+            $this->checkoutData->resetCheckoutData('afterSubmitObserver:order_placed');
         }
 
         if (!$publicOrderId) {
@@ -125,6 +132,8 @@ class AfterSubmitObserver implements ObserverInterface
         if ($publicOrderId !== null) {
             $orderExtensionData->setPublicId($publicOrderId);
         }
+
+        $this->snapshotQuoteLifecycleOnOrderExtension->applyPreCompleteSnapshot($orderExtensionData, $order);
 
         try {
             $this->orderExtensionDataResource->save($orderExtensionData);

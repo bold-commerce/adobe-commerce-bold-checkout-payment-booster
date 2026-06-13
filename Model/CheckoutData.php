@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Eps\GetFastlaneStyles;
+use Bold\CheckoutPaymentBooster\Model\Logger\SessionReuseLogger;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -52,6 +53,11 @@ class CheckoutData
     private $magentoQuoteBoldOrderRepository;
 
     /**
+     * @var SessionReuseLogger
+     */
+    private $sessionReuseLogger;
+
+    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
@@ -59,6 +65,7 @@ class CheckoutData
      * @param GetFastlaneStyles $getFastlaneStyles
      * @param Config $config
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param SessionReuseLogger $sessionReuseLogger
      */
     public function __construct(
         Session $checkoutSession,
@@ -67,7 +74,8 @@ class CheckoutData
         ResumeOrder $resumeOrder,
         GetFastlaneStyles $getFastlaneStyles,
         Config $config,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        SessionReuseLogger $sessionReuseLogger
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
@@ -76,6 +84,7 @@ class CheckoutData
         $this->getFastlaneStyles = $getFastlaneStyles;
         $this->config = $config;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->sessionReuseLogger = $sessionReuseLogger;
     }
 
     /**
@@ -88,25 +97,54 @@ class CheckoutData
     {
         $quote = $this->checkoutSession->getQuote();
         $websiteId = (int)$quote->getStore()->getWebsiteId();
+        $quoteId = (string)$quote->getId();
+
+        $this->sessionReuseLogger->info(
+            'initCheckoutData: called',
+            [
+                'quote_id' => $quoteId,
+                'website_id' => $websiteId,
+            ]
+        );
 
         if (!$this->config->getShopId($websiteId)) {
             throw new LocalizedException(__('Shop ID is not configured for website "%1".', $websiteId));
         }
 
         if (!$this->isPaymentBoosterAvailable->isAvailable()) {
+            $this->sessionReuseLogger->info(
+                'initCheckoutData: payment booster not available, skipping',
+                ['quote_id' => $quoteId]
+            );
             return;
         }
 
         $existingPublicOrderId = $this->getPublicOrderId();
+        $isQuoteProcessed = $existingPublicOrderId
+            ? $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)
+            : false;
 
-        if ($existingPublicOrderId) {
-            $quoteId = (string)$quote->getId();
-            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
-                $this->resetCheckoutData();
-                $existingPublicOrderId = null;
-            }
+        $this->sessionReuseLogger->info(
+            'initCheckoutData: evaluating Bold session',
+            [
+                'quote_id' => $quoteId,
+                'public_order_id' => $existingPublicOrderId,
+                'is_quote_processed' => $isQuoteProcessed,
+            ]
+        );
+
+        // Quote already placed via wallet: do not resume its completed Bold order on a new checkout.
+        if ($existingPublicOrderId && $isQuoteProcessed) {
+            $this->resetCheckoutData('initCheckoutData:processed_quote');
+            $existingPublicOrderId = null;
+
+            $this->sessionReuseLogger->info(
+                'initCheckoutData: cleared stale Bold session for processed quote; will init new order',
+                ['quote_id' => $quoteId]
+            );
         }
 
+        // In-progress checkout: resume the existing Bold order (e.g. page reload on payment step).
         if ($existingPublicOrderId) {
             $orderData = $this->resumeOrder->resume(
                 $existingPublicOrderId,
@@ -116,15 +154,44 @@ class CheckoutData
                 $checkoutData = $this->checkoutSession->getBoldCheckoutData();
                 $checkoutData['data']['jwt_token'] = $orderData['data']['jwt_token'];
                 $this->checkoutSession->setBoldCheckoutData($checkoutData);
+
+                $this->sessionReuseLogger->info(
+                    'initCheckoutData: resumed existing Bold order',
+                    [
+                        'quote_id' => $quoteId,
+                        'public_order_id' => $existingPublicOrderId,
+                        'is_quote_processed' => $isQuoteProcessed,
+                    ]
+                );
+
                 return;
             }
+
+            $this->sessionReuseLogger->warning(
+                'initCheckoutData: resume returned no data; falling back to initOrderFromQuote',
+                [
+                    'quote_id' => $quoteId,
+                    'public_order_id' => $existingPublicOrderId,
+                    'is_quote_processed' => $isQuoteProcessed,
+                ]
+            );
         }
+
         $checkoutData = $this->initOrderFromQuote->init($quote);
         $checkoutData['data']['flow_settings']['fastlane_styles'] = $this->getFastlaneStyles->getStyles(
             $websiteId,
             $quote->getStore()->getBaseUrl()
         );
         $this->checkoutSession->setBoldCheckoutData($checkoutData);
+
+        $this->sessionReuseLogger->info(
+            'initCheckoutData: initialized new Bold order',
+            [
+                'quote_id' => $quoteId,
+                'public_order_id' => $checkoutData['data']['public_order_id'] ?? null,
+                'previous_public_order_id' => $existingPublicOrderId,
+            ]
+        );
     }
 
     /**
@@ -132,9 +199,21 @@ class CheckoutData
      *
      * @return void
      */
-    public function resetCheckoutData()
+    public function resetCheckoutData(?string $reason = null): void
     {
+        $publicOrderId = $this->getPublicOrderId();
+        $quoteId = (string)$this->checkoutSession->getQuoteId();
+
         $this->checkoutSession->setBoldCheckoutData(null);
+
+        $this->sessionReuseLogger->info(
+            'resetCheckoutData: cleared Bold checkout session',
+            [
+                'reason' => $reason ?? 'unspecified',
+                'quote_id' => $quoteId,
+                'cleared_public_order_id' => $publicOrderId,
+            ]
+        );
     }
 
     /**

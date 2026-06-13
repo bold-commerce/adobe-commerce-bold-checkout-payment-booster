@@ -46,6 +46,12 @@
             <argument name="fileName" xsi:type="string">/var/log/bold_checkout_payment_booster.log</argument>
         </arguments>
     </virtualType>
+    <!-- Session-reuse logs share bold_checkout_payment_booster.log; grep "[Bold Session]". -->
+    <type name="Bold\CheckoutPaymentBooster\Model\Logger\SessionReuseLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
     <!-- Bold Payment Method Configuration. -->
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Method\Adapter" type="Magento\Payment\Model\Method\Adapter">
         <arguments>

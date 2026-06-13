@@ -8,9 +8,12 @@ define(
         'use strict';
 
         /**
-         * Create Wallet Pay order.
+         * Create Wallet Pay order — ties the active Magento quote to the Bold public_order_id.
          *
-         * @param {{}}
+         * Called when the shopper approves PayPal / Google Pay on checkout or PDP.
+         * publicOrderId must be renewed after a prior wallet order completes (session-reuse fix).
+         *
+         * @param {Object} paymentPayload
          * @return {Promise}
          */
         return function (paymentPayload) {

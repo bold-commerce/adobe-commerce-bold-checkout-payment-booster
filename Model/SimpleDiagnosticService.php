@@ -48,6 +48,8 @@ class SimpleDiagnosticService
     private $scopeConfig;
     /** @var StoreManagerInterface  */
     private $storeManager;
+    /** @var ModuleVersion  */
+    private $moduleVersion;
 
     /**
      * @param Config $config
@@ -60,6 +62,7 @@ class SimpleDiagnosticService
      * @param ProductMetadataInterface $productMetadata
      * @param ScopeConfigInterface $scopeConfig
      * @param StoreManagerInterface $storeManager
+     * @param ModuleVersion $moduleVersion
      */
     public function __construct(
         Config $config,
@@ -71,7 +74,8 @@ class SimpleDiagnosticService
         ModuleListInterface $moduleList,
         ProductMetadataInterface $productMetadata,
         ScopeConfigInterface $scopeConfig,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ModuleVersion $moduleVersion
     ) {
         $this->config = $config;
         $this->directoryHelper = $directoryHelper;
@@ -83,6 +87,7 @@ class SimpleDiagnosticService
         $this->productMetadata = $productMetadata;
         $this->scopeConfig = $scopeConfig;
         $this->storeManager = $storeManager;
+        $this->moduleVersion = $moduleVersion;
     }
 
     /**
@@ -412,28 +417,13 @@ class SimpleDiagnosticService
      */
     private function getModuleVersion(): string
     {
-        try {
-            $baseDir = $this->directoryList->getRoot();
+        $version = $this->moduleVersion->get();
 
-            $pathsToCheck = [
-                $baseDir . '/vendor/bold-commerce/module-checkout-payment-booster',
-                $baseDir . '/app/code/Bold/CheckoutPaymentBooster'
-            ];
-
-            foreach ($pathsToCheck as $path) {
-                $composerJsonPath = $path . '/composer.json';
-                $composerData = $this->parseJsonFile($composerJsonPath);
-
-                if ($composerData && isset($composerData['version'])) {
-                    return 'Bold CheckoutPaymentBooster ' . $composerData['version'];
-                }
-            }
-
-            return 'Bold CheckoutPaymentBooster N/A';
-        } catch (Exception $e) {
-            $this->logger->error('Failed to get module version: ' . $e->getMessage());
+        if ($version === 'N/A') {
             return 'Bold CheckoutPaymentBooster N/A';
         }
+
+        return 'Bold CheckoutPaymentBooster ' . $version;
     }
 
     /**

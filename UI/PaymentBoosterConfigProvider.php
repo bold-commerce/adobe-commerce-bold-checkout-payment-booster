@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\UI;
 
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\ModuleVersion;
 use Bold\CheckoutPaymentBooster\Model\Payment\Gateway\Service;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Config\Model\Config\Source\Nooptreq as NooptreqSource;
@@ -91,10 +92,21 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
     private $escaper;
 
     /**
+     * @var ModuleVersion
+     */
+    private $moduleVersion;
+
+    /**
      * @param CheckoutData $checkoutData
      * @param Config $config
      * @param AllowedCountries $allowedCountries
      * @param CollectionFactory $collectionFactory
+     * @param LoggerInterface $logger
+     * @param StoreManagerInterface $storeManager
+     * @param UrlInterface $urlBuilder
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Escaper $escaper
+     * @param ModuleVersion $moduleVersion
      */
     public function __construct(
         CheckoutData $checkoutData,
@@ -105,7 +117,8 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         StoreManagerInterface $storeManager,
         UrlInterface $urlBuilder,
         ScopeConfigInterface $scopeConfig,
-        Escaper $escaper
+        Escaper $escaper,
+        ModuleVersion $moduleVersion
     ) {
         $this->checkoutData = $checkoutData;
         $this->config = $config;
@@ -116,6 +129,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
         $this->escaper = $escaper;
+        $this->moduleVersion = $moduleVersion;
     }
 
     /**
@@ -189,6 +203,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                 'epsUrl' => rtrim($this->config->getEpsUrl($websiteId), '/'),
                 'shopUrl' => $shopUrl,
                 'shopName' => $store->getFrontendName(),
+                'module_version' => $this->moduleVersion->get(),
                 'isPhoneRequired' => $store->getConfig('customer/address/telephone_show')
                     === NooptreqSource::VALUE_REQUIRED,
                 'isExpressPayEnabled' => $this->config->isExpressPayEnabled($websiteId),

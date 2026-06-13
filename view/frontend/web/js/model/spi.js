@@ -90,6 +90,9 @@ define([
          * @returns {Promise<{}>}
          */
         getPaymentsClient: async function () {
+            if (window.checkoutConfig?.bold?.module_version) {
+                console.log('[Bold] module_version:', window.checkoutConfig.bold.module_version);
+            }
             if (window.boldPaymentsInstance) {
                 return window.boldPaymentsInstance;
             }

@@ -39,6 +39,7 @@ class BoldCheckoutData implements SectionSourceInterface
      *     epsUrl: string,
      *     shopUrl: string,
      *     shopName: string,
+     *     module_version: string,
      *     isPhoneRequired: bool,
      *     isExpressPayEnabled: bool,
      *     isCartWalletPayEnabled: bool,

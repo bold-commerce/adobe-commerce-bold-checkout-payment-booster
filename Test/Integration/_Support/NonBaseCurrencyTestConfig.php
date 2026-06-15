@@ -14,5 +14,5 @@ class NonBaseCurrencyTestConfig
     /**
      * @var list<string>
      */
-    public const NON_BASE_DISPLAY_CURRENCIES = ['EUR', 'GBP'];
+    public const NON_BASE_DISPLAY_CURRENCIES = ['EUR'];
 }

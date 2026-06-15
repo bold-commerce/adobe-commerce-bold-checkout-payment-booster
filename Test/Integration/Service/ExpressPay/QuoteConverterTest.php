@@ -296,7 +296,7 @@ class QuoteConverterTest extends IntegrationTestCase
     /**
      * Same structure as testConvertFullQuoteConvertsNonVirtualQuote but for a quote in a non-base
      * display currency. Fixture builds from quote_with_shipping_tax_and_discount; each data-provider
-     * row applies EUR or GBP before convertFullQuote.
+     * row applies EUR display currency before convertFullQuote.
      *
      * @dataProvider nonBaseDisplayCurrencyProvider
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php

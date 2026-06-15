@@ -18,6 +18,12 @@ use Magento\TestFramework\TestCase\AbstractController;
 
 use function is_string;
 
+/**
+ * @magentoConfigFixture current_store currency/options/base USD
+ * @magentoConfigFixture current_store currency/options/default USD
+ * @magentoConfigFixture current_store currency/options/allow USD,EUR,GBP
+ * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/multi_currency_store.php
+ */
 class DeactivateTest extends AbstractController
 {
     /**

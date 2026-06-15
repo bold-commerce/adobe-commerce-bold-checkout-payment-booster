@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Plugin\Checkout\Model;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Plugin\Checkout\Model\SessionPlugin;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Assertions\AssertPluginIsConfiguredCorrectly;
@@ -17,7 +18,7 @@ use PHPUnit\Framework\TestCase;
  * @magentoAppArea frontend
  * @magentoAppIsolation enabled
  */
-class SessionPluginTest extends TestCase
+class SessionPluginTest extends IntegrationTestCase
 {
     use AssertPluginIsConfiguredCorrectly;
 

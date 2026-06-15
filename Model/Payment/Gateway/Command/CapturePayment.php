@@ -63,7 +63,7 @@ class CapturePayment implements CommandInterface
         $orderExtensionData->setIsCaptureInProgress(true);
         $this->orderExtensionDataRepository->save($orderExtensionData);
         try {
-            if ((float)$order->getGrandTotal() === $amount) {
+            if ((float)$order->getBaseGrandTotal() === $amount) {
                 $payment->setTransactionId($this->gatewayService->captureFull($order))
                     ->setShouldCloseParentTransaction(true);
                 return;

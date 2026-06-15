@@ -5,8 +5,9 @@ declare(strict_types=1);
 use Magento\Quote\Model\QuoteFactory;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\TestFramework\Helper\Bootstrap;
+use Magento\TestFramework\Workaround\Override\Fixture\Resolver;
 
-require __DIR__ . '/quote_with_shipping_tax_and_discount.php';
+Resolver::getInstance()->requireDataFixture('Magento/Checkout/_files/quote_with_items_saved.php');
 
 $objectManager = Bootstrap::getObjectManager();
 /** @var QuoteFactory $quoteFactory */
@@ -15,18 +16,16 @@ $quoteFactory = $objectManager->get(QuoteFactory::class);
 $quoteResource = $objectManager->get(QuoteResource::class);
 $quote = $quoteFactory->create();
 
-$quoteResource->load($quote, 'test_order_1', 'reserved_order_id');
+$quoteResource->load($quote, 'test_order_item_with_items', 'reserved_order_id');
 if (!$quote->getId()) {
-    throw new \RuntimeException('Quote with reserved_order_id test_order_1 not found.');
+    throw new \RuntimeException('Quote with reserved_order_id test_order_item_with_items not found.');
 }
 
-// Default fixture currency is EUR; integration tests re-apply display currency per data-provider row.
 $store = $quote->getStore();
 $store->unsetData('current_currency');
 $store->setCurrentCurrencyCode('EUR');
 $quote->setBaseCurrencyCode('USD');
 $quote->setQuoteCurrencyCode('EUR');
 $quote->setStoreCurrencyCode('EUR');
-$quote->getShippingAddress()->setCollectShippingRates(true);
 $quote->collectTotals();
 $quote->save();

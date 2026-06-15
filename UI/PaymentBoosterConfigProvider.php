@@ -147,7 +147,12 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
         $epsAuthToken = $this->checkoutData->getEpsAuthToken();
         $paymentGateways = $this->checkoutData->getPaymentGateways();
         $shouldVault = $this->checkoutData->getShouldVault();
-        $currency = $store->getCurrentCurrency()->getCode();
+        $currency = $fromQuote
+            ? (string)$quote->getBaseCurrencyCode()
+            : (string)$store->getBaseCurrencyCode();
+        $displayCurrency = $fromQuote
+            ? (string)$quote->getQuoteCurrencyCode()
+            : (string)$store->getCurrentCurrency()->getCode();
         $shopUrl = $store->getBaseUrl();
         if ($jwtToken === null || $epsAuthToken === null || $paymentGateways === []) {
             $errorMsgs = [];
@@ -202,6 +207,7 @@ class PaymentBoosterConfigProvider implements ConfigProviderInterface
                     ],
                 ],
                 'currency' => $currency,
+                'display_currency_code' => $displayCurrency,
             ],
         ];
     }

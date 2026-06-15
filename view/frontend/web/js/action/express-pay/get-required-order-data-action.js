@@ -97,16 +97,16 @@ define(
             const totals = quote.getTotals();
 
             const order_balance = window.checkoutConfig.bold.addTaxAmountFrontendBalance
-                ? (parseFloat((totals()['grand_total'] || 0)) + parseFloat((totals()['tax_amount'] || 0))) * 100
-                : parseFloat((totals()['grand_total'] || 0)) * 100;
+                ? (parseFloat((totals()['base_grand_total'] || 0)) + parseFloat((totals()['base_tax_amount'] || 0))) * 100
+                : parseFloat((totals()['base_grand_total'] || 0)) * 100;
 
             return {
-                order_total: parseFloat(totals()['grand_total'] || 0) * 100,
+                order_total: parseFloat(totals()['base_grand_total'] || 0) * 100,
                 order_balance,
-                shipping_total: parseFloat(totals()['shipping_amount'] || 0) * 100,
-                discounts_total: parseFloat(totals()['discount_amount'] || 0) * 100,
+                shipping_total: parseFloat(totals()['base_shipping_amount'] || 0) * 100,
+                discounts_total: parseFloat(totals()['base_discount_amount'] || 0) * 100,
                 fees_total: parseFloat(totals()['fee_amount'] || 0) * 100,
-                taxes_total: parseFloat(totals()['tax_amount'] || 0) * 100,
+                taxes_total: parseFloat(totals()['base_tax_amount'] || 0) * 100,
             };
         }
 
@@ -160,7 +160,7 @@ define(
                     case 'shipping_options':
                         payload[requirement] = shippingService.getShippingRates().map(option => ({
                             label: `${option.carrier_title} - ${option.method_title}`,
-                            amount: parseFloat(option.amount) * 100,
+                            amount: parseFloat(option.base_amount ?? option.amount) * 100,
                             id: `${option.carrier_code}_${option.method_code}`,
                             is_selected: option.carrier_code === quote.shippingMethod()?.carrier_code &&
                                 option.method_code === quote.shippingMethod()?.method_code

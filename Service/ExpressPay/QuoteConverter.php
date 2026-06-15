@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Quote\BoldQuoteAmounts;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Quote\Api\Data\CartInterface;
-use Magento\Quote\Api\Data\CartItemInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\Rate;
 use Magento\Quote\Model\Quote\Address\Total;
@@ -46,14 +46,23 @@ class QuoteConverter
     private $config;
 
     /**
+     * @var BoldQuoteAmounts
+     */
+    private $boldQuoteAmounts;
+
+    /**
      * @var bool
      */
     private $areTotalsCollected = false;
 
-    public function __construct(ScopeConfigInterface $scopeConfig, Config $config)
-    {
+    public function __construct(
+        ScopeConfigInterface $scopeConfig,
+        Config $config,
+        BoldQuoteAmounts $boldQuoteAmounts
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->config = $config;
+        $this->boldQuoteAmounts = $boldQuoteAmounts;
     }
 
     /**
@@ -172,7 +181,7 @@ class QuoteConverter
                 'shipping_options' => [],
             ],
         ];
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
         $usedRateCodes = [];
         /** @var Rate[] $shippingRates */
         $shippingRates = array_values(array_filter(
@@ -190,10 +199,10 @@ class QuoteConverter
         $hasRequiredAddressData = ($shippingAddress->getCity() && $shippingAddress->getCountryId());
 
         if ($hasRequiredAddressData && count($shippingRates) > 0) {
+            $boldQuoteAmounts = $this->boldQuoteAmounts;
             $convertedQuote['order_data']['shipping_options'] = array_map(
-                static function (Rate $rate) use ($currencyCode, $shippingAddress): array {
-                    $price = ($rate->getCode() === $shippingAddress->getShippingMethod())
-                        ? $shippingAddress->getShippingAmount() : $rate->getPrice();
+                static function (Rate $rate) use ($currencyCode, $shippingAddress, $boldQuoteAmounts): array {
+                    $price = $boldQuoteAmounts->getShippingRateAmount($rate, $shippingAddress);
                     return [
                         'id' => $rate->getCode(),
                         'label' => trim("{$rate->getCarrierTitle()} - {$rate->getMethodTitle()}", ' -'),
@@ -236,7 +245,7 @@ class QuoteConverter
                 'type' => 'SHIPPING',
                 'amount' => [
                     'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$shippingAddress->getShippingAmount(), 2, '.', ''),
+                    'value' => number_format($this->boldQuoteAmounts->getShippingAmount($quote), 2, '.', ''),
                 ],
             ];
         }
@@ -257,25 +266,25 @@ class QuoteConverter
             return [];
         }
 
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        /** @var Item[] $quoteItems */
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $taxIncluded = $this->config->isTaxIncludedInPrices($websiteId);
+        $boldQuoteAmounts = $this->boldQuoteAmounts;
 
         $convertedQuote = [
             'order_data' => [
                 'items' => array_map(
-                    static function (CartItemInterface $cartItem) use ($currencyCode, $taxIncluded): array {
-                        $itemPrice = $taxIncluded
-                            ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
-                            : $cartItem->getRowTotal();
+                    static function (Item $cartItem) use ($currencyCode, $taxIncluded, $boldQuoteAmounts): array {
+                        $unitPrice = $boldQuoteAmounts->getItemUnitPrice($cartItem, $taxIncluded);
 
                         return [
                             'name' => $cartItem->getName() ?? '',
                             'sku' => $cartItem->getSku() ?? '',
                             'unit_amount' => [
                                 'currency_code' => $currencyCode ?? '',
-                                'value' =>  number_format(
-                                    $itemPrice / $cartItem->getQty(),
+                                'value' => number_format(
+                                    $unitPrice,
                                     2,
                                     '.',
                                     ''
@@ -300,18 +309,16 @@ class QuoteConverter
                     'value' => number_format(
                         array_sum(
                             array_map(
-                                static function (CartItemInterface $cartItem) use ($taxIncluded) {
-                                    $itemPrice = $taxIncluded
-                                        ? $cartItem->getRowTotalInclTax() - $cartItem->getTaxAmount()
-                                        : $cartItem->getRowTotal();
+                                static function (Item $cartItem) use ($taxIncluded, $boldQuoteAmounts) {
+                                    $rowAmount = $boldQuoteAmounts->getItemRowAmount($cartItem, $taxIncluded);
                                     $roundedItemPrice = number_format(
-                                        $itemPrice / $cartItem->getQty(),
+                                        $rowAmount / $cartItem->getQty(),
                                         2,
                                         '.',
                                         ''
                                     );
 
-                                    return $roundedItemPrice * $cartItem->getQty();
+                                    return (float)$roundedItemPrice * $cartItem->getQty();
                                 },
                                 $quoteItems
                             )
@@ -334,7 +341,7 @@ class QuoteConverter
      */
     public function convertTotal(Quote $quote): array
     {
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
 
         if (!$this->areTotalsCollected) {
             $quote->collectTotals(); // Ensure that we have the correct grand total for the quote
@@ -345,8 +352,8 @@ class QuoteConverter
         return [
             'order_data' => [
                 'amount' => [
-                    'currency_code' => $currencyCode ?? '',
-                    'value' => number_format((float)$quote->getGrandTotal(), 2, '.', ''),
+                    'currency_code' => $currencyCode,
+                    'value' => number_format($this->boldQuoteAmounts->getGrandTotal($quote), 2, '.', ''),
                 ],
             ],
         ];
@@ -357,40 +364,15 @@ class QuoteConverter
      */
     public function convertTaxes(Quote $quote): array
     {
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
         $convertedQuote = [
             'order_data' => [
                 'tax_total' => [
-                    'currency_code' => $currencyCode ?? '',
-                    'value' => '',
+                    'currency_code' => $currencyCode,
+                    'value' => number_format($this->boldQuoteAmounts->getTaxAmount($quote), 2, '.', ''),
                 ],
             ],
         ];
-
-        if ($quote->getIsVirtual()) {
-            /** @var Item[] $items */
-            $items = $quote->getItems();
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                array_sum(
-                    array_map(
-                        static function (Item $item): float {
-                            return $item->getTaxAmount() ?? 0.00;
-                        },
-                        $items
-                    )
-                ),
-                2,
-                '.',
-                ''
-            );
-        } else {
-            $convertedQuote['order_data']['tax_total']['value'] = number_format(
-                (float)($quote->getShippingAddress()->getTaxAmount() ?? 0.00),
-                2,
-                '.',
-                ''
-            );
-        }
 
         return $convertedQuote;
     }
@@ -400,18 +382,13 @@ class QuoteConverter
      */
     public function convertDiscount(Quote $quote): array
     {
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
 
         return [
             'order_data' => [
                 'discount' => [
-                    'currency_code' => $currencyCode ?? '',
-                    'value' => number_format(
-                        (float)($quote->getSubtotal() - $quote->getSubtotalWithDiscount()),
-                        2,
-                        '.',
-                        ''
-                    ),
+                    'currency_code' => $currencyCode,
+                    'value' => number_format($this->boldQuoteAmounts->getDiscountAmount($quote), 2, '.', ''),
                 ],
             ],
         ];
@@ -430,7 +407,7 @@ class QuoteConverter
             $this->areTotalsCollected = true;
         }
 
-        $currencyCode = $quote->getCurrency() !== null ? $quote->getCurrency()->getQuoteCurrencyCode() : '';
+        $currencyCode = $this->boldQuoteAmounts->getCurrencyCode($quote);
         $excludedTotals = ['subtotal', 'shipping', 'tax', 'grand_total'];
         $customTotals = array_filter(
             $quote->getTotals(),
@@ -443,27 +420,28 @@ class QuoteConverter
             return;
         }
 
+        $boldQuoteAmounts = $this->boldQuoteAmounts;
         $customTotalsValue = 0;
         $totalItems = array_filter(
             array_map(
-                static function (Total $total) use ($currencyCode, &$customTotalsValue): ?array {
-                    /** @var string|null $name */
-                    $name = $total->getData('title') ?? '';
-                    /** @var float|string|null $value */
-                    $value = $total->getData('value') ?? 0;
+                static function (Total $total) use ($currencyCode, $boldQuoteAmounts, &$customTotalsValue): ?array {
+                    $baseValue = $boldQuoteAmounts->getCustomTotalBaseAmount($total);
 
-                    if ((float)$value === 0.00) {
+                    if ($baseValue === null || $baseValue === 0.0) {
                         return null;
                     }
 
-                    $customTotalsValue += (float)$value;
+                    /** @var string|null $name */
+                    $name = $total->getData('title') ?? '';
+
+                    $customTotalsValue += $baseValue;
 
                     return [
                         'name' => $name,
                         'sku' => $total->getCode() ?? '',
                         'unit_amount' => [
-                            'currency_code' => $currencyCode ?? '',
-                            'value' => number_format((float)$value, 2, '.', ''),
+                            'currency_code' => $currencyCode,
+                            'value' => number_format($baseValue, 2, '.', ''),
                         ],
                         'quantity' => 1,
                         'is_shipping_required' => false,

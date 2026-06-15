@@ -6,6 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay;
 
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
@@ -19,14 +21,15 @@ use Magento\Quote\Model\Quote\Address\RateResult\Error as AddressRateResultError
 use Magento\Quote\Model\Quote\Item;
 use Magento\Tax\Model\Calculation\Rule;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function array_filter;
 use function array_walk;
 use function reset;
 
-class QuoteConverterTest extends TestCase
+class QuoteConverterTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
     /**
      * Converts the fixture quote (guest, one simple product, shipping, tax, coupon) and asserts
      * all order_data sections match the quote-derived expectations. Uses key-by-key assertions
@@ -57,12 +60,16 @@ class QuoteConverterTest extends TestCase
         $quote->getShippingAddress()->setCollectShippingRates(true);
         $quote->collectTotals();
 
-        $currencyCode = $quote->getCurrency() !== null
-            ? ($quote->getCurrency()->getQuoteCurrencyCode() ?? 'USD')
-            : 'USD';
-        $grandTotal   = number_format((float) $quote->getGrandTotal(), 2, '.', '');
-        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
-        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
+        $currencyCode = $quote->getBaseCurrencyCode() ?? 'USD';
+        $grandTotal   = number_format((float) $quote->getBaseGrandTotal(), 2, '.', '');
+        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getBaseTaxAmount() ?? 0.0), 2, '.', '');
+        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getBaseShippingAmount(), 2, '.', '');
+        $discountAmt  = number_format(
+            abs((float) ($quote->getShippingAddress()->getBaseDiscountAmount() ?? 0.0)),
+            2,
+            '.',
+            ''
+        );
 
         $gatewayId = 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7';
         $expected = [
@@ -107,7 +114,7 @@ class QuoteConverterTest extends TestCase
                 'item_total' => ['currency_code' => $currencyCode, 'value' => '10.00'],
                 'amount'     => ['currency_code' => $currencyCode, 'value' => $grandTotal],
                 'tax_total'  => ['currency_code' => $currencyCode, 'value' => $taxTotal],
-                'discount'   => ['currency_code' => $currencyCode, 'value' => '5.00'],
+                'discount'   => ['currency_code' => $currencyCode, 'value' => $discountAmt],
             ],
         ];
 
@@ -126,10 +133,18 @@ class QuoteConverterTest extends TestCase
         self::assertEqualsCanonicalizing($expected['order_data']['customer'], $od['customer'], 'customer');
 
         self::assertArrayHasKey('shipping_address', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['shipping_address'], $od['shipping_address'], 'shipping_address');
+        self::assertEqualsCanonicalizing(
+            $expected['order_data']['shipping_address'],
+            $od['shipping_address'],
+            'shipping_address'
+        );
 
         self::assertArrayHasKey('selected_shipping_option', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'], 'selected_shipping_option');
+        self::assertEqualsCanonicalizing(
+            $expected['order_data']['selected_shipping_option'],
+            $od['selected_shipping_option'],
+            'selected_shipping_option'
+        );
 
         self::assertArrayHasKey('shipping_options', $od);
         self::assertIsArray($od['shipping_options']);
@@ -137,7 +152,11 @@ class QuoteConverterTest extends TestCase
         $found = false;
         foreach ($od['shipping_options'] as $opt) {
             if (isset($opt['id']) && $opt['id'] === 'flatrate_flatrate') {
-                self::assertEqualsCanonicalizing($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
+                self::assertEqualsCanonicalizing(
+                    $expected['order_data']['shipping_options'][0],
+                    $opt,
+                    'flatrate shipping option'
+                );
                 $found = true;
                 break;
             }
@@ -202,6 +221,27 @@ class QuoteConverterTest extends TestCase
             ->setEmail('customer@example.com');
 
         $cartRepository->save($quote);
+        $quote = $cartRepository->get((int) $quote->getId());
+        $quote->collectTotals();
+
+        $discountAmt = number_format(
+            abs((float) ($quote->getBillingAddress()->getBaseDiscountAmount() ?? 0.0)),
+            2,
+            '.',
+            ''
+        );
+        $grandTotal = number_format((float) $quote->getBaseGrandTotal(), 2, '.', '');
+        $taxTotal = number_format(
+            (float) array_sum(
+                array_map(
+                    static fn (Item $item): float => (float) ($item->getBaseTaxAmount() ?? 0.0),
+                    $quote->getAllItems()
+                )
+            ),
+            2,
+            '.',
+            ''
+        );
 
         $expectedConvertedQuoteData = [
             'gateway_id' => 'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7',
@@ -227,7 +267,7 @@ class QuoteConverterTest extends TestCase
                 ],
                 'amount' => [
                     'currency_code' => 'USD',
-                    'value' => '5.50'
+                    'value' => $grandTotal
                 ],
                 'item_total' => [
                     'currency_code' => 'USD',
@@ -235,11 +275,11 @@ class QuoteConverterTest extends TestCase
                 ],
                 'tax_total' => [
                     'currency_code' => 'USD',
-                    'value' => '0.50'
+                    'value' => $taxTotal
                 ],
                 'discount' => [
                     'currency_code' => 'USD',
-                    'value' => '5.00'
+                    'value' => $discountAmt
                 ]
             ]
         ];
@@ -255,48 +295,37 @@ class QuoteConverterTest extends TestCase
 
     /**
      * Same structure as testConvertFullQuoteConvertsNonVirtualQuote but for a quote in a non-base
-     * currency (EUR). Fixture builds from quote_with_shipping_tax_and_discount then sets EUR;
-     * we load the quote, derive expected values from it, call convertFullQuote, and assert by key.
+     * display currency. Fixture builds from quote_with_shipping_tax_and_discount; each data-provider
+     * row applies EUR or GBP before convertFullQuote.
      *
-     * @magentoConfigFixture current_store currency/options/base USD
-     * @magentoConfigFixture current_store currency/options/default USD
-     * @magentoConfigFixture current_store currency/options/allow USD,EUR
-     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_non_base_currency.php
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     * @magentoDbIsolation enabled
      */
-    public function testConvertFullQuoteConvertsNonBaseCurrencyQuote(): void
+    public function testConvertFullQuoteConvertsNonBaseCurrencyQuote(string $displayCurrency): void
     {
         $objectManager = Bootstrap::getObjectManager();
-        $cartRepository = $objectManager->get(CartRepositoryInterface::class);
-        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
-            ->addFilter('reserved_order_id', 'test_order_1')
-            ->create();
-        $quotes = $cartRepository->getList($searchCriteria)->getItems();
-        self::assertNotEmpty($quotes, 'Fixture quote with reserved_order_id test_order_1 not found');
-        /** @var Quote $quote */
-        $quote = $cartRepository->get((int) reset($quotes)->getId());
+        $quote = $this->prepareQuoteWithDisplayCurrency('test_order_1', $displayCurrency);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+        $this->assertDisplayAndBaseGrandTotalsDiffer($quote);
 
-        $productRepository = $objectManager->get(ProductRepositoryInterface::class);
-        foreach ($quote->getAllItems() as $item) {
-            if (!$item->getProduct()) {
-                $item->setProduct($productRepository->getById((int) $item->getProductId()));
-            }
-        }
-        $quote->getShippingAddress()->setCollectShippingRates(true);
-        $quote->collectTotals();
-
-        $currencyCode = $quote->getCurrency() !== null
-            ? ($quote->getCurrency()->getQuoteCurrencyCode() ?? 'EUR')
-            : 'EUR';
-        $grandTotal   = number_format((float) $quote->getGrandTotal(), 2, '.', '');
-        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getTaxAmount() ?? 0.0), 2, '.', '');
-        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getShippingAmount(), 2, '.', '');
+        $currencyCode = $quote->getBaseCurrencyCode() ?? 'USD';
+        $grandTotal   = number_format((float) $quote->getBaseGrandTotal(), 2, '.', '');
+        $taxTotal     = number_format((float) ($quote->getShippingAddress()->getBaseTaxAmount() ?? 0.0), 2, '.', '');
+        $shippingAmt  = number_format((float) $quote->getShippingAddress()->getBaseShippingAmount(), 2, '.', '');
         $allItems      = $quote->getAllItems();
         self::assertNotEmpty($allItems, 'Quote must have at least one item');
         $firstItem     = $allItems[0];
-        $itemRowTotal  = number_format((float) $firstItem->getRowTotal() / max(1, (float) $firstItem->getQty()), 2, '.', '');
-        $itemTotalVal  = number_format((float) $firstItem->getRowTotal(), 2, '.', '');
+        $itemRowTotal = number_format(
+            (float) $firstItem->getBaseRowTotal() / max(1, (float) $firstItem->getQty()),
+            2,
+            '.',
+            ''
+        );
+        $itemTotalVal  = number_format((float) $firstItem->getBaseRowTotal(), 2, '.', '');
         $discountValue = number_format(
-            (float) ($quote->getSubtotal() - $quote->getSubtotalWithDiscount()),
+            abs((float) ($quote->getShippingAddress()->getBaseDiscountAmount() ?? 0.0)),
             2,
             '.',
             ''
@@ -364,10 +393,18 @@ class QuoteConverterTest extends TestCase
         self::assertEqualsCanonicalizing($expected['order_data']['customer'], $od['customer'], 'customer');
 
         self::assertArrayHasKey('shipping_address', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['shipping_address'], $od['shipping_address'], 'shipping_address');
+        self::assertEqualsCanonicalizing(
+            $expected['order_data']['shipping_address'],
+            $od['shipping_address'],
+            'shipping_address'
+        );
 
         self::assertArrayHasKey('selected_shipping_option', $od);
-        self::assertEqualsCanonicalizing($expected['order_data']['selected_shipping_option'], $od['selected_shipping_option'], 'selected_shipping_option');
+        self::assertEqualsCanonicalizing(
+            $expected['order_data']['selected_shipping_option'],
+            $od['selected_shipping_option'],
+            'selected_shipping_option'
+        );
 
         self::assertArrayHasKey('shipping_options', $od);
         self::assertIsArray($od['shipping_options']);
@@ -375,7 +412,11 @@ class QuoteConverterTest extends TestCase
         $found = false;
         foreach ($od['shipping_options'] as $opt) {
             if (isset($opt['id']) && $opt['id'] === 'flatrate_flatrate') {
-                self::assertEqualsCanonicalizing($expected['order_data']['shipping_options'][0], $opt, 'flatrate shipping option');
+                self::assertEqualsCanonicalizing(
+                    $expected['order_data']['shipping_options'][0],
+                    $opt,
+                    'flatrate shipping option'
+                );
                 $found = true;
                 break;
             }
@@ -398,8 +439,68 @@ class QuoteConverterTest extends TestCase
 
         self::assertArrayHasKey('discount', $od);
         self::assertEqualsCanonicalizing($expected['order_data']['discount'], $od['discount'], 'discount');
+        $this->assertOrderDataUsesBaseCurrency($od);
+    }
 
-        self::assertSame('EUR', $currencyCode, 'Quote should be in EUR (non-base currency)');
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_virtual_product_saved.php
+     * @magentoDbIsolation enabled
+     */
+    public function testConvertFullQuoteConvertsVirtualQuoteWithNonBaseCurrency(string $displayCurrency): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $searchCriteria = $objectManager->create(SearchCriteriaBuilder::class)
+            ->addFilter('reserved_order_id', 'test_order_with_virtual_product_without_address')
+            ->create();
+        /** @var CartRepositoryInterface $cartRepository */
+        $cartRepository = $objectManager->create(CartRepositoryInterface::class);
+        $quotes = $cartRepository->getList($searchCriteria)->getItems();
+        /** @var Quote $quote */
+        $quote = reset($quotes) ?: $objectManager->create(Quote::class);
+
+        /** @var Item[] $quoteItems */
+        $quoteItems = $quote->getAllItems();
+        /** @var Registry $registry */
+        $registry = $objectManager->get(Registry::class);
+        /** @var Rule $taxRule */
+        $taxRule = $registry->registry('_fixture/Magento_Tax_Model_Calculation_Rule');
+        $quoteConverter = $objectManager->create(QuoteConverter::class);
+
+        array_walk(
+            $quoteItems,
+            static function (Item $item) use ($taxRule): void {
+                $item->getProduct()
+                    ->setTaxClassId($taxRule->getProductTaxClassIds()[0])
+                    ->save();
+            }
+        );
+
+        $quote->setCouponCode('CART_FIXED_DISCOUNT_5');
+        $quote->getBillingAddress()
+            ->setFirstname('John')
+            ->setLastname('Smith')
+            ->setEmail('customer@example.com');
+
+        $cartRepository->save($quote);
+        $quote = $cartRepository->get((int) $quote->getId());
+        $this->applyDisplayCurrencyToQuote($quote, $displayCurrency);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+
+        $result = $quoteConverter->convertFullQuote(
+            $quote,
+            'a31a8fd6-a9e2-4c68-a834-54567bfeb4b7'
+        );
+
+        self::assertIsArray($result);
+        self::assertArrayHasKey('order_data', $result);
+        $this->assertOrderDataUsesBaseCurrency($result['order_data']);
+        self::assertSame(
+            number_format((float) $quote->getBaseGrandTotal(), 2, '.', ''),
+            $result['order_data']['amount']['value']
+        );
     }
 
     public function testDoesNotConvertShippingInformationIfAddressIsNotSet(): void
@@ -480,7 +581,11 @@ class QuoteConverterTest extends TestCase
         $quoteConverter = $objectManager->create(QuoteConverter::class, ['config' => $config]);
 
         $result = $quoteConverter->convertCustomer($quote);
-        self::assertArrayHasKey('order_data', $result, 'convertCustomer must return order_data when billing address is set');
+        self::assertArrayHasKey(
+            'order_data',
+            $result,
+            'convertCustomer must return order_data when billing address is set'
+        );
         self::assertSame('noname', $result['order_data']['customer']['first_name']);
         self::assertSame('nolastname', $result['order_data']['customer']['last_name']);
     }

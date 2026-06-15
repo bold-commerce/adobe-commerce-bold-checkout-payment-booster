@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Plugin\Checkout\Model;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Plugin\Checkout\Model\SessionPlugin;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Assertions\AssertPluginIsConfiguredCorrectly;
 use Magento\Checkout\Model\Session;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 /**
  * @magentoAppArea frontend
  * @magentoAppIsolation enabled
  */
-class SessionPluginTest extends TestCase
+class SessionPluginTest extends IntegrationTestCase
 {
     use AssertPluginIsConfiguredCorrectly;
 

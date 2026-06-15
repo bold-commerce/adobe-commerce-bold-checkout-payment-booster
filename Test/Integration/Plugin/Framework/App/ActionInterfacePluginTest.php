@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Plugin\Framework\App;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Plugin\Framework\App\ActionInterfacePlugin;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Assertions\AssertPluginIsConfiguredCorrectly;
 use Magento\Customer\Model\ResourceModel\CustomerRepository;
@@ -12,9 +13,8 @@ use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Http\Context as HttpContext;
 use Magento\Framework\App\TestStubs\InterfaceOnlyFrontendAction;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
-class ActionInterfacePluginTest extends TestCase
+class ActionInterfacePluginTest extends IntegrationTestCase
 {
     use AssertPluginIsConfiguredCorrectly;
 

@@ -7,6 +7,8 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Exception\LocalizedException;
@@ -18,12 +20,13 @@ use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function reset;
 
-class CreateTest extends TestCase
+class CreateTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
     /**
      * @var Quote|null
      */
@@ -86,6 +89,69 @@ class CreateTest extends TestCase
         );
 
         self::assertSame($expectedResultData, $actualResultData);
+    }
+
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testCreatesExpressPayOrderWithNonBaseCurrencyQuote(string $displayCurrency): void
+    {
+        $capturedBody = null;
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldClientMock = $this->createMock(BoldClient::class);
+        $objectManager = Bootstrap::getObjectManager();
+        $createExpressPayOrderService = $objectManager->create(
+            Create::class,
+            [
+                'httpClient' => $boldClientMock,
+            ]
+        );
+        $quote = $this->prepareQuoteWithDisplayCurrency('test_order_1', $displayCurrency, true);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+        $this->assertDisplayAndBaseGrandTotalsDiffer($quote);
+        $quoteMaskId = $this->getQuoteMaskId($quote);
+
+        $boldApiResultMock->method('getBody')
+            ->willReturn(
+                [
+                    'data' => [
+                        'order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82',
+                    ],
+                ]
+            );
+        $boldApiResultMock->method('getErrors')->willReturn([]);
+        $boldApiResultMock->method('getStatus')->willReturn(200);
+
+        $boldClientMock->method('post')
+            ->willReturnCallback(
+                static function (int $websiteId, string $url, array $body) use ($boldApiResultMock, &$capturedBody) {
+                    $capturedBody = $body;
+
+                    return $boldApiResultMock;
+                }
+            );
+
+        $createExpressPayOrderService->execute(
+            $quoteMaskId,
+            'ff152513-f548-11ef-b987-3a475e3f6277',
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
+            'dynamic',
+            false,
+            ''
+        );
+
+        self::assertIsArray($capturedBody);
+        self::assertArrayHasKey('order_data', $capturedBody);
+        $this->assertOrderDataUsesBaseCurrency($capturedBody['order_data']);
+        self::assertSame(
+            number_format((float) $quote->getBaseGrandTotal(), 2, '.', ''),
+            $capturedBody['order_data']['amount']['value']
+        );
     }
 
     public function testDoesNotCreateExpressPayOrderIfQuoteMaskIdIsInvalid(): void
@@ -393,9 +459,9 @@ class CreateTest extends TestCase
         );
     }
 
-    private function getQuote(): \Magento\Quote\Api\Data\CartInterface
+    private function getQuote(string $fixture = 'default'): \Magento\Quote\Api\Data\CartInterface
     {
-        if ($this->quote !== null) {
+        if ($this->quote !== null && $fixture === 'default') {
             return $this->quote;
         }
 
@@ -419,17 +485,22 @@ class CreateTest extends TestCase
 
         $quote = $cartRepository->get((int)$quote->getId());
 
-        return $this->quote = $quote;
+        if ($fixture === 'default') {
+            $this->quote = $quote;
+        }
+
+        return $quote;
     }
 
-    private function getQuoteMaskId(): string
+    private function getQuoteMaskId(?Quote $quote = null): string
     {
         /** @var ObjectManagerInterface $objectManager */
         $objectManager = Bootstrap::getObjectManager();
         /** @var QuoteIdToMaskedQuoteIdInterface $quoteIdToMaskedQuoteId */
         $quoteIdToMaskedQuoteId = $objectManager->create(QuoteIdToMaskedQuoteIdInterface::class);
+        $quote = $quote ?? $this->getQuote();
         /** @var int|string|null $quoteId */
-        $quoteId = $this->getQuote()->getId();
+        $quoteId = $quote->getId();
 
         try {
             $quoteMaskId = $quoteIdToMaskedQuoteId->execute((int)$quoteId);

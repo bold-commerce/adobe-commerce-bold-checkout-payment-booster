@@ -24,13 +24,10 @@ $configResource->saveConfig(Currency::XML_PATH_CURRENCY_BASE, 'USD', ScopeInterf
 $configResource->saveConfig(Currency::XML_PATH_CURRENCY_DEFAULT, 'USD', ScopeInterface::SCOPE_STORES, $storeId);
 $configResource->saveConfig(
     Currency::XML_PATH_CURRENCY_ALLOW,
-    'USD,EUR,GBP',
+    'USD,EUR',
     ScopeInterface::SCOPE_STORES,
     $storeId
 );
-$configResource->saveConfig(Currency::XML_PATH_CURRENCY_BASE, 'USD', ScopeInterface::SCOPE_DEFAULT, 0);
-$configResource->saveConfig(Currency::XML_PATH_CURRENCY_DEFAULT, 'USD', ScopeInterface::SCOPE_DEFAULT, 0);
-$configResource->saveConfig(Currency::XML_PATH_CURRENCY_ALLOW, 'USD,EUR,GBP', ScopeInterface::SCOPE_DEFAULT, 0);
 
 /** Configuration cache clean is required to reload currency settings. */
 /** @var Config $config */
@@ -52,17 +49,10 @@ $currencyResource->saveRates(
         'USD' => [
             'USD' => 1.0,
             'EUR' => 0.92,
-            'GBP' => 0.79,
         ],
         'EUR' => [
             'EUR' => 1.0,
             'USD' => 1.08695652,
-            'GBP' => 0.85869565,
-        ],
-        'GBP' => [
-            'GBP' => 1.0,
-            'USD' => 1.26582278,
-            'EUR' => 1.16455696,
         ],
     ]
 );

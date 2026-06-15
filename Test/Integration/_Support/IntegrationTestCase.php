@@ -7,11 +7,11 @@ namespace Bold\CheckoutPaymentBooster\Test\Integration\_Support;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Base integration test with multi-currency store configuration (USD base, EUR + GBP display).
+ * Base integration test with multi-currency store configuration (USD base, EUR display).
  *
  * @magentoConfigFixture current_store currency/options/base USD
  * @magentoConfigFixture current_store currency/options/default USD
- * @magentoConfigFixture current_store currency/options/allow USD,EUR,GBP
+ * @magentoConfigFixture current_store currency/options/allow USD,EUR
  * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/multi_currency_store.php
  */
 abstract class IntegrationTestCase extends TestCase

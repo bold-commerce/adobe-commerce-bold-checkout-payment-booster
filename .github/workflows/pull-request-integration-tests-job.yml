@@ -143,13 +143,26 @@ jobs:
           set -e
 
           if [ "${{ matrix.php-version }}" = "8.1" ]; then
-            echo "Force PHP platform for PHP 8.1 (prevents Symfony 7+) Disable Composer security audit blocking (Magento legacy deps)"
-            composer config audit.block-insecure false
+            echo "Force PHP platform for PHP 8.1 (prevents Symfony 7+)"
             composer config platform.php 8.1.0
             jq '
               .conflict["symfony/filesystem"] = ">=6"
               | .require["aws/aws-sdk-php"] = "<3.368"
             ' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+          fi
+
+          COMPOSER_NO_BLOCK_ARGS=""
+          if [ "${{ matrix.php-version }}" = "8.1" ] || \
+             [ "${{ matrix.magento-version }}" = "2.4.6-p10" ] || \
+             [ "${{ matrix.magento-version }}" = "2.4.7-p5" ]; then
+            echo "Disable Composer security advisory blocking (Magento legacy transitive deps e.g. spomky-labs/otphp ^10.0)"
+            jq '
+              .config.audit = ((.config.audit // {}) + {"block-insecure": false})
+              | .config.policy = ((.config.policy // {}) + {
+                  "advisories": ((.config.policy.advisories // {}) + {"block": false})
+                })
+            ' composer.json > composer.json.tmp && mv composer.json.tmp composer.json
+            COMPOSER_NO_BLOCK_ARGS="--no-blocking"
           fi
 
           if [ "${{ matrix.php-version }}" = "8.1" ]; then
@@ -181,8 +194,8 @@ jobs:
 
           composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
           composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref || github.ref_name }} --no-scripts --no-update
-          composer install --prefer-dist --no-progress --no-suggest
-          composer require --dev dms/phpunit-arraysubset-asserts --no-scripts
+          composer install --prefer-dist --no-progress $COMPOSER_NO_BLOCK_ARGS
+          composer require --dev dms/phpunit-arraysubset-asserts --no-scripts $COMPOSER_NO_BLOCK_ARGS
 
       - name: install-php8-deps
         if: matrix.php-version >= '8'

@@ -8,7 +8,6 @@ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Eps\GetFastlaneStyles;
 use Bold\CheckoutPaymentBooster\Model\Log\OrderTracker;
 use Bold\CheckoutPaymentBooster\Model\Order\SyncPublicOrderIdForQuote;
-use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
@@ -64,18 +63,12 @@ class CheckoutData
     private $orderTracker;
 
     /**
-     * @var MagentoQuoteBoldOrderRepositoryInterface
-     */
-    private $magentoQuoteBoldOrderRepository;
-
-    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
      * @param ResumeOrder $resumeOrder
      * @param GetFastlaneStyles $getFastlaneStyles
      * @param Config $config
-     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote
      * @param OrderTracker $orderTracker
@@ -122,18 +115,6 @@ class CheckoutData
         }
 
         $existingPublicOrderId = $this->getPublicOrderId();
-
-        if ($existingPublicOrderId) {
-            $quoteId = (string)$quote->getId();
-            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
-                $this->resetCheckoutData();
-                $existingPublicOrderId = null;
-            }
-        }
-
-        if ($existingPublicOrderId) {
-
-        $existingPublicOrderId = $this->getPublicOrderId();
         $quoteId = (string)$quote->getId();
 
         $this->orderTracker->trace($websiteId, 'init_checkout_data_start', [
@@ -157,7 +138,7 @@ class CheckoutData
 
         if ($existingPublicOrderId) {
             $orderData = $this->resumeOrder->resume(
-                $this->getPublicOrderId(),
+                $existingPublicOrderId,
                 $websiteId
             );
             if ($orderData) {

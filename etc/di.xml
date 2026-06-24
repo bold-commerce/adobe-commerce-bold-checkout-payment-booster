@@ -33,6 +33,11 @@
             <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
         </arguments>
     </type>
+    <type name="Bold\CheckoutPaymentBooster\Model\Log\CheckoutOrderTracer">
+        <arguments>
+            <argument name="logger" xsi:type="object">Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger</argument>
+        </arguments>
+    </type>
     <virtualType name="Bold\CheckoutPaymentBooster\Model\Http\Client\RequestsLogger\Logger" type="Magento\Framework\Logger\Monolog">
         <arguments>
             <argument name="handlers" xsi:type="array">

@@ -8,6 +8,7 @@ use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+use Bold\CheckoutPaymentBooster\Model\Log\CheckoutOrderTracer;
 use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
 use Bold\CheckoutPaymentBooster\Model\Order\CheckPaymentMethod;
 use Bold\CheckoutPaymentBooster\Model\Order\HydrateOrderFromQuote;
@@ -66,6 +67,9 @@ class BeforePlaceObserver implements ObserverInterface
     /** @var MagentoQuoteBoldOrderRepositoryInterface */
     private $magentoQuoteBoldOrderRepository;
 
+    /** @var CheckoutOrderTracer */
+    private $checkoutOrderTracer;
+
     /**
      * @param Authorize $authorize
      * @param CartRepositoryInterface $cartRepository
@@ -74,6 +78,7 @@ class BeforePlaceObserver implements ObserverInterface
      * @param CheckPaymentMethod $checkPaymentMethod
      * @param SerializerInterface $serializer
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param CheckoutOrderTracer $checkoutOrderTracer
      */
     public function __construct(
         Authorize $authorize,
@@ -82,7 +87,8 @@ class BeforePlaceObserver implements ObserverInterface
         HydrateOrderFromQuote $hydrateOrderFromQuote,
         CheckPaymentMethod $checkPaymentMethod,
         SerializerInterface $serializer,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        CheckoutOrderTracer $checkoutOrderTracer
     ) {
         $this->authorize = $authorize;
         $this->cartRepository = $cartRepository;
@@ -91,6 +97,7 @@ class BeforePlaceObserver implements ObserverInterface
         $this->checkPaymentMethod = $checkPaymentMethod;
         $this->serializer = $serializer;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->checkoutOrderTracer = $checkoutOrderTracer;
     }
 
     /**
@@ -110,7 +117,39 @@ class BeforePlaceObserver implements ObserverInterface
         $quoteId = $order->getQuoteId();
         /** @var CartInterface&Quote $quote */
         $quote = $this->cartRepository->get($quoteId);
-        $publicOrderId = $quote->getExtensionAttributes()->getBoldOrderId() ?? $this->checkoutData->getPublicOrderId();
+        $publicOrderIdFromQuote = null;
+        $extensionAttributes = $quote->getExtensionAttributes();
+        if ($extensionAttributes !== null) {
+            $publicOrderIdFromQuote = $extensionAttributes->getBoldOrderId();
+        }
+        $publicOrderIdFromSession = $this->checkoutData->getPublicOrderId();
+        $publicOrderIdFromDb = null;
+        try {
+            $publicOrderIdFromDb = $this->magentoQuoteBoldOrderRepository
+                ->getByQuoteId((string) $quoteId)
+                ->getBoldOrderId();
+        } catch (NoSuchEntityException $e) {
+            // No persisted quote ↔ Bold order relation yet.
+        }
+        $publicOrderId = $publicOrderIdFromQuote ?? $publicOrderIdFromSession;
+
+        $this->checkoutOrderTracer->trace('before_place_order', [
+            'quote_id' => $quoteId,
+            'customer_id' => $quote->getCustomerId(),
+            'payment_method' => $order->getPayment()->getMethod(),
+            'grand_total' => $quote->getGrandTotal(),
+            'currency' => $quote->getQuoteCurrencyCode(),
+            'selected_public_order_id' => $publicOrderId,
+            'public_order_id_quote_ext' => $publicOrderIdFromQuote,
+            'public_order_id_session' => $publicOrderIdFromSession,
+            'public_order_id_db' => $publicOrderIdFromDb,
+            'public_order_ids_match' => $this->publicOrderIdsMatch(
+                $publicOrderId,
+                $publicOrderIdFromQuote,
+                $publicOrderIdFromSession,
+                $publicOrderIdFromDb
+            ),
+        ]);
 
         if ($publicOrderId && $quoteId) {
             $this->magentoQuoteBoldOrderRepository->saveBoldQuotePublicOrderRelation($publicOrderId, (string) $quoteId);
@@ -118,7 +157,7 @@ class BeforePlaceObserver implements ObserverInterface
 
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $this->hydrateOrderFromQuote->hydrate($quote, $publicOrderId);
-        $transactionData = $this->authorize->execute($publicOrderId, $websiteId);
+        $transactionData = $this->authorize->execute($publicOrderId, $websiteId, (int) $quoteId);
         $this->saveTransactionData($order, $transactionData);
         $this->magentoQuoteBoldOrderRepository->saveAuthorizedAt((string) $quoteId);
     }
@@ -158,5 +197,29 @@ class BeforePlaceObserver implements ObserverInterface
         if ($cardDetails) {
             $orderPayment->setAdditionalInformation('card_details', $this->serializer->serialize($cardDetails));
         }
+    }
+
+    /**
+     * @param string|null $selected
+     * @param string|null $fromQuote
+     * @param string|null $fromSession
+     * @param string|null $fromDb
+     * @return bool
+     */
+    private function publicOrderIdsMatch(
+        ?string $selected,
+        ?string $fromQuote,
+        ?string $fromSession,
+        ?string $fromDb
+    ): bool {
+        $ids = array_values(array_filter([$selected, $fromQuote, $fromSession, $fromDb], static function ($id) {
+            return $id !== null && $id !== '';
+        }));
+
+        if (count($ids) <= 1) {
+            return true;
+        }
+
+        return count(array_unique($ids)) === 1;
     }
 }

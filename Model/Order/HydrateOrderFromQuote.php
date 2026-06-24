@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model\Order;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Log\CheckoutOrderTracer;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
 use Bold\CheckoutPaymentBooster\Model\Quote\BoldQuoteAmounts;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
@@ -62,12 +63,18 @@ class HydrateOrderFromQuote
     private $boldQuoteAmounts;
 
     /**
+     * @var CheckoutOrderTracer
+     */
+    private $checkoutOrderTracer;
+
+    /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param BoldQuoteAmounts $boldQuoteAmounts
+     * @param CheckoutOrderTracer $checkoutOrderTracer
      */
     public function __construct(
         BoldClient $client,
@@ -75,7 +82,8 @@ class HydrateOrderFromQuote
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
-        BoldQuoteAmounts $boldQuoteAmounts
+        BoldQuoteAmounts $boldQuoteAmounts,
+        CheckoutOrderTracer $checkoutOrderTracer
     ) {
         $this->client = $client;
         $this->getCartLineItems = $getCartLineItems;
@@ -83,6 +91,7 @@ class HydrateOrderFromQuote
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
         $this->boldQuoteAmounts = $boldQuoteAmounts;
+        $this->checkoutOrderTracer = $checkoutOrderTracer;
     }
 
     /**
@@ -158,11 +167,31 @@ class HydrateOrderFromQuote
         }
 
         $url = sprintf(self::HYDRATE_ORDER_URL, $publicOrderId);
+        $this->checkoutOrderTracer->trace('hydrate_start', [
+            'public_order_id' => $publicOrderId,
+            'quote_id' => $quote->getId(),
+            'customer_id' => $quote->getCustomerId(),
+            'grand_total' => $quote->getGrandTotal(),
+            'order_total_cents' => $body['totals']['order_total'],
+            'currency' => $quote->getQuoteCurrencyCode(),
+        ]);
         $hydrateResponse = $this->client->put($websiteId, $url, $body);
 
         if ($hydrateResponse->getStatus() !== 201) {
+            $this->checkoutOrderTracer->trace('hydrate_failed', [
+                'public_order_id' => $publicOrderId,
+                'quote_id' => $quote->getId(),
+                'http_status' => $hydrateResponse->getStatus(),
+                'errors' => $hydrateResponse->getErrors(),
+            ]);
             throw new LocalizedException(__('Failed to hydrate order with id="%1"', $publicOrderId));
         }
+
+        $this->checkoutOrderTracer->trace('hydrate_success', [
+            'public_order_id' => $publicOrderId,
+            'quote_id' => $quote->getId(),
+            'order_total_cents' => $body['totals']['order_total'],
+        ]);
 
         $this->magentoQuoteBoldOrderRepository->saveHydratedAt((string) $quote->getId());
     }

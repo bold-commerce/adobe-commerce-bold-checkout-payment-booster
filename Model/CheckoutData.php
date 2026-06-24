@@ -6,6 +6,7 @@ namespace Bold\CheckoutPaymentBooster\Model;
 
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Eps\GetFastlaneStyles;
+use Bold\CheckoutPaymentBooster\Model\Log\CheckoutOrderTracer;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
@@ -52,6 +53,11 @@ class CheckoutData
     private $magentoQuoteBoldOrderRepository;
 
     /**
+     * @var CheckoutOrderTracer
+     */
+    private $checkoutOrderTracer;
+
+    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
@@ -59,6 +65,7 @@ class CheckoutData
      * @param GetFastlaneStyles $getFastlaneStyles
      * @param Config $config
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param CheckoutOrderTracer $checkoutOrderTracer
      */
     public function __construct(
         Session $checkoutSession,
@@ -67,7 +74,8 @@ class CheckoutData
         ResumeOrder $resumeOrder,
         GetFastlaneStyles $getFastlaneStyles,
         Config $config,
-        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        CheckoutOrderTracer $checkoutOrderTracer
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->isPaymentBoosterAvailable = $isPaymentBoosterAvailable;
@@ -76,6 +84,7 @@ class CheckoutData
         $this->getFastlaneStyles = $getFastlaneStyles;
         $this->config = $config;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->checkoutOrderTracer = $checkoutOrderTracer;
     }
 
     /**
@@ -98,10 +107,22 @@ class CheckoutData
         }
 
         $existingPublicOrderId = $this->getPublicOrderId();
+        $quoteId = (string)$quote->getId();
+
+        $this->checkoutOrderTracer->trace('init_checkout_data_start', [
+            'quote_id' => $quoteId,
+            'customer_id' => $quote->getCustomerId(),
+            'session_public_order_id' => $existingPublicOrderId,
+            'quote_processed' => $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId),
+        ]);
 
         if ($existingPublicOrderId) {
-            $quoteId = (string)$quote->getId();
             if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
+                $this->checkoutOrderTracer->trace('init_checkout_data_reset', [
+                    'quote_id' => $quoteId,
+                    'stale_public_order_id' => $existingPublicOrderId,
+                    'reason' => 'quote_already_processed',
+                ]);
                 $this->resetCheckoutData();
                 $existingPublicOrderId = null;
             }
@@ -113,13 +134,26 @@ class CheckoutData
                 $websiteId
             );
             if ($orderData) {
+                $this->checkoutOrderTracer->trace('init_checkout_data_resumed', [
+                    'quote_id' => $quoteId,
+                    'public_order_id' => $existingPublicOrderId,
+                ]);
                 $checkoutData = $this->checkoutSession->getBoldCheckoutData();
                 $checkoutData['data']['jwt_token'] = $orderData['data']['jwt_token'];
                 $this->checkoutSession->setBoldCheckoutData($checkoutData);
                 return;
             }
+            $this->checkoutOrderTracer->trace('init_checkout_data_resume_failed', [
+                'quote_id' => $quoteId,
+                'public_order_id' => $existingPublicOrderId,
+            ]);
         }
         $checkoutData = $this->initOrderFromQuote->init($quote);
+        $this->checkoutOrderTracer->trace('init_checkout_data_new_order', [
+            'quote_id' => $quoteId,
+            'public_order_id' => $checkoutData['data']['public_order_id'] ?? null,
+            'previous_session_public_order_id' => $existingPublicOrderId,
+        ]);
         $checkoutData['data']['flow_settings']['fastlane_styles'] = $this->getFastlaneStyles->getStyles(
             $websiteId,
             $quote->getStore()->getBaseUrl()

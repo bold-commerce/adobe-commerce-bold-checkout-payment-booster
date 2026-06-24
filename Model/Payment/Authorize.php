@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Model\Payment;
 
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Log\OrderTracker;
 use Magento\Framework\Exception\LocalizedException;
 
 /**
@@ -20,12 +21,20 @@ class Authorize
     private $client;
 
     /**
+     * @var OrderTracker
+     */
+    private $orderTracker;
+
+    /**
      * @param BoldClient $client
+     * @param OrderTracker $orderTracker
      */
     public function __construct(
-        BoldClient $client
+        BoldClient $client,
+        OrderTracker $orderTracker
     ) {
         $this->client = $client;
+        $this->orderTracker = $orderTracker;
     }
 
     /**
@@ -33,6 +42,7 @@ class Authorize
      *
      * @param string $publicOrderId
      * @param int $websiteId
+     * @param int|null $quoteId
      * @return array{
      *     data: array{
      *         transactions: array{
@@ -46,17 +56,37 @@ class Authorize
      * }
      * @throws LocalizedException
      */
-    public function execute(string $publicOrderId, int $websiteId): array
+    public function execute(string $publicOrderId, int $websiteId, ?int $quoteId = null): array
     {
         $url = sprintf(self::PATH_PAYMENTS_AUTH, $publicOrderId);
+        $this->orderTracker->trace($websiteId, 'auth_full_start', [
+            'public_order_id' => $publicOrderId,
+            'website_id' => $websiteId,
+            'quote_id' => $quoteId,
+            'url' => $url,
+        ]);
         $result = $this->client->post($websiteId, $url, []);
         if ($result->getErrors()) {
+            $this->orderTracker->trace($websiteId, 'auth_full_failed', [
+                'public_order_id' => $publicOrderId,
+                'website_id' => $websiteId,
+                'quote_id' => $quoteId,
+                'errors' => $result->getErrors(),
+            ]);
             $message = isset(current($result->getErrors())['message'])
                 ? __(current($result->getErrors())['message'])
                 : __('The payment cannot be authorized.');
             throw new LocalizedException($message);
         }
 
-        return $result->getBody();
+        $body = $result->getBody();
+        $this->orderTracker->trace($websiteId, 'auth_full_success', [
+            'public_order_id' => $publicOrderId,
+            'website_id' => $websiteId,
+            'quote_id' => $quoteId,
+            'transaction_id' => $body['data']['transactions'][0]['transaction_id'] ?? null,
+        ]);
+
+        return $body;
     }
 }

@@ -7,7 +7,9 @@ namespace Bold\CheckoutPaymentBooster\Plugin\Quote\Api;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
+use Bold\CheckoutPaymentBooster\Model\Order\SyncPublicOrderIdForQuote;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Api\CartRepositoryInterface;
@@ -24,12 +26,26 @@ class CartRepositoryInterfacePlugin
      */
     private $magentoQuoteBoldOrderInterfaceFactory;
 
+    /**
+     * @var CheckoutData
+     */
+    private $checkoutData;
+
+    /**
+     * @var SyncPublicOrderIdForQuote
+     */
+    private $syncPublicOrderIdForQuote;
+
     public function __construct(
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
-        MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderInterfaceFactory
+        MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderInterfaceFactory,
+        CheckoutData $checkoutData,
+        SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote
     ) {
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
         $this->magentoQuoteBoldOrderInterfaceFactory = $magentoQuoteBoldOrderInterfaceFactory;
+        $this->checkoutData = $checkoutData;
+        $this->syncPublicOrderIdForQuote = $syncPublicOrderIdForQuote;
     }
 
     /**
@@ -42,7 +58,26 @@ class CartRepositoryInterfacePlugin
     {
         $cartExtension = $result->getExtensionAttributes();
 
-        if ($cartExtension === null || $cartExtension->getBoldOrderId() !== null) {
+        if ($cartExtension === null) {
+            return $result;
+        }
+
+        $quoteId = (string)$cartId;
+        $sessionPublicOrderId = $this->normalizePublicOrderId($this->checkoutData->getPublicOrderId());
+
+        if (
+            $sessionPublicOrderId !== null
+            && !$this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)
+        ) {
+            $extensionPublicOrderId = $this->normalizePublicOrderId($cartExtension->getBoldOrderId());
+            if ($extensionPublicOrderId !== $sessionPublicOrderId) {
+                $this->syncPublicOrderIdForQuote->execute($sessionPublicOrderId, $quoteId, $result);
+
+                return $result;
+            }
+        }
+
+        if ($cartExtension->getBoldOrderId() !== null) {
             return $result;
         }
 
@@ -86,5 +121,18 @@ class CartRepositoryInterfacePlugin
             $this->magentoQuoteBoldOrderRepository->save($magentoQuoteBoldOrder);
         } catch (LocalizedException $localizedException) {// phpcs:ignore Magento2.CodeAnalysis.EmptyBlock.DetectedCatch
         }
+    }
+
+    /**
+     * @param string|null $publicOrderId
+     * @return string|null
+     */
+    private function normalizePublicOrderId(?string $publicOrderId): ?string
+    {
+        if ($publicOrderId === null || $publicOrderId === '') {
+            return null;
+        }
+
+        return $publicOrderId;
     }
 }

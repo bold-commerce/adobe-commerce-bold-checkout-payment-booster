@@ -20,10 +20,14 @@ define(
         /**
          * Update quote billing or shipping address action.
          *
-         * @param {String} addressType
-         * @param {Object} addressData
+         * @param {String}  addressType
+         * @param {Object}  addressData
+         * @param {Object}  [options]
+         * @param {boolean} [options.skipRates=false] Skip triggering newAddressProcessor.getRates().
+         *   Pass true when the caller will fetch rates via a different path (e.g. DW quote PDP flow)
+         *   to prevent a concurrent incorrect request to carts/mine overwriting shippingService.
          */
-        return function (addressType, addressData) {
+        return function (addressType, addressData, options = {}) {
             const directoryData = customerData.get('directory-data');
             let regions;
             const countryCode = addressData['country_code'] || addressData['countryCode'];
@@ -35,7 +39,9 @@ define(
 
             let regionId = null;
             let regionName = null;
-            const state = addressData['state'] || addressData['administrativeArea'];
+            const state = addressData['state']
+                || addressData['administrativeArea']
+                || addressData['adminArea1'];
             if (regions) {
                 Object.entries(regions).forEach(([key, value]) => {
                     if (value.code === state || value.name === state) {
@@ -53,23 +59,38 @@ define(
                     lastName = nameParts.slice(1).join(' ');
                 }
             }
+            if (!firstName) {
+                firstName = window.checkoutConfig?.boldExpressPayCustomer?.firstname || 'Guest';
+            }
+            if (!lastName) {
+                lastName = window.checkoutConfig?.boldExpressPayCustomer?.lastname || 'Customer';
+            }
             let street1 = addressData['address1'] || addressData['address_line1'] || addressData['line1'];
             let street2 = addressData['address2'] || addressData['address_line2'] || addressData['line2'];
             if (addressData['addressLines']) {
                 street1 = addressData['addressLines'][0] || street1;
                 street2 = addressData['addressLines'][1] || street2;
             }
+            if (!street1) {
+                street1 = 'N/A';
+            }
             const region = regionId ? {
                 region: regionName,
                 region_code: state,
                 region_id: regionId
             } : regionName;
-            const email = addressData['email'] || quote.shippingAddress.email || quote.billingAddress.email;
+            const email = addressData['email']
+                || addressData['emailAddress']
+                || quote.guestEmail
+                || quote.shippingAddress()?.email
+                || quote.billingAddress()?.email
+                || window.checkoutConfig?.boldExpressPayCustomer?.email;
             const phone = addressData['phone']
                 || addressData['telephone']
                 || addressData['phoneNumber']
-                || quote.shippingAddress.telephone
-                || quote.billingAddress.telephone;
+                || quote.shippingAddress()?.telephone
+                || quote.billingAddress()?.telephone
+                || '0000000000';
             const quoteAddress = magentoAddressConverter.formAddressDataToQuoteAddress(
                 {
                     address_type: addressType,
@@ -95,8 +116,12 @@ define(
                 quote.billingAddress(quoteAddress);
             }
 
-            //calculate only if has shipping address
-            if (quote.shippingAddress()) {
+            // Trigger rate loading only when the caller has not opted out.
+            // In the DW PDP flow (onUpdatePaymentOrder), skipRates=true because the caller
+            // fetches rates directly via the DW guest-cart endpoint to avoid a concurrent
+            // incorrect request to carts/mine (which always resolves for logged-in customers)
+            // overwriting shippingService before our correct rates arrive.
+            if (!options.skipRates && quote.shippingAddress()) {
                 newAddressProcessor.getRates(quote.shippingAddress());
                 shippingService.getShippingRates().subscribe(function (rates) {
                     cartCache.set('rates', rates);

@@ -60,7 +60,7 @@ define([
                 }
             }
             const payload = {
-                'email': customerData.email ?? checkoutData.getValidatedEmailValue(),
+                'email': window.checkoutConfig?.boldExpressPayCustomer?.email ?? checkoutData.getValidatedEmailValue(),
                 'country_id': countryId,
                 'company': this.getFieldValue('company'),
                 'city': this.getFieldValue('city'),

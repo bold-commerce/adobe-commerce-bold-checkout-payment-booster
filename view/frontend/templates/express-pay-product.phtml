@@ -29,8 +29,9 @@ $isDigitalGood = $expressPayViewModel->isDigitalGood();
         window.isCustomerLoggedIn = <?= /* @noEscape */ json_encode($isCustomerLoggedIn) ?>;
     }
 
-    if (!window.hasOwnProperty('customerData')) {
-        window.customerData = <?= /* @noEscape */ json_encode($customerData) ?>;
+    window.checkoutConfig = window.checkoutConfig || { quoteData: {} };
+    if (!window.checkoutConfig.boldExpressPayCustomer) {
+        window.checkoutConfig.boldExpressPayCustomer = <?= /* @noEscape */ json_encode($customerData) ?>;
     }
 </script>
 <div id="express-pay-buttons-product-page-details"

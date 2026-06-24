@@ -10,4 +10,17 @@
     <action name="checkout/onepage/success">
         <section name="bold-checkout-data"/>
     </action>
+    <action name="bold_booster/digitalwallets_quote/create">
+        <section name="cart"/>
+        <section name="bold-checkout-data"/>
+    </action>
+    <action name="bold_booster/digitalwallets_checkout/getconfig">
+        <section name="bold-checkout-data"/>
+    </action>
+    <action name="rest/*/V1/carts/*/payment-information">
+        <section name="bold-checkout-data"/>
+    </action>
+    <action name="rest/*/V1/guest-carts/*/payment-information">
+        <section name="bold-checkout-data"/>
+    </action>
 </config>

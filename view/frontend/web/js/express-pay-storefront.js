@@ -3,10 +3,12 @@ define([
     'underscore',
     'jquery',
     'mage/cookies',
+    'Bold_CheckoutPaymentBooster/js/model/wait-for-customer-data',
 ], function (
     Component,
     _,
-    $
+    $,
+    waitForCustomerData
 ) {
     'use strict'
 
@@ -65,7 +67,7 @@ define([
                 return;
             }
             if (window.initExpressCheckoutInProcess) {
-                new Promise(function (resolve) {
+                await new Promise(function (resolve) {
                     var interval = setInterval(function () {
                         if (!window.initExpressCheckoutInProcess) {
                             clearInterval(interval);
@@ -73,38 +75,41 @@ define([
                         }
                     }, 100);
                 });
+                return;
             }
+
+            await waitForCustomerData();
+
             window.initExpressCheckoutInProcess = true;
-            $.ajax({
-                url: '/bold_booster/digitalwallets_checkout/getconfig',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    form_key: $.mage.cookies.get('form_key'),
-                    pageSource: this.pageSource,
-                },
-                async: false,
-                success: function (checkoutConfig) {
-                    /* Set values at property level instead of overwriting entire object to preserve its reference in
-                       memory. */
-                    if (checkoutConfig.hasOwnProperty('quoteData')) {
-                        Object.keys(checkoutConfig.quoteData).forEach(key => {
-                            window.checkoutConfig.quoteData[key] = checkoutConfig.quoteData[key];
-                        });
+            try {
+                const checkoutConfig = await $.ajax({
+                    url: '/bold_booster/digitalwallets_checkout/getconfig',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        form_key: $.mage.cookies.get('form_key'),
+                        pageSource: this.pageSource,
+                    },
+                });
 
-                        delete checkoutConfig.quoteData;
-                    }
-
-                    Object.keys(checkoutConfig).forEach(function (key) {
-                        window.checkoutConfig[key] = checkoutConfig[key];
+                /* Set values at property level instead of overwriting entire object to preserve its reference in
+                   memory. */
+                if (checkoutConfig.hasOwnProperty('quoteData')) {
+                    Object.keys(checkoutConfig.quoteData).forEach(key => {
+                        window.checkoutConfig.quoteData[key] = checkoutConfig.quoteData[key];
                     });
 
-                    window.initExpressCheckoutInProcess = false;
-                },
-                fail: function () {
-                    window.initExpressCheckoutInProcess = false;
+                    delete checkoutConfig.quoteData;
                 }
-            });
+
+                Object.keys(checkoutConfig).forEach(function (key) {
+                    window.checkoutConfig[key] = checkoutConfig[key];
+                });
+            } catch (error) {
+                console.error('Could not load checkout config for Express Pay.', error);
+            } finally {
+                window.initExpressCheckoutInProcess = false;
+            }
         },
 
         _renderExpressPayments: async function (spi) {

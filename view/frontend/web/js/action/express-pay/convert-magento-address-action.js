@@ -1,9 +1,7 @@
 define(
     [
-        'Magento_Customer/js/customer-data',
         'checkoutData'
     ], function (
-        customerData,
         checkoutData
     ) {
         'use strict';
@@ -24,7 +22,7 @@ define(
             }
 
             return {
-                email: customerData.email ?? checkoutData.getValidatedEmailValue(),
+                email: window.checkoutConfig?.boldExpressPayCustomer?.email ?? checkoutData.getValidatedEmailValue(),
                 country_code: magentoAddress.countryId,
                 city: magentoAddress.city ?? '',
                 first_name: magentoAddress.firstname ?? '',

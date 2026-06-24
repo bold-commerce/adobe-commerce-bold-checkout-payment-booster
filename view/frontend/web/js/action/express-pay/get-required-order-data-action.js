@@ -123,7 +123,7 @@ define(
                         let billingAddress = quote.billingAddress();
                         const email = checkoutData.getValidatedEmailValue()
                             ? checkoutData.getValidatedEmailValue()
-                            : window.checkoutConfig.customerData.email;
+                            : window.checkoutConfig.boldExpressPayCustomer?.email;
 
                         payload[requirement] = {
                             first_name: billingAddress.firstname,
@@ -157,15 +157,27 @@ define(
                         const hasShippingAddress = quote.shippingAddress() !== null;
                         payload[requirement] = hasShippingAddress ? convertMagentoAddressAction(quote.shippingAddress()) : {};
                         break;
-                    case 'shipping_options':
-                        payload[requirement] = shippingService.getShippingRates().map(option => ({
-                            label: `${option.carrier_title} - ${option.method_title}`,
-                            amount: parseFloat(option.amount) * 100,
-                            id: `${option.carrier_code}_${option.method_code}`,
-                            is_selected: option.carrier_code === quote.shippingMethod()?.carrier_code &&
-                                option.method_code === quote.shippingMethod()?.method_code
-                        }));
+                    case 'shipping_options': {
+                        const selectedMethod = quote.shippingMethod();
+                        const rates = shippingService.getShippingRates()();
+
+                        payload[requirement] = rates.map(function (option, index) {
+                            const id = `${option.carrier_code}_${option.method_code}`.replace(/\s/g, '');
+                            const isSelected = selectedMethod
+                                ? option.carrier_code === selectedMethod.carrier_code
+                                    && option.method_code === selectedMethod.method_code
+                                : index === 0;
+
+                            return {
+                                id: id,
+                                label: `${option.carrier_title} - ${option.method_title}`.replace(/^ - | - $/g, '').trim(),
+                                type: 'SHIPPING',
+                                amount: parseFloat(option.base_amount ?? option.amount ?? 0) * 100,
+                                is_selected: isSelected
+                            };
+                        });
                         break;
+                    }
                     case 'totals':
                         // if on product page and active quote is not bold quote
                         if ($('body').hasClass('catalog-product-view')

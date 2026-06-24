@@ -2,6 +2,7 @@ define(
     [
         'uiRegistry',
         'jquery',
+        'Bold_CheckoutPaymentBooster/js/model/wait-for-customer-data',
         'Magento_Checkout/js/model/quote',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/action/redirect-on-success',
@@ -16,6 +17,7 @@ define(
     function (
         registry,
         $,
+        waitForCustomerData,
         quote,
         placeOrderAction,
         redirectOnSuccessAction,
@@ -96,6 +98,7 @@ define(
             }
 
             const messageContainer = registry.get('checkout.errors')?.messageContainer ?? messageList;
+            await waitForCustomerData();
             $('body').trigger('processStart');
             $.when(placeOrderAction(paymentMethodData, messageContainer))
                 .done(

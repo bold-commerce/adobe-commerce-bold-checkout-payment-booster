@@ -252,7 +252,7 @@ define([
             const shippingAddress = quote.isVirtual() ? quote.billingAddress() : quote.shippingAddress();
             const email = checkoutData.getValidatedEmailValue()
                 ? checkoutData.getValidatedEmailValue()
-                : window.checkoutConfig.customerData.email;
+                : window.checkoutConfig.boldExpressPayCustomer?.email;
             const payload = {
                 customer: {
                     first_name: billingAddress.firstname,

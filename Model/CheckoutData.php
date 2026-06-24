@@ -64,12 +64,18 @@ class CheckoutData
     private $orderTracker;
 
     /**
+     * @var MagentoQuoteBoldOrderRepositoryInterface
+     */
+    private $magentoQuoteBoldOrderRepository;
+
+    /**
      * @param Session $checkoutSession
      * @param IsPaymentBoosterAvailable $isPaymentBoosterAvailable
      * @param InitOrderFromQuote $initOrderFromQuote
      * @param ResumeOrder $resumeOrder
      * @param GetFastlaneStyles $getFastlaneStyles
      * @param Config $config
+     * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
      * @param SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote
      * @param OrderTracker $orderTracker
@@ -116,6 +122,18 @@ class CheckoutData
         }
 
         $existingPublicOrderId = $this->getPublicOrderId();
+
+        if ($existingPublicOrderId) {
+            $quoteId = (string)$quote->getId();
+            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
+                $this->resetCheckoutData();
+                $existingPublicOrderId = null;
+            }
+        }
+
+        if ($existingPublicOrderId) {
+
+        $existingPublicOrderId = $this->getPublicOrderId();
         $quoteId = (string)$quote->getId();
 
         $this->orderTracker->trace($websiteId, 'init_checkout_data_start', [
@@ -139,7 +157,7 @@ class CheckoutData
 
         if ($existingPublicOrderId) {
             $orderData = $this->resumeOrder->resume(
-                $existingPublicOrderId,
+                $this->getPublicOrderId(),
                 $websiteId
             );
             if ($orderData) {

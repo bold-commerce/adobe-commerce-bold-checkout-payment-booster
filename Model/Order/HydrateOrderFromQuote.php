@@ -8,14 +8,15 @@ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
 use Bold\CheckoutPaymentBooster\Model\Log\OrderTracker;
 use Bold\CheckoutPaymentBooster\Model\Order\Address\Converter;
+use Bold\CheckoutPaymentBooster\Model\Quote\BoldQuoteAmounts;
 use Bold\CheckoutPaymentBooster\Model\Quote\GetCartLineItems;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Api\Data\CustomerInterface;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Quote\Api\Data\CartInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\ToOrderAddress;
+use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order\Address;
 
@@ -62,11 +63,17 @@ class HydrateOrderFromQuote
     private $orderTracker;
 
     /**
+     * @var BoldQuoteAmounts
+     */
+    private $boldQuoteAmounts;
+
+    /**
      * @param BoldClient $client
      * @param GetCartLineItems $getCartLineItems
      * @param Converter $addressConverter
      * @param ToOrderAddress $quoteToOrderAddressConverter
      * @param MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository
+     * @param BoldQuoteAmounts $boldQuoteAmounts
      * @param OrderTracker $orderTracker
      */
     public function __construct(
@@ -75,6 +82,7 @@ class HydrateOrderFromQuote
         Converter $addressConverter,
         ToOrderAddress $quoteToOrderAddressConverter,
         MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        BoldQuoteAmounts $boldQuoteAmounts,
         OrderTracker $orderTracker
     ) {
         $this->client = $client;
@@ -82,6 +90,7 @@ class HydrateOrderFromQuote
         $this->addressConverter = $addressConverter;
         $this->quoteToOrderAddressConverter = $quoteToOrderAddressConverter;
         $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->boldQuoteAmounts = $boldQuoteAmounts;
         $this->orderTracker = $orderTracker;
     }
 
@@ -111,34 +120,31 @@ class HydrateOrderFromQuote
             $shippingDescription = $quote->getShippingAddress()->getShippingDescription();
         }
 
-        [$fees, $discounts] = $this->getFeesAndDiscounts($totals);
+        [$fees, $discounts] = $this->getFeesAndDiscounts($quote, $totals);
         $discountTotal = array_reduce($discounts, function (?float $sum, $discountLine) {
             return $sum + $discountLine['value'];
         });
 
         $cartItems = $this->getCartLineItems->getItems($quote);
         $formattedCartItems = $this->formatCartItems($cartItems);
-        $subtotal = $totals['subtotal']['value_excl_tax'] ?? $totals['subtotal']['value'];
-        $shippingTotal = $totals['shipping']['value'] ?? 0;
-        $shippingTotalNoTax = $totals['shipping']['value_excl_tax'] ?? $shippingTotal;
-        $grandTotal = $totals['grand_total']['value_incl_tax'] ?? $totals['grand_total']['value'];
+        $taxFullInfo = isset($totals['tax']) ? ($totals['tax']['full_info'] ?? []) : [];
         $body = [
             'billing_address' => $this->addressConverter->convert($billingAddress),
             'shipping_address' => $this->addressConverter->convert($shippingAddress),
             'cart_items' => $formattedCartItems,
-            'taxes' => $this->getTaxLines($totals['tax']['full_info']),
+            'taxes' => $this->getTaxLines($taxFullInfo),
             'discounts' => $discounts,
             'fees' => $fees,
             'shipping_line' => [
                 'rate_name' => $shippingDescription ?? '',
-                'cost' => $this->convertToCents((float)$shippingTotalNoTax),
+                'cost' => $this->convertToCents($this->boldQuoteAmounts->getShippingAmount($quote)),
             ],
             'totals' => [
-                'sub_total' => $this->convertToCents((float)$subtotal),
-                'tax_total' => $this->convertToCents($totals['tax']['value']),
+                'sub_total' => $this->convertToCents($this->boldQuoteAmounts->getSubtotal($quote)),
+                'tax_total' => $this->convertToCents($this->boldQuoteAmounts->getTaxAmount($quote)),
                 'discount_total' => $discountTotal ?? 0,
-                'shipping_total' => $this->convertToCents((float)$shippingTotalNoTax),
-                'order_total' => $this->convertToCents((float)$grandTotal),
+                'shipping_total' => $this->convertToCents($this->boldQuoteAmounts->getShippingAmount($quote)),
+                'order_total' => $this->convertToCents($this->boldQuoteAmounts->getGrandTotal($quote)),
             ],
         ];
         /** @var CustomerInterface&Customer $customer */
@@ -224,37 +230,49 @@ class HydrateOrderFromQuote
     /**
      * Looks at total segments and makes unrecognized segments into fees and discounts
      *
-     * @param array<string, array{code: string, value: float, title: string}> $totals
+     * @param Quote $quote
+     * @param array<string, Total> $totals
      * @return array{line_text?: string, description?: string, value: float}[][]
      */
-    private function getFeesAndDiscounts(array $totals): array
+    private function getFeesAndDiscounts(Quote $quote, array $totals): array
     {
         $fees = [];
         $discounts = [];
 
         if (isset($totals['discount'])) {
-            $discounts[] = [
-                'line_text' => $totals['discount']['code'],
-                'value' => abs($this->convertToCents($totals['discount']['value'])),
-            ];
+            $discountBase = $this->boldQuoteAmounts->getSegmentBaseValue($totals['discount'], $quote);
+
+            if ($discountBase !== null && $discountBase !== 0.0) {
+                $discounts[] = [
+                    'line_text' => (string)$totals['discount']['code'],
+                    'value' => abs($this->convertToCents($discountBase)),
+                ];
+            }
         }
 
         foreach ($totals as $segment) {
-            if (in_array($segment['code'], self::EXPECTED_SEGMENTS) || !$segment['value']) {
+            /** @var Total $segment */
+            if (in_array($segment->getCode(), self::EXPECTED_SEGMENTS, true)) {
                 continue;
             }
 
-            $description = $segment['title'] ?? ucfirst(str_replace('_', ' ', $segment['code']));
+            $baseValue = $this->boldQuoteAmounts->getSegmentBaseValue($segment, $quote);
 
-            if ($segment['value'] > 0) {
+            if ($baseValue === null || $baseValue === 0.0) {
+                continue;
+            }
+
+            $description = $segment['title'] ?? ucfirst(str_replace('_', ' ', (string)$segment->getCode()));
+
+            if ($baseValue > 0) {
                 $fees[] = [
                     'description' => $description,
-                    'value' => $this->convertToCents($segment['value']),
+                    'value' => $this->convertToCents($baseValue),
                 ];
             } else {
                 $discounts[] = [
                     'line_text' => $description,
-                    'value' => abs($this->convertToCents($segment['value'])),
+                    'value' => abs($this->convertToCents($baseValue)),
                 ];
             }
         }

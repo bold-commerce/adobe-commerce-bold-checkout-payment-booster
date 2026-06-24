@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\DigitalWallets\MagentoQuote;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Deactivator;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Stubs\Magento\Quote\Model\ResourceModel\Quote\CollectionStub
     as QuoteCollectionStub;
@@ -21,13 +23,14 @@ use Magento\Quote\Model\ResourceModel\Quote as QuoteResourceModel;
 use Magento\Quote\Model\ResourceModel\Quote\Collection as QuoteCollection;
 use Magento\Quote\Model\ResourceModel\Quote\CollectionFactory as QuoteCollectionFactory;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function class_exists;
 use function count;
 
-class DeactivatorTest extends TestCase
+class DeactivatorTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
     /**
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
      */
@@ -57,6 +60,27 @@ class DeactivatorTest extends TestCase
         $deactivatedQuote = $cartRepository->get((int)$quoteId);
 
         self::assertFalse((bool)$deactivatedQuote->getIsActive());
+    }
+
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
+     */
+    public function testDeactivatesNonBaseCurrencyQuoteSuccessfully(string $displayCurrency): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $cartRepository = $objectManager->create(CartRepositoryInterface::class);
+        $quoteDeactivator = $objectManager->create(Deactivator::class);
+
+        $quote = $this->prepareQuoteWithDisplayCurrency('test_order_item_with_items', $displayCurrency, true);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+        $quote->setData('is_digital_wallets', true);
+        $this->persistQuote($quote);
+
+        $quoteDeactivator->deactivateQuote((int) $quote->getId());
+
+        self::assertFalse((bool) $cartRepository->get((int) $quote->getId())->getIsActive());
     }
 
     public function testThrowsExceptionIfQuoteIdIsInvalid(): void

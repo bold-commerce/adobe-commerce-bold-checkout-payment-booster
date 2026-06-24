@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\DigitalWallets\MagentoQuote;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\Creator;
 use DateTimeImmutable;
 use Exception;
@@ -27,14 +29,15 @@ use Magento\Quote\Model\QuoteIdMask;
 use Magento\Quote\Model\QuoteIdMaskFactory;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function __;
 use function array_rand;
 use function reset;
 
-class CreatorTest extends TestCase
+class CreatorTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
     /**
      * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      */
@@ -88,6 +91,63 @@ class CreatorTest extends TestCase
             $productRequestData
         );
 
+        self::assertInstanceOf(CartInterface::class, $quote);
+        self::assertNotNull($quote->getId());
+        self::assertNotEmpty($maskedId);
+    }
+
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     */
+    public function testCreatesQuoteSuccessfullyForSimpleProductWithNonBaseCurrency(string $displayCurrency): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $productRepository = $objectManager->create(ProductRepositoryInterface::class);
+        $product = $productRepository->get('simple');
+        $productOptions = [];
+        $dateTime = new DateTimeImmutable();
+        $productRequestData = [
+            'product' => $product->getId(),
+        ];
+        $storeManager = $objectManager->get(StoreManagerInterface::class);
+        $magentoQuoteCreator = $objectManager->create(Creator::class);
+        $this->setStoreDisplayCurrency($displayCurrency, (int) $storeManager->getStore()->getId());
+
+        foreach ($product->getOptions() ?? [] as $productOption) {
+            switch ($productOption->getType()) {
+                case 'field':
+                    $productOptions[$productOption->getOptionId()] = 'test';
+                    break;
+                case 'date_time':
+                    $productOptions[$productOption->getOptionId()] = [
+                        'day' => $dateTime->format('d'),
+                        'month' => $dateTime->format('m'),
+                        'year' => $dateTime->format('Y'),
+                        'hour' => $dateTime->format('H'),
+                        'minute' => $dateTime->format('i'),
+                    ];
+                    break;
+                case 'drop_down':
+                case 'radio':
+                    $productOptions[$productOption->getOptionId()] = array_rand($productOption->getValues() ?? []);
+                    break;
+                default:
+                    throw new Exception('Unsupported product option type "' . $productOption->getType() . '"');
+            }
+        }
+
+        $productRequestData['options'] = $productOptions;
+
+        ['quote' => $createdQuote, 'maskedId' => $maskedId] = $magentoQuoteCreator->createQuote(
+            $storeManager->getStore()->getId(),
+            $product,
+            $productRequestData
+        );
+
+        $quote = $this->applyDisplayCurrencyToQuote($createdQuote, $displayCurrency);
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
         self::assertInstanceOf(CartInterface::class, $quote);
         self::assertNotNull($quote->getId());
         self::assertNotEmpty($maskedId);

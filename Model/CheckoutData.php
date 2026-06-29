@@ -116,22 +116,27 @@ class CheckoutData
 
         $existingPublicOrderId = $this->getPublicOrderId();
         $quoteId = (string)$quote->getId();
+        $quoteIsProcessed = $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId);
 
         $this->orderTracker->trace($websiteId, 'init_checkout_data_start', [
             'quote_id' => $quoteId,
             'customer_id' => $quote->getCustomerId(),
             'session_public_order_id' => $existingPublicOrderId,
-            'quote_processed' => $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId),
+            'quote_processed' => $quoteIsProcessed,
         ]);
 
         if ($existingPublicOrderId) {
-            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
+            if ($quoteIsProcessed) {
                 $this->orderTracker->trace($websiteId, 'init_checkout_data_reset', [
                     'quote_id' => $quoteId,
                     'stale_public_order_id' => $existingPublicOrderId,
                     'reason' => 'quote_already_processed',
                 ]);
                 $this->resetCheckoutData();
+                $extensionAttributes = $quote->getExtensionAttributes();
+                if ($extensionAttributes !== null) {
+                    $extensionAttributes->setBoldOrderId('');
+                }
                 $existingPublicOrderId = null;
             }
         }
@@ -159,7 +164,7 @@ class CheckoutData
         }
         $checkoutData = $this->initOrderFromQuote->init($quote);
         $newPublicOrderId = $checkoutData['data']['public_order_id'] ?? null;
-        if ($newPublicOrderId) {
+        if ($newPublicOrderId && !$quoteIsProcessed) {
             $this->syncPublicOrderIdForQuote->execute($newPublicOrderId, $quoteId, $quote);
         }
         $this->orderTracker->trace($websiteId, 'init_checkout_data_new_order', [

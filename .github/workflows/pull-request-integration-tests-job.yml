@@ -56,7 +56,7 @@ jobs:
             composer-version: "v2"
             maria-db-version: "10.6"
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     services:
       mariadb:
         image: mariadb:${{ matrix.maria-db-version }}
@@ -99,17 +99,14 @@ jobs:
       - name: Setup problem matchers for PHPUnit
         run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
 
-      #      - name: Cache Composer packages
-      #        id: composer-cache
-      #        uses: actions/cache@v4
-      #        with:
-      #          path: integration-pipeline-test/vendor
-      #          key: ${{ runner.os }}-php-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
-
-      #      - name: clear composer cache prevent deps issue
-      #        working-directory: integration-pipeline-test
-      #        run: |
-      #          rm -rf ~/.composer
+      - name: Cache Composer packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: ${{ runner.os }}-composer-${{ matrix.php-version }}-magento-${{ matrix.magento-version }}
+          restore-keys: |
+            ${{ runner.os }}-composer-${{ matrix.php-version }}-
+            ${{ runner.os }}-composer-
 
       - name: add-credentials
         working-directory: integration-pipeline-test
@@ -192,10 +189,26 @@ jobs:
             composer require --no-update "sebastian/comparator:^4.0"
           fi
 
-          composer config repositories.adobe-commerce-bold-checkout-payment-booster vcs git@github.com:bold-commerce/adobe-commerce-bold-checkout-payment-booster.git
-          composer require bold-commerce/module-checkout-payment-booster:dev-${{ github.head_ref || github.ref_name }} --no-scripts --no-update
-          composer install --prefer-dist --no-progress $COMPOSER_NO_BLOCK_ARGS
-          composer require --dev dms/phpunit-arraysubset-asserts --no-scripts $COMPOSER_NO_BLOCK_ARGS
+          # Use the already-checked-out repo via path to avoid GitHub API 429 throttling on VCS dev aliases.
+          composer config repositories.adobe-commerce-bold-checkout-payment-booster path ..
+          composer require bold-commerce/module-checkout-payment-booster:@dev --no-scripts --no-update
+          if [ "${{ matrix.php-version }}" = "8.1" ] || \
+             [ "${{ matrix.magento-version }}" = "2.4.6-p10" ] || \
+             [ "${{ matrix.magento-version }}" = "2.4.7-p5" ]; then
+            composer require --dev dms/phpunit-arraysubset-asserts:^0.5 phpunit/phpunit:^9.5 --no-scripts --no-update
+          else
+            composer require --dev dms/phpunit-arraysubset-asserts:^0.5 phpunit/phpunit:^10.5 --no-scripts --no-update
+          fi
+
+          for attempt in 1 2 3; do
+            composer install --prefer-dist --no-progress $COMPOSER_NO_BLOCK_ARGS && break
+            if [ "$attempt" -eq 3 ]; then
+              echo "composer install failed after 3 attempts"
+              exit 1
+            fi
+            echo "composer install attempt $attempt failed (likely GitHub API 429), retrying in 30s..."
+            sleep 30
+          done
 
       - name: install-php8-deps
         if: matrix.php-version >= '8'
@@ -216,6 +229,7 @@ jobs:
           mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE magento_integration_tests;"
 
       - name: run the test
+        timeout-minutes: 35
         working-directory: integration-pipeline-test
         run: |
           vendor/bin/phpunit \

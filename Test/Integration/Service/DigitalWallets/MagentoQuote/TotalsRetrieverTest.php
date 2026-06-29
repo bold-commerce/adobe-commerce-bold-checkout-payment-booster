@@ -17,6 +17,8 @@ class TotalsRetrieverTest extends IntegrationTestCase
 {
     use NonBaseCurrencyQuoteTrait;
 
+    private const NON_EXISTENT_QUOTE_ID = 999999999;
+
     /**
      * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
      */
@@ -71,12 +73,12 @@ class TotalsRetrieverTest extends IntegrationTestCase
 
     public function testThrowsExceptionForInvalidQuoteId(): void
     {
-        $this->expectExceptionMessage('No such entity with cartId = 42');
+        $this->expectExceptionMessage('No such entity with cartId = ' . self::NON_EXISTENT_QUOTE_ID);
 
         $objectManager = Bootstrap::getObjectManager();
         /** @var TotalsRetriever $totalsRetriever */
         $totalsRetriever = $objectManager->create(TotalsRetriever::class);
 
-        $totalsRetriever->retrieveTotals(42);
+        $totalsRetriever->retrieveTotals(self::NON_EXISTENT_QUOTE_ID);
     }
 }

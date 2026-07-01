@@ -151,7 +151,7 @@ class GetCartLineItems
     private function getLineItemPrice(CartItemInterface $item): int
     {
         $item = $item->getParentItem() ?: $item;
-        return $this->convertToCents((float)$item->getPrice());
+        return $this->convertToCents((float)$item->getBasePrice());
     }
 
     /**
@@ -217,7 +217,7 @@ class GetCartLineItems
     private function getLineItemDiscount(Item $item): int
     {
         $item = $item->getParentItem() ?: $item;
-        $discountAmount = $item->getOriginalPrice() - $item->getPrice();
+        $discountAmount = $item->getBaseOriginalPrice() - $item->getBasePrice();
 
         return $this->convertToCents((float)$discountAmount);
     }

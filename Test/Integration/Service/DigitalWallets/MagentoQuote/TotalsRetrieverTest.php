@@ -4,16 +4,21 @@ declare(strict_types=1);
 
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\DigitalWallets\MagentoQuote;
 
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
+use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
 use Bold\CheckoutPaymentBooster\Service\DigitalWallets\MagentoQuote\TotalsRetriever;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\ResourceModel\Quote as QuoteResourceModel;
 use Magento\TestFramework\Helper\Bootstrap;
-use PHPUnit\Framework\TestCase;
 
 use function count;
 
-class TotalsRetrieverTest extends TestCase
+class TotalsRetrieverTest extends IntegrationTestCase
 {
+    use NonBaseCurrencyQuoteTrait;
+
+    private const NON_EXISTENT_QUOTE_ID = 999999999;
+
     /**
      * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
      */
@@ -45,14 +50,35 @@ class TotalsRetrieverTest extends TestCase
         }
     }
 
+    /**
+     * @dataProvider nonBaseDisplayCurrencyProvider
+     * @magentoDbIsolation enabled
+     * @magentoDataFixture Magento/Checkout/_files/quote_with_items_saved.php
+     */
+    public function testRetrievesQuoteItemTotalsWithNonBaseCurrencyQuote(string $displayCurrency): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        $quote = $this->prepareQuoteWithDisplayCurrency('test_order_item_with_items', $displayCurrency, true);
+        $totalsRetriever = $objectManager->create(TotalsRetriever::class);
+
+        $this->assertQuoteUsesNonBaseCurrency($quote, $displayCurrency);
+        $this->assertDisplayAndBaseGrandTotalsDiffer($quote);
+
+        $actualTotals = $totalsRetriever->retrieveTotals($quote->getId());
+
+        self::assertEquals($quote->getGrandTotal(), $actualTotals['grand_total']);
+        self::assertEquals($quote->getBaseGrandTotal(), $actualTotals['base_grand_total']);
+        self::assertNotEquals($actualTotals['grand_total'], $actualTotals['base_grand_total']);
+    }
+
     public function testThrowsExceptionForInvalidQuoteId(): void
     {
-        $this->expectExceptionMessage('No such entity with cartId = 42');
+        $this->expectExceptionMessage('No such entity with cartId = ' . self::NON_EXISTENT_QUOTE_ID);
 
         $objectManager = Bootstrap::getObjectManager();
         /** @var TotalsRetriever $totalsRetriever */
         $totalsRetriever = $objectManager->create(TotalsRetriever::class);
 
-        $totalsRetriever->retrieveTotals(42);
+        $totalsRetriever->retrieveTotals(self::NON_EXISTENT_QUOTE_ID);
     }
 }

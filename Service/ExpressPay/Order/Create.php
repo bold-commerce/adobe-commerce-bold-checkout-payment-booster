@@ -7,6 +7,8 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
 use Bold\CheckoutPaymentBooster\Model\Config;
+use Bold\CheckoutPaymentBooster\Model\Log\OrderTracker;
+use Bold\CheckoutPaymentBooster\Model\Order\SyncPublicOrderIdForQuote;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
 use Exception;
 use Magento\Checkout\Model\Session;
@@ -57,13 +59,25 @@ class Create implements CreateInterface
      */
     private $config;
 
+    /**
+     * @var OrderTracker
+     */
+    private $orderTracker;
+
+    /**
+     * @var SyncPublicOrderIdForQuote
+     */
+    private $syncPublicOrderIdForQuote;
+
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
         QuoteConverter $quoteConverter,
         ClientInterface $httpClient,
         SessionManagerInterface $checkoutSession,
-        Config $config
+        Config $config,
+        OrderTracker $orderTracker,
+        SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
@@ -71,6 +85,8 @@ class Create implements CreateInterface
         $this->httpClient = $httpClient;
         $this->checkoutSession = $checkoutSession;
         $this->config = $config;
+        $this->orderTracker = $orderTracker;
+        $this->syncPublicOrderIdForQuote = $syncPublicOrderIdForQuote;
     }
 
     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
@@ -133,6 +149,26 @@ class Create implements CreateInterface
         $websiteId = (int)$quote->getStore()->getWebsiteId();
         $uri = 'checkout/orders/{{shopId}}/wallet_pay';
 
+        $publicOrderIdFromQuote = null;
+        $extensionAttributes = $quote->getExtensionAttributes();
+        if ($extensionAttributes !== null) {
+            $publicOrderIdFromQuote = $extensionAttributes->getBoldOrderId();
+        }
+        /** @var Session $session */
+        $session = $this->checkoutSession;
+        $sessionCheckoutData = $session->getBoldCheckoutData();
+        $publicOrderIdFromSession = $sessionCheckoutData['data']['public_order_id'] ?? null;
+
+        $this->orderTracker->trace($websiteId, 'express_pay_create', [
+            'quote_id' => $quote->getId(),
+            'customer_id' => $quote->getCustomerId(),
+            'request_public_order_id' => $publicOrderId,
+            'quote_ext_public_order_id' => $publicOrderIdFromQuote,
+            'session_public_order_id' => $publicOrderIdFromSession,
+            'gateway_id' => $gatewayId,
+            'grand_total' => $quote->getGrandTotal(),
+        ]);
+
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
         $expressPayData['shipping_strategy'] = $shippingStrategy;
         $expressPayData['public_order_id'] = $publicOrderId;
@@ -174,6 +210,14 @@ class Create implements CreateInterface
         if ($result->getStatus() !== 200 || count($resultData) === 0) {
             throw new LocalizedException(__('An unknown error occurred while creating the Express Pay order.'));
         }
+
+        $this->syncPublicOrderIdForQuote->execute($publicOrderId, (string) $quote->getId(), $quote);
+
+        $this->orderTracker->trace($websiteId, 'express_pay_create_success', [
+            'quote_id' => $quote->getId(),
+            'public_order_id' => $publicOrderId,
+            'bold_order_id' => $resultData['data']['order_id'] ?? null,
+        ]);
 
         return [
             'order_id' => $resultData['data']['order_id']

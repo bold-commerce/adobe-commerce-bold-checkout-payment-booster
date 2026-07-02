@@ -63,7 +63,7 @@ define(
                 quote.guestEmail = order.email;
                 updateQuoteAddressAction('billing', _convertAddress(order.billing_address, order));
 
-                if (paymentApprovalData.shipping_strategy === 'dynamic') {
+                if (order.shipping_address) {
                     updateQuoteAddressAction('shipping', _convertAddress(order.shipping_address, order));
                 }
             }

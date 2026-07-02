@@ -9,7 +9,7 @@ define(
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-ppcp-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-braintree-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-stripe-action',
-        'Bold_CheckoutPaymentBooster/js/action/express-pay/save-shipping-information-action',
+        'Bold_CheckoutPaymentBooster/js/action/express-pay/update-quote-shipping-method-action',
         'Bold_CheckoutPaymentBooster/js/action/express-pay/update-wallet-pay-order-action',
         'Magento_Ui/js/model/messageList'
     ],
@@ -23,11 +23,25 @@ define(
         updateQuotePPCPAction,
         updateQuoteBraintreeAction,
         updateQuoteStripeAction,
-        saveShippingInformationAction,
+        updateQuoteShippingMethodAction,
         updateWalletPayOrderAction,
         messageList
     ) {
         'use strict';
+
+        /**
+         * Resolve PayPal / Bold shipping options from approval payload.
+         *
+         * @param {Object} paymentApprovalData
+         * @returns {Array|Object|null}
+         */
+        function resolveShippingOptions(paymentApprovalData) {
+            const paymentData = paymentApprovalData?.payment_data;
+
+            return paymentData?.shipping_options
+                || paymentApprovalData?.shipping_options
+                || null;
+        }
 
         /**
          * Place express-order action.
@@ -71,17 +85,16 @@ define(
 
             if (!isSpiContainer) {
                 try {
-                    await saveShippingInformationAction(true);
+                    await updateQuoteShippingMethodAction(
+                        resolveShippingOptions(paymentApprovalData),
+                        { save: true, saveBillingAddress: true }
+                    );
                 } catch (error) {
                     console.error('Could not save shipping information for Express Pay order.', error);
                     return;
                 }
             }
 
-            // Final sync: PATCH the wallet_pay order with the current Magento quote state before
-            // placeOrderAction fires. Ensures PayPal reflects any quote changes (items, shipping,
-            // promos) that occurred during the session. Only for PPCP PayPal —
-            // Google Pay and Apple Pay do not use the wallet_pay PATCH mechanism.
             if (paymentType === 'ppcp' && !isWalletPayment) {
                 const orderId = paymentApprovalData?.payment_data?.order_id ?? paymentApprovalData?.order_id;
                 const gatewayId = paymentApprovalData?.gateway_id;

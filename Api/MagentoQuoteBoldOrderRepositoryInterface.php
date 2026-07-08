@@ -121,4 +121,12 @@ interface MagentoQuoteBoldOrderRepositoryInterface
      * @return void
      */
     public function saveStateAt(string $quoteId): void;
+
+    /**
+     * Whether the Bold public order ID was already consumed by a completed Magento order.
+     *
+     * @param string $publicOrderId
+     * @return bool
+     */
+    public function isPublicOrderCompleted(string $publicOrderId): bool;
 }

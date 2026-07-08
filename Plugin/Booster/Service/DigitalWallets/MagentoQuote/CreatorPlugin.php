@@ -54,10 +54,15 @@ class CreatorPlugin
             return null;
         }
 
-        try {
-            $this->magentoQuoteBoldOrderRepository->getByBoldOrderId($boldOrderId);
-        } catch (NoSuchEntityException $e) {
-            return null;
+        $shouldReinitialize = $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($boldOrderId);
+
+        if (!$shouldReinitialize) {
+            try {
+                $this->magentoQuoteBoldOrderRepository->getByBoldOrderId($boldOrderId);
+                $shouldReinitialize = true;
+            } catch (NoSuchEntityException $e) {
+                return null;
+            }
         }
 
         $this->boldCheckoutData->resetCheckoutData();

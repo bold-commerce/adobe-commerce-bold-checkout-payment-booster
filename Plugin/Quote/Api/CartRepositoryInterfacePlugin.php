@@ -68,6 +68,7 @@ class CartRepositoryInterfacePlugin
         if (
             $sessionPublicOrderId !== null
             && !$this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)
+            && !$this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($sessionPublicOrderId)
         ) {
             $extensionPublicOrderId = $this->normalizePublicOrderId($cartExtension->getBoldOrderId());
             if ($extensionPublicOrderId !== $sessionPublicOrderId) {

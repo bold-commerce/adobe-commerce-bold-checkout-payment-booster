@@ -216,6 +216,95 @@ class SessionReuseTest extends TestCase
     }
 
     /**
+     * Cross-quote path: new unprocessed quote must not resume a completed public_order_id from session.
+     *
+     * @magentoConfigFixture current_website checkout/bold_checkout_payment_booster/shop_id test-shop-id
+     * @magentoConfigFixture current_website checkout/bold_checkout_payment_booster/is_payment_booster_enabled 1
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/digital_wallets_quote.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
+     */
+    public function testNewQuoteRejectsCompletedPublicOrderIdInSession(): void
+    {
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var Quote $quote */
+        $quote = $objectManager->create(Quote::class);
+        /** @var QuoteResource $quoteResource */
+        $quoteResource = $objectManager->create(QuoteResource::class);
+        /** @var Session $checkoutSession */
+        $checkoutSession = $objectManager->get(Session::class);
+        /** @var MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository */
+        $magentoQuoteBoldOrderRepository = $objectManager->create(MagentoQuoteBoldOrderRepositoryInterface::class);
+        /** @var Order $order */
+        $order = $objectManager->create(Order::class);
+        /** @var OrderResource $orderResource */
+        $orderResource = $objectManager->create(OrderResource::class);
+        /** @var OrderRepositoryInterface $orderRepository */
+        $orderRepository = $objectManager->get(OrderRepositoryInterface::class);
+        /** @var OrderExtensionDataFactory $orderExtensionDataFactory */
+        $orderExtensionDataFactory = $objectManager->get(OrderExtensionDataFactory::class);
+        /** @var OrderExtensionDataRepository $orderExtensionDataRepository */
+        $orderExtensionDataRepository = $objectManager->get(OrderExtensionDataRepository::class);
+
+        $quoteResource->load($quote, 'digital_wallets_order_1', 'reserved_order_id');
+        $quoteId = (string)$quote->getId();
+
+        self::assertFalse($magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId));
+
+        $orderResource->load($order, '100000001', 'increment_id');
+        $orderRepository->save($order);
+
+        /** @var OrderExtensionData $orderExtensionData */
+        $orderExtensionData = $orderExtensionDataFactory->create();
+        $orderExtensionData->setOrderId((int)$order->getEntityId());
+        $orderExtensionData->setPublicId(self::STALE_PUBLIC_ORDER_ID);
+        $orderExtensionDataRepository->save($orderExtensionData);
+
+        self::assertTrue($magentoQuoteBoldOrderRepository->isPublicOrderCompleted(self::STALE_PUBLIC_ORDER_ID));
+
+        $checkoutSession->replaceQuote($quote);
+        $checkoutSession->setBoldCheckoutData(
+            [
+                'data' => [
+                    'public_order_id' => self::STALE_PUBLIC_ORDER_ID,
+                    'jwt_token' => 'stale-jwt-token',
+                ],
+            ]
+        );
+
+        /** @var ResumeOrder&MockObject $resumeOrder */
+        $resumeOrder = $this->createMock(ResumeOrder::class);
+        $resumeOrder
+            ->expects(self::never())
+            ->method('resume')
+            ->with(self::STALE_PUBLIC_ORDER_ID);
+
+        /** @var InitOrderFromQuote&MockObject $initOrderFromQuote */
+        $initOrderFromQuote = $this->createMock(InitOrderFromQuote::class);
+        $initOrderFromQuote
+            ->expects(self::once())
+            ->method('init')
+            ->with(self::identicalTo($quote))
+            ->willReturn(
+                [
+                    'data' => [
+                        'public_order_id' => self::NEW_PUBLIC_ORDER_ID,
+                        'jwt_token' => 'new-jwt-token',
+                        'flow_settings' => [],
+                    ],
+                ]
+            );
+
+        $this->registerCheckoutDataDependencies($objectManager, $resumeOrder, $initOrderFromQuote);
+
+        /** @var CheckoutData $checkoutData */
+        $checkoutData = $objectManager->create(CheckoutData::class);
+        $checkoutData->initCheckoutData();
+
+        self::assertNotSame(self::STALE_PUBLIC_ORDER_ID, $checkoutData->getPublicOrderId());
+        self::assertSame(self::NEW_PUBLIC_ORDER_ID, $checkoutData->getPublicOrderId());
+    }
+
+    /**
      * @param \Magento\Framework\ObjectManagerInterface $objectManager
      * @param ResumeOrder&MockObject $resumeOrder
      * @param InitOrderFromQuote&MockObject $initOrderFromQuote

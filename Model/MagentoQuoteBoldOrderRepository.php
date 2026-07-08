@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
 use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
 use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\Order\IsPublicOrderCompleted;
 use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as ResourceModel;
 use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -43,22 +44,31 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
     private $timezoneInterface;
 
     /**
+     * @var IsPublicOrderCompleted
+     */
+    private $isPublicOrderCompleted;
+
+    /**
      * Constructor method.
      *
      * @param MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory Bold Quote Order interface.
      * @param ResourceModel $resourceModel Resource model instance.
      * @param LoggerInterface $logger Logger instance for logging operations.
+     * @param TimezoneInterface $timezoneInterface
+     * @param IsPublicOrderCompleted $isPublicOrderCompleted
      */
     public function __construct(
         MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory,
         ResourceModel $resourceModel,
         LoggerInterface $logger,
-        TimezoneInterface $timezoneInterface
+        TimezoneInterface $timezoneInterface,
+        IsPublicOrderCompleted $isPublicOrderCompleted
     ) {
         $this->magentoQuoteBoldOrderFactory = $magentoQuoteBoldOrderFactory;
         $this->resourceModel = $resourceModel;
         $this->logger = $logger;
         $this->timezoneInterface = $timezoneInterface;
+        $this->isPublicOrderCompleted = $isPublicOrderCompleted;
     }
 
     /**
@@ -330,5 +340,13 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
             MagentoQuoteBoldOrderInterface::SUCCESSFUL_STATE_AT,
             $quoteId
         );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function isPublicOrderCompleted(string $publicOrderId): bool
+    {
+        return $this->isPublicOrderCompleted->execute($publicOrderId);
     }
 }

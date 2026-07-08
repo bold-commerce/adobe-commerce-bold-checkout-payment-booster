@@ -126,11 +126,14 @@ class CheckoutData
         ]);
 
         if ($existingPublicOrderId) {
-            if ($quoteIsProcessed) {
+            $publicOrderIsCompleted = $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted(
+                $existingPublicOrderId
+            );
+            if ($quoteIsProcessed || $publicOrderIsCompleted) {
                 $this->orderTracker->trace($websiteId, 'init_checkout_data_reset', [
                     'quote_id' => $quoteId,
                     'stale_public_order_id' => $existingPublicOrderId,
-                    'reason' => 'quote_already_processed',
+                    'reason' => $quoteIsProcessed ? 'quote_already_processed' : 'public_order_already_completed',
                 ]);
                 $this->resetCheckoutData();
                 $extensionAttributes = $quote->getExtensionAttributes();

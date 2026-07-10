@@ -177,7 +177,6 @@ class CreatorPluginTest extends IntegrationTestCase
      * After order_complete clears bold_order_id, a stale client ID must still trigger re-init.
      *
      * @magentoAppArea frontend
-     * @magentoDataFixture Magento/Catalog/_files/product_virtual.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/magento_quote_bold_order.php
      * @magentoDataFixture Magento/Sales/_files/order.php
      */
@@ -216,7 +215,7 @@ class CreatorPluginTest extends IntegrationTestCase
         $storeManager = $objectManager->get(StoreManagerInterface::class);
         /** @var ProductRepositoryInterface $productRepository */
         $productRepository = $objectManager->create(ProductRepositoryInterface::class);
-        $product = $productRepository->get('virtual-product');
+        $product = $productRepository->get('simple');
         /** @var Creator $magentoQuoteCreator */
         $magentoQuoteCreator = $objectManager->create(Creator::class);
 

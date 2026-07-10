@@ -469,11 +469,13 @@ class CreateTest extends IntegrationTestCase
     /**
      * Completed client public_order_id must be replaced before wallet_pay POST.
      *
+     * order.php must load before the quote fixture: it runs default_rollback and deletes catalog products.
+     *
      * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
      * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
      * @magentoDataFixture Magento/Catalog/_files/product_simple.php
      * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
-     * @magentoDataFixture Magento/Sales/_files/order.php
      */
     public function testExpressPayCreateRejectsCompletedPublicOrderId(): void
     {
@@ -501,6 +503,13 @@ class CreateTest extends IntegrationTestCase
         $orderExtensionDataRepository->save($orderExtensionData);
 
         self::assertTrue($magentoQuoteBoldOrderRepository->isPublicOrderCompleted($completedPublicOrderId));
+
+        $this->quote = null;
+        $quote = $this->getQuote();
+        self::assertNotEmpty(
+            $quote->getAllVisibleItems(),
+            'Fixture quote must have visible items after order.php default_rollback.'
+        );
 
         $boldApiResultMock = $this->createMock(ResultInterface::class);
         $boldApiResultMock->method('getBody')

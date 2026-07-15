@@ -30,6 +30,18 @@ define(
         'use strict';
 
         /**
+         * Clear stale Bold checkout session data after a successful order.
+         */
+        function clearBoldCheckoutSessionData() {
+            if (!window.checkoutConfig?.bold) {
+                return;
+            }
+
+            window.checkoutConfig.bold.publicOrderId = null;
+            window.checkoutConfig.bold.jwtToken = null;
+        }
+
+        /**
          * Place express-order action.
          *
          * @param {string} paymentType
@@ -100,6 +112,7 @@ define(
             $.when(placeOrderAction(paymentMethodData, messageContainer))
                 .done(
                     function () {
+                        clearBoldCheckoutSessionData();
                         redirectOnSuccessAction.execute();
                     }
                 ).always(

@@ -1,0 +1,382 @@
+diff --git a/Api/MagentoQuoteBoldOrderRepositoryInterface.php b/Api/MagentoQuoteBoldOrderRepositoryInterface.php
+index 1efe065..7152eaf 100644
+--- a/Api/MagentoQuoteBoldOrderRepositoryInterface.php
++++ b/Api/MagentoQuoteBoldOrderRepositoryInterface.php
+@@ -121,4 +121,12 @@ interface MagentoQuoteBoldOrderRepositoryInterface
+      * @return void
+      */
+     public function saveStateAt(string $quoteId): void;
++
++    /**
++     * Whether the Bold public order ID was already consumed by a completed Magento order.
++     *
++     * @param string $publicOrderId
++     * @return bool
++     */
++    public function isPublicOrderCompleted(string $publicOrderId): bool;
+ }
+diff --git a/Model/CheckoutData.php b/Model/CheckoutData.php
+index e941f93..557b791 100644
+--- a/Model/CheckoutData.php
++++ b/Model/CheckoutData.php
+@@ -101,7 +101,11 @@ class CheckoutData
+ 
+         if ($existingPublicOrderId) {
+             $quoteId = (string)$quote->getId();
+-            if ($this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId)) {
++            $quoteIsProcessed = $this->magentoQuoteBoldOrderRepository->isQuoteProcessed($quoteId);
++            $publicOrderIsCompleted = $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted(
++                $existingPublicOrderId
++            );
++            if ($quoteIsProcessed || $publicOrderIsCompleted) {
+                 $this->resetCheckoutData();
+                 $existingPublicOrderId = null;
+             }
+diff --git a/Model/MagentoQuoteBoldOrderRepository.php b/Model/MagentoQuoteBoldOrderRepository.php
+index aad8fdb..634be48 100644
+--- a/Model/MagentoQuoteBoldOrderRepository.php
++++ b/Model/MagentoQuoteBoldOrderRepository.php
+@@ -7,6 +7,7 @@ namespace Bold\CheckoutPaymentBooster\Model;
+ use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
+ use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
+ use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
++use Bold\CheckoutPaymentBooster\Model\Order\IsPublicOrderCompleted;
+ use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as ResourceModel;
+ use Exception;
+ use Magento\Framework\Exception\AlreadyExistsException;
+@@ -42,23 +43,32 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
+     /** @var TimezoneInterface  */
+     private $timezoneInterface;
+ 
++    /**
++     * @var IsPublicOrderCompleted
++     */
++    private $isPublicOrderCompleted;
++
+     /**
+      * Constructor method.
+      *
+      * @param MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory Bold Quote Order interface.
+      * @param ResourceModel $resourceModel Resource model instance.
+      * @param LoggerInterface $logger Logger instance for logging operations.
++     * @param TimezoneInterface $timezoneInterface
++     * @param IsPublicOrderCompleted $isPublicOrderCompleted
+      */
+     public function __construct(
+         MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory,
+         ResourceModel $resourceModel,
+         LoggerInterface $logger,
+-        TimezoneInterface $timezoneInterface
++        TimezoneInterface $timezoneInterface,
++        IsPublicOrderCompleted $isPublicOrderCompleted
+     ) {
+         $this->magentoQuoteBoldOrderFactory = $magentoQuoteBoldOrderFactory;
+         $this->resourceModel = $resourceModel;
+         $this->logger = $logger;
+         $this->timezoneInterface = $timezoneInterface;
++        $this->isPublicOrderCompleted = $isPublicOrderCompleted;
+     }
+ 
+     /**
+@@ -331,4 +341,12 @@ class MagentoQuoteBoldOrderRepository implements MagentoQuoteBoldOrderRepository
+             $quoteId
+         );
+     }
++
++    /**
++     * @inheritdoc
++     */
++    public function isPublicOrderCompleted(string $publicOrderId): bool
++    {
++        return $this->isPublicOrderCompleted->execute($publicOrderId);
++    }
+ }
+diff --git a/Model/Order/IsPublicOrderCompleted.php b/Model/Order/IsPublicOrderCompleted.php
+new file mode 100644
+index 0000000..0f970cc
+--- /dev/null
++++ b/Model/Order/IsPublicOrderCompleted.php
+@@ -0,0 +1,73 @@
++<?php
++
++declare(strict_types=1);
++
++namespace Bold\CheckoutPaymentBooster\Model\Order;
++
++use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterface;
++use Bold\CheckoutPaymentBooster\Api\Data\MagentoQuoteBoldOrderInterfaceFactory;
++use Bold\CheckoutPaymentBooster\Model\MagentoQuoteBoldOrder;
++use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
++use Bold\CheckoutPaymentBooster\Model\ResourceModel\MagentoQuoteBoldOrder as ResourceModel;
++
++/**
++ * Determines whether a Bold public_order_id was already consumed by a completed Magento order.
++ */
++class IsPublicOrderCompleted
++{
++    /**
++     * @var OrderExtensionDataRepository
++     */
++    private $orderExtensionDataRepository;
++
++    /**
++     * @var MagentoQuoteBoldOrderInterfaceFactory
++     */
++    private $magentoQuoteBoldOrderFactory;
++
++    /**
++     * @var ResourceModel
++     */
++    private $resourceModel;
++
++    /**
++     * @param OrderExtensionDataRepository $orderExtensionDataRepository
++     * @param MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory
++     * @param ResourceModel $resourceModel
++     */
++    public function __construct(
++        OrderExtensionDataRepository $orderExtensionDataRepository,
++        MagentoQuoteBoldOrderInterfaceFactory $magentoQuoteBoldOrderFactory,
++        ResourceModel $resourceModel
++    ) {
++        $this->orderExtensionDataRepository = $orderExtensionDataRepository;
++        $this->magentoQuoteBoldOrderFactory = $magentoQuoteBoldOrderFactory;
++        $this->resourceModel = $resourceModel;
++    }
++
++    /**
++     * @param string $publicOrderId
++     * @return bool
++     */
++    public function execute(string $publicOrderId): bool
++    {
++        if ($publicOrderId === '') {
++            return false;
++        }
++
++        $orderExtensionData = $this->orderExtensionDataRepository->getByPublicOrderId($publicOrderId);
++        if ($orderExtensionData->getId() && $orderExtensionData->getOrderId()) {
++            return true;
++        }
++
++        /** @var MagentoQuoteBoldOrderInterface&MagentoQuoteBoldOrder $magentoQuoteBoldOrder */
++        $magentoQuoteBoldOrder = $this->magentoQuoteBoldOrderFactory->create();
++        $this->resourceModel->load($magentoQuoteBoldOrder, $publicOrderId, 'bold_order_id');
++
++        if ($magentoQuoteBoldOrder->getId() === null) {
++            return false;
++        }
++
++        return $magentoQuoteBoldOrder->isProcessed();
++    }
++}
+diff --git a/Plugin/Booster/Service/DigitalWallets/MagentoQuote/CreatorPlugin.php b/Plugin/Booster/Service/DigitalWallets/MagentoQuote/CreatorPlugin.php
+index 45b59fa..f30bd8a 100644
+--- a/Plugin/Booster/Service/DigitalWallets/MagentoQuote/CreatorPlugin.php
++++ b/Plugin/Booster/Service/DigitalWallets/MagentoQuote/CreatorPlugin.php
+@@ -54,10 +54,15 @@ class CreatorPlugin
+             return null;
+         }
+ 
+-        try {
+-            $this->magentoQuoteBoldOrderRepository->getByBoldOrderId($boldOrderId);
+-        } catch (NoSuchEntityException $e) {
+-            return null;
++        $shouldReinitialize = $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($boldOrderId);
++
++        if (!$shouldReinitialize) {
++            try {
++                $this->magentoQuoteBoldOrderRepository->getByBoldOrderId($boldOrderId);
++                $shouldReinitialize = true;
++            } catch (NoSuchEntityException $e) {
++                return null;
++            }
+         }
+ 
+         $this->boldCheckoutData->resetCheckoutData();
+diff --git a/Plugin/Quote/Api/CartRepositoryInterfacePlugin.php b/Plugin/Quote/Api/CartRepositoryInterfacePlugin.php
+index 669b80c..7078f9d 100644
+--- a/Plugin/Quote/Api/CartRepositoryInterfacePlugin.php
++++ b/Plugin/Quote/Api/CartRepositoryInterfacePlugin.php
+@@ -57,6 +57,10 @@ class CartRepositoryInterfacePlugin
+             return $result;
+         }
+ 
++        if ($this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($boldOrderId)) {
++            return $result;
++        }
++
+         $cartExtension->setBoldOrderId($boldOrderId);
+ 
+         return $result;
+diff --git a/Service/ExpressPay/Order/Create.php b/Service/ExpressPay/Order/Create.php
+index a782ecf..776caf3 100644
+--- a/Service/ExpressPay/Order/Create.php
++++ b/Service/ExpressPay/Order/Create.php
+@@ -6,6 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
+ 
+ use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
+ use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
++use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
++use Bold\CheckoutPaymentBooster\Model\CheckoutData;
+ use Bold\CheckoutPaymentBooster\Model\Config;
+ use Bold\CheckoutPaymentBooster\Service\ExpressPay\QuoteConverter;
+ use Exception;
+@@ -57,13 +59,25 @@ class Create implements CreateInterface
+      */
+     private $config;
+ 
++    /**
++     * @var MagentoQuoteBoldOrderRepositoryInterface
++     */
++    private $magentoQuoteBoldOrderRepository;
++
++    /**
++     * @var CheckoutData
++     */
++    private $checkoutData;
++
+     public function __construct(
+         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
+         CartRepositoryInterface $cartRepository,
+         QuoteConverter $quoteConverter,
+         ClientInterface $httpClient,
+         SessionManagerInterface $checkoutSession,
+-        Config $config
++        Config $config,
++        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
++        CheckoutData $checkoutData
+     ) {
+         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
+         $this->cartRepository = $cartRepository;
+@@ -71,6 +85,8 @@ class Create implements CreateInterface
+         $this->httpClient = $httpClient;
+         $this->checkoutSession = $checkoutSession;
+         $this->config = $config;
++        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
++        $this->checkoutData = $checkoutData;
+     }
+ 
+     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
+@@ -133,6 +149,8 @@ class Create implements CreateInterface
+         $websiteId = (int)$quote->getStore()->getWebsiteId();
+         $uri = 'checkout/orders/{{shopId}}/wallet_pay';
+ 
++        $publicOrderId = $this->resolvePublicOrderId($publicOrderId, $quote);
++
+         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
+         $expressPayData['shipping_strategy'] = $shippingStrategy;
+         $expressPayData['public_order_id'] = $publicOrderId;
+@@ -179,4 +197,35 @@ class Create implements CreateInterface
+             'order_id' => $resultData['data']['order_id']
+         ];
+     }
++
++    /**
++     * @param string $requestPublicOrderId
++     * @param Quote $quote
++     * @return string
++     * @throws LocalizedException
++     */
++    private function resolvePublicOrderId(string $requestPublicOrderId, Quote $quote): string
++    {
++        if (
++            $requestPublicOrderId !== ''
++            && $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($requestPublicOrderId)
++        ) {
++            /** @var Session $session */
++            $session = $this->checkoutSession;
++            $session->replaceQuote($quote);
++            $this->checkoutData->resetCheckoutData();
++            $this->checkoutData->initCheckoutData();
++
++            $freshPublicOrderId = $this->checkoutData->getPublicOrderId();
++            if ($freshPublicOrderId === null || $freshPublicOrderId === '') {
++                throw new LocalizedException(
++                    __('Could not create Express Pay order. Unable to initialize a new Bold order.')
++                );
++            }
++
++            return $freshPublicOrderId;
++        }
++
++        return $requestPublicOrderId;
++    }
+ }
+diff --git a/view/frontend/web/js/action/digital-wallets/create-quote.js b/view/frontend/web/js/action/digital-wallets/create-quote.js
+index 8a22dfc..1301f31 100644
+--- a/view/frontend/web/js/action/digital-wallets/create-quote.js
++++ b/view/frontend/web/js/action/digital-wallets/create-quote.js
+@@ -25,8 +25,6 @@ define(
+ 
+             productAddToCartFormData = new FormData(productAddToCartForm);
+ 
+-            productAddToCartFormData.append('bold_order_id', window.checkoutConfig.bold.publicOrderId ?? '');
+-
+             try {
+                 createQuoteResponse = await fetch(
+                     urlBuilder.build('bold_booster/digitalwallets_quote/create'),
+diff --git a/view/frontend/web/js/action/express-pay/create-wallet-pay-order-action.js b/view/frontend/web/js/action/express-pay/create-wallet-pay-order-action.js
+index a0adb4a..b491a7b 100644
+--- a/view/frontend/web/js/action/express-pay/create-wallet-pay-order-action.js
++++ b/view/frontend/web/js/action/express-pay/create-wallet-pay-order-action.js
+@@ -7,6 +7,19 @@ define(
+     ) {
+         'use strict';
+ 
++        /**
++         * @returns {string|null}
++         */
++        function resolvePublicOrderId() {
++            const fromQuote = window.checkoutConfig?.quoteData?.extension_attributes?.bold_order_id;
++
++            if (fromQuote) {
++                return fromQuote;
++            }
++
++            return window.checkoutConfig?.bold?.publicOrderId ?? null;
++        }
++
+         /**
+          * Create Wallet Pay order.
+          *
+@@ -18,7 +31,7 @@ define(
+                 'rest/V1/express_pay/order/create',
+                 {
+                     quoteMaskId: window.checkoutConfig.quoteData.entity_id,
+-                    publicOrderId: window.checkoutConfig.bold.publicOrderId,
++                    publicOrderId: resolvePublicOrderId(),
+                     gatewayId: paymentPayload.gateway_id,
+                     shippingStrategy: paymentPayload.shipping_strategy || 'dynamic',
+                     shouldVault: paymentPayload.should_vault || false,
+diff --git a/view/frontend/web/js/model/spi/callbacks/on-approve-payment-order-callback.js b/view/frontend/web/js/model/spi/callbacks/on-approve-payment-order-callback.js
+index ed9d959..5bf2af9 100644
+--- a/view/frontend/web/js/model/spi/callbacks/on-approve-payment-order-callback.js
++++ b/view/frontend/web/js/model/spi/callbacks/on-approve-payment-order-callback.js
+@@ -29,6 +29,18 @@ define(
+     ) {
+         'use strict';
+ 
++        /**
++         * Clear stale Bold checkout session data after a successful order.
++         */
++        function clearBoldCheckoutSessionData() {
++            if (!window.checkoutConfig?.bold) {
++                return;
++            }
++
++            window.checkoutConfig.bold.publicOrderId = null;
++            window.checkoutConfig.bold.jwtToken = null;
++        }
++
+         /**
+          * Place express-order action.
+          *
+@@ -100,6 +112,7 @@ define(
+             $.when(placeOrderAction(paymentMethodData, messageContainer))
+                 .done(
+                     function () {
++                        clearBoldCheckoutSessionData();
+                         redirectOnSuccessAction.execute();
+                     }
+                 ).always(

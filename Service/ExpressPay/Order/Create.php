@@ -6,6 +6,8 @@ namespace Bold\CheckoutPaymentBooster\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\ExpressPay\Order\CreateInterface;
 use Bold\CheckoutPaymentBooster\Api\Http\ClientInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Config;
 use Bold\CheckoutPaymentBooster\Model\Log\OrderTracker;
 use Bold\CheckoutPaymentBooster\Model\Order\SyncPublicOrderIdForQuote;
@@ -69,6 +71,16 @@ class Create implements CreateInterface
      */
     private $syncPublicOrderIdForQuote;
 
+    /**
+     * @var MagentoQuoteBoldOrderRepositoryInterface
+     */
+    private $magentoQuoteBoldOrderRepository;
+
+    /**
+     * @var CheckoutData
+     */
+    private $checkoutData;
+
     public function __construct(
         MaskedQuoteIdToQuoteIdInterface $maskedQuoteIdToQuoteId,
         CartRepositoryInterface $cartRepository,
@@ -77,7 +89,9 @@ class Create implements CreateInterface
         SessionManagerInterface $checkoutSession,
         Config $config,
         OrderTracker $orderTracker,
-        SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote
+        SyncPublicOrderIdForQuote $syncPublicOrderIdForQuote,
+        MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository,
+        CheckoutData $checkoutData
     ) {
         $this->maskedQuoteIdToQuoteId = $maskedQuoteIdToQuoteId;
         $this->cartRepository = $cartRepository;
@@ -87,6 +101,8 @@ class Create implements CreateInterface
         $this->config = $config;
         $this->orderTracker = $orderTracker;
         $this->syncPublicOrderIdForQuote = $syncPublicOrderIdForQuote;
+        $this->magentoQuoteBoldOrderRepository = $magentoQuoteBoldOrderRepository;
+        $this->checkoutData = $checkoutData;
     }
 
     public function execute($quoteMaskId, $publicOrderId, $gatewayId, $shippingStrategy, $shouldVault, $paymentSource): array
@@ -169,6 +185,8 @@ class Create implements CreateInterface
             'grand_total' => $quote->getGrandTotal(),
         ]);
 
+        $publicOrderId = $this->resolvePublicOrderId($publicOrderId, $quote, $websiteId);
+
         $expressPayData = $this->quoteConverter->convertFullQuote($quote, $gatewayId);
         $expressPayData['shipping_strategy'] = $shippingStrategy;
         $expressPayData['public_order_id'] = $publicOrderId;
@@ -222,5 +240,42 @@ class Create implements CreateInterface
         return [
             'order_id' => $resultData['data']['order_id']
         ];
+    }
+
+    /**
+     * @param string $requestPublicOrderId
+     * @param Quote $quote
+     * @param int $websiteId
+     * @return string
+     * @throws LocalizedException
+     */
+    private function resolvePublicOrderId(string $requestPublicOrderId, Quote $quote, int $websiteId): string
+    {
+        if (
+            $requestPublicOrderId !== ''
+            && $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($requestPublicOrderId)
+        ) {
+            $this->orderTracker->trace($websiteId, 'express_pay_create_completed_public_order_id', [
+                'quote_id' => $quote->getId(),
+                'request_public_order_id' => $requestPublicOrderId,
+            ]);
+
+            /** @var Session $session */
+            $session = $this->checkoutSession;
+            $session->replaceQuote($quote);
+            $this->checkoutData->resetCheckoutData();
+            $this->checkoutData->initCheckoutData();
+
+            $freshPublicOrderId = $this->checkoutData->getPublicOrderId();
+            if ($freshPublicOrderId === null || $freshPublicOrderId === '') {
+                throw new LocalizedException(
+                    __('Could not create Express Pay order. Unable to initialize a new Bold order.')
+                );
+            }
+
+            return $freshPublicOrderId;
+        }
+
+        return $requestPublicOrderId;
     }
 }

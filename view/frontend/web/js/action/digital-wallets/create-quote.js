@@ -25,8 +25,6 @@ define(
 
             productAddToCartFormData = new FormData(productAddToCartForm);
 
-            productAddToCartFormData.append('bold_order_id', window.checkoutConfig.bold.publicOrderId ?? '');
-
             try {
                 createQuoteResponse = await fetch(
                     urlBuilder.build('bold_booster/digitalwallets_quote/create'),

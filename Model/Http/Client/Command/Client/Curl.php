@@ -103,7 +103,6 @@ class Curl extends CurlCore
         }
 
         $this->_responseStatus = $httpCode;
-        curl_close($this->_ch);
         // phpcs:enable Magento2.Functions.DiscouragedFunction.Discouraged
     }
 }

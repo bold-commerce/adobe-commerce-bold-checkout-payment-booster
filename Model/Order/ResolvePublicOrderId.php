@@ -91,6 +91,16 @@ class ResolvePublicOrderId
             return $fromSession;
         }
 
+        if ($fromSession !== null && $this->magentoQuoteBoldOrderRepository->isPublicOrderCompleted($fromSession)) {
+            $this->orderTracker->trace($websiteId, 'resolve_public_order_id_completed_session', [
+                'quote_id' => $quoteId,
+                'stale_session_public_order_id' => $fromSession,
+                'quote_ext_public_order_id' => $fromExtension,
+                'db_public_order_id' => $fromDb,
+            ]);
+            $fromSession = null;
+        }
+
         if ($fromSession !== null && $fromExtension !== null && $fromSession !== $fromExtension) {
             $this->orderTracker->trace($websiteId, 'resolve_public_order_id_reconcile', [
                 'quote_id' => $quoteId,

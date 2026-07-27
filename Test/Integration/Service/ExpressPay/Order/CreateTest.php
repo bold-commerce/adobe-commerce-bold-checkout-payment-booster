@@ -5,7 +5,12 @@ declare(strict_types=1);
 namespace Bold\CheckoutPaymentBooster\Test\Integration\Service\ExpressPay\Order;
 
 use Bold\CheckoutPaymentBooster\Api\Data\Http\Client\ResultInterface;
+use Bold\CheckoutPaymentBooster\Api\MagentoQuoteBoldOrderRepositoryInterface;
+use Bold\CheckoutPaymentBooster\Model\CheckoutData;
 use Bold\CheckoutPaymentBooster\Model\Http\BoldClient;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionData;
+use Bold\CheckoutPaymentBooster\Model\Order\OrderExtensionDataFactory;
+use Bold\CheckoutPaymentBooster\Model\OrderExtensionDataRepository;
 use Bold\CheckoutPaymentBooster\Service\ExpressPay\Order\Create;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Support\IntegrationTestCase;
 use Bold\CheckoutPaymentBooster\Test\Integration\_Support\NonBaseCurrencyQuoteTrait;
@@ -19,6 +24,8 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\QuoteIdToMaskedQuoteIdInterface;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Quote\Model\ResourceModel\Quote\Item as QuoteItemResource;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\TestFramework\Helper\Bootstrap;
 
 use function reset;
@@ -457,6 +464,103 @@ class CreateTest extends IntegrationTestCase
             false,
             ''
         );
+    }
+
+    /**
+     * Completed client public_order_id must be replaced before wallet_pay POST.
+     *
+     * order.php must load before the quote fixture: it runs default_rollback and deletes catalog products.
+     *
+     * @magentoDataFixture Magento/ConfigurableProduct/_files/tax_rule.php
+     * @magentoDataFixture Magento/SalesRule/_files/cart_rule_with_coupon_5_off_no_condition.php
+     * @magentoDataFixture Magento/Sales/_files/order.php
+     * @magentoDataFixture Magento/Catalog/_files/product_simple.php
+     * @magentoDataFixture Bold_CheckoutPaymentBooster::Test/Integration/_files/quote_with_shipping_tax_and_discount.php
+     */
+    public function testExpressPayCreateRejectsCompletedPublicOrderId(): void
+    {
+        $completedPublicOrderId = 'e5537d5a79264a53995b9ccf6b86225b46925006f6e24a59a8892fbb524b1aa0';
+        $freshPublicOrderId = 'aca5efca525f4748be5820d62d95c88b2e9b11b98bb643fc93b2109500a2f993';
+        $capturedPublicOrderId = null;
+
+        $objectManager = Bootstrap::getObjectManager();
+        /** @var MagentoQuoteBoldOrderRepositoryInterface $magentoQuoteBoldOrderRepository */
+        $magentoQuoteBoldOrderRepository = $objectManager->create(MagentoQuoteBoldOrderRepositoryInterface::class);
+        /** @var OrderExtensionDataFactory $orderExtensionDataFactory */
+        $orderExtensionDataFactory = $objectManager->get(OrderExtensionDataFactory::class);
+        /** @var OrderExtensionDataRepository $orderExtensionDataRepository */
+        $orderExtensionDataRepository = $objectManager->get(OrderExtensionDataRepository::class);
+        /** @var Order $order */
+        $order = $objectManager->create(Order::class);
+        /** @var OrderResource $orderResource */
+        $orderResource = $objectManager->create(OrderResource::class);
+
+        $orderResource->load($order, '100000001', 'increment_id');
+        /** @var OrderExtensionData $orderExtensionData */
+        $orderExtensionData = $orderExtensionDataFactory->create();
+        $orderExtensionData->setOrderId((int)$order->getEntityId());
+        $orderExtensionData->setPublicId($completedPublicOrderId);
+        $orderExtensionDataRepository->save($orderExtensionData);
+
+        self::assertTrue($magentoQuoteBoldOrderRepository->isPublicOrderCompleted($completedPublicOrderId));
+
+        $this->quote = null;
+        $quote = $this->getQuote();
+        self::assertNotEmpty(
+            $quote->getAllVisibleItems(),
+            'Fixture quote must have visible items after order.php default_rollback.'
+        );
+
+        $boldApiResultMock = $this->createMock(ResultInterface::class);
+        $boldApiResultMock->method('getBody')
+            ->willReturn(
+                [
+                    'data' => [
+                        'order_id' => '5d23799a-0c98-4147-914e-abd1b84aab82'
+                    ]
+                ]
+            );
+        $boldApiResultMock->method('getErrors')->willReturn([]);
+        $boldApiResultMock->method('getStatus')->willReturn(200);
+
+        $boldClientMock = $this->createMock(BoldClient::class);
+        $boldClientMock
+            ->expects(self::once())
+            ->method('post')
+            ->willReturnCallback(
+                function ($websiteId, $uri, $body) use ($boldApiResultMock, &$capturedPublicOrderId) {
+                    $capturedPublicOrderId = $body['public_order_id'] ?? null;
+
+                    return $boldApiResultMock;
+                }
+            );
+
+        $checkoutDataStub = $this->createMock(CheckoutData::class);
+        $checkoutDataStub->expects(self::once())->method('resetCheckoutData');
+        $checkoutDataStub->expects(self::once())->method('initCheckoutData');
+        $checkoutDataStub->method('getPublicOrderId')->willReturn($freshPublicOrderId);
+
+        $objectManager->configure([CheckoutData::class => ['shared' => true]]);
+        $objectManager->addSharedInstance($checkoutDataStub, CheckoutData::class);
+
+        /** @var Create $createExpressPayOrderService */
+        $createExpressPayOrderService = $objectManager->create(
+            Create::class,
+            [
+                'httpClient' => $boldClientMock,
+            ]
+        );
+
+        $createExpressPayOrderService->execute(
+            $this->getQuoteMaskId(),
+            $completedPublicOrderId,
+            'e4403e69-1fd2-4d8a-be28-fdbf911a20bb',
+            'dynamic',
+            false,
+            ''
+        );
+
+        self::assertSame($freshPublicOrderId, $capturedPublicOrderId);
     }
 
     private function getQuote(string $fixture = 'default'): \Magento\Quote\Api\Data\CartInterface
